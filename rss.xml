@@ -1,0 +1,199 @@
+<?xml version="1.0"?>
+<rss version="2.0">
+  <channel>
+    <title>XLE development blog</title>
+    <description>XLE development blog</description>
+    <link>http://xlgames-inc.github.io</link>
+    <pubDate>2015-12-02</pubDate>
+    <item>
+      <title>About</title>
+      <link>http://xlgames-inc.github.io/about</link>
+      <description>&lt;p&gt;XLE is an open-source game engine (currently in development).&lt;/p&gt;
+
+&lt;p&gt;Find us on Github:
+    &lt;a href="https://github.com/xlgames-inc/XLE"&gt;https://github.com/xlgames-inc/XLE&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Documentation starting point:
+    &lt;a href="https://github.com/xlgames-inc/XLE/wiki"&gt;https://github.com/xlgames-inc/XLE/wiki&lt;/a&gt;&lt;/p&gt;
+</description>
+    </item>
+    <item>
+      <title>Archive</title>
+      <link>http://xlgames-inc.github.io/archive</link>
+      <description>
+  &lt;h2&gt;2015&lt;/h2&gt;
+    &lt;h3&gt;December&lt;/h3&gt;
+    &lt;ul&gt;
+      &lt;li&gt;&lt;span&gt;2015-12-02&lt;/span&gt; &amp;raquo; &lt;a href="/posts/arealightsandpbr"&gt;Area Lights with Physically Based Rendering&lt;/a&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;span&gt;2015-12-01&lt;/span&gt; &amp;raquo; &lt;a href="/posts/first"&gt;First post&lt;/a&gt;&lt;/li&gt;
+    &lt;/ul&gt;
+</description>
+    </item>
+    <item>
+      <title>Categories</title>
+      <link>http://xlgames-inc.github.io/categories</link>
+      <description>
+&lt;ul class="tag_box inline"&gt;
+  &lt;li&gt;
+    &lt;a href="/categories#Physically Based Rendering-ref"&gt;Physically Based Rendering &lt;span&gt;1&lt;/span&gt;&lt;/a&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;a href="/categories#blog-ref"&gt;blog &lt;span&gt;1&lt;/span&gt;&lt;/a&gt;
+  &lt;/li&gt;
+&lt;/ul&gt;
+
+  &lt;h3&gt;Physically Based Rendering (1)&lt;/h3&gt;
+  &lt;ul&gt;
+      &lt;li&gt;&lt;a href="/posts/arealightsandpbr"&gt;Area Lights with Physically Based Rendering&lt;/a&gt;&lt;/li&gt;
+  &lt;/ul&gt;
+  &lt;h3&gt;blog (1)&lt;/h3&gt;
+  &lt;ul&gt;
+      &lt;li&gt;&lt;a href="/posts/first"&gt;First post&lt;/a&gt;&lt;/li&gt;
+  &lt;/ul&gt;
+</description>
+    </item>
+    <item>
+      <title>Home</title>
+      <link>http://xlgames-inc.github.io/</link>
+      <description>&lt;p&gt;
+    XLE is a open-source (MIT license) game engine currently in development at XL Games.&lt;br /&gt;
+    &lt;i&gt;Please note; this engine is still a work in progress!&lt;/i&gt;
+&lt;/p&gt;
+&lt;p&gt;For more information, see our &lt;a href="https://github.com/xlgames-inc/XLE/wiki"&gt;wiki on Github&lt;/a&gt;&lt;/p&gt;
+
+
+&lt;div class="post"&gt;
+  &lt;h3 class="title"&gt;&lt;a href="/posts/arealightsandpbr"&gt;Area Lights with Physically Based Rendering&lt;/a&gt; &lt;span class="date"&gt;2015-12-02&lt;/span&gt;&lt;/h3&gt;
+
+  &lt;div class="summary ellipsis"&gt;
+&lt;p&gt;XLE now support a few area light types: &lt;em&gt;sphere&lt;/em&gt;, &lt;em&gt;tube&lt;/em&gt; &amp;amp; &lt;em&gt;rectangle&lt;/em&gt; (with &lt;em&gt;disc&lt;/em&gt; and maybe some other shapes coming soon). Maybe in a future post I'll go into some details about the implementation (actually, it's quite interesting!). But this post is about something different: this post is about why they are important.&lt;/p&gt;
+
+&lt;p&gt;I'm finding that it makes a huge difference. So much so that not only do we want to support area lights -- we also want to outlaw non-area lights. Point light sources are now the enemy!&lt;/p&gt;
+
+&lt;h2 id="toc_0"&gt;PBR Concept&lt;/h2&gt;
+
+&lt;p&gt;The biggest buzzword at the moment is Physically Based Renderering (or PBR, or sometimes Physically Based Shading). But what does that mean, really?
+Partially it means sampling values from the real world. But really it's just a container under which we're placing many related concepts.&lt;/p&gt;
+
+&lt;p&gt;One of these "sub-concepts" of PBR is the idea that a single material should work in many different lighting environments.&lt;/p&gt;
+
+&lt;p&gt;In the past, artists often tweaked the material settings for objects to suit the lighting environment they are in. This is a problem because it means that if the object moves into another lighting environment, the material settings must be tweaked to match.&lt;/p&gt;
+
+&lt;p&gt;This happen in both movies and games. In games, it's particularly a problem for games with a day/night cycle. In games where time is changing, the lighting environment is also always changing. Previously this means that extreme lighting settings (sunsets, etc) had to be more subtle than real-life. What we want is materials that look correct in all possible lighting environments.&lt;/p&gt;
+
+&lt;h2 id="toc_1"&gt;Specular highlight size&lt;/h2&gt;
+
+&lt;p&gt;There's a simple way to think about this. Let's consider the size of a specular highlight.&lt;/p&gt;
+
+&lt;p&gt;Here are 5 spheres rendered in Blender with Cook Torrence lighting.
+&lt;img src="/assets/media/SpecularExample.png"&gt;&lt;/p&gt;
+
+&lt;/div&gt;
+
+  &lt;div class="more"&gt;
+    &lt;a href="/posts/arealightsandpbr" class="btn btn-small"&gt;read more..&lt;/a&gt;
+  &lt;/div&gt;
+&lt;/div&gt;
+&lt;div class="post"&gt;
+  &lt;h3 class="title"&gt;&lt;a href="/posts/first"&gt;First post&lt;/a&gt; &lt;span class="date"&gt;2015-12-01&lt;/span&gt;&lt;/h3&gt;
+
+  &lt;div class="summary ellipsis"&gt;
+&lt;p&gt;This blog will contain some day-to-day information about XLE.&lt;/p&gt;
+
+&lt;p&gt;Let's start with some screenshots, rendered with XLE:&lt;/p&gt;
+
+&lt;p&gt;&lt;img src="/assets/media/CaptainSplitBrightLogo.png"&gt;&lt;br&gt;
+The Captain character from &lt;a href="http://archeage.xlgames.com/"&gt;Archeage&lt;/a&gt; (&lt;a href="http://www.trionworlds.com/archeage/en/"&gt;US site&lt;/a&gt;). &lt;/p&gt;
+
+&lt;p&gt;&lt;img src="/assets/media/Archepunk4.png"&gt;&lt;br&gt;
+One of the (many) costumes from Archeage.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src="/assets/media/SkeleCommander.png"&gt;&lt;br&gt;
+A skeleton enemy from Archeage.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src="/assets/media/Copperhead1.png"&gt;&lt;br&gt;
+A military spacecraft.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src="/assets/media/NyraAndDragon1.png"&gt;&lt;br&gt;
+One of the costumes from Archeage, and "Nyra" character.
+Nyra model comes from &lt;a href="http://www.paultosca.com/"&gt;Paul Tosca&lt;/a&gt;. Thanks for the great model, Paul!&lt;/p&gt;
+
+&lt;p&gt;&lt;img src="/assets/media/Nyra9.png"&gt;&lt;br&gt;
+Detail of Nyra&lt;/p&gt;
+&lt;/div&gt;
+
+  &lt;div class="more"&gt;
+    &lt;a href="/posts/first" class="btn btn-small"&gt;read more..&lt;/a&gt;
+  &lt;/div&gt;
+&lt;/div&gt;
+
+&lt;div class="pagination"&gt;
+  &lt;ul&gt;
+      &lt;li class="active"&gt;&lt;a href="/posts/index/1"&gt;1&lt;/a&gt;&lt;/li&gt;
+  &lt;/ul&gt;
+&lt;/div&gt;
+</description>
+    </item>
+    <item>
+      <title>Pages</title>
+      <link>http://xlgames-inc.github.io/pages</link>
+      <description>
+&lt;ul&gt;
+  
+    &lt;li&gt;&lt;a href="/about"&gt;About&lt;/a&gt;&lt;/li&gt;
+  
+  
+    &lt;li&gt;&lt;a href="/archive"&gt;Archive&lt;/a&gt;&lt;/li&gt;
+  
+  
+    &lt;li&gt;&lt;a href="/categories"&gt;Categories&lt;/a&gt;&lt;/li&gt;
+  
+  
+    &lt;li&gt;&lt;a href="/"&gt;Home&lt;/a&gt;&lt;/li&gt;
+  
+    &lt;li class="active"&gt;&lt;a href="/pages" class="active"&gt;Pages&lt;/a&gt;&lt;/li&gt;
+  
+  
+  
+    &lt;li&gt;&lt;a href="/tags"&gt;Tags&lt;/a&gt;&lt;/li&gt;
+  
+&lt;/ul&gt;
+</description>
+    </item>
+    <item>
+      <title>Tags</title>
+      <link>http://xlgames-inc.github.io/tags</link>
+      <description>
+&lt;ul class="tag_box inline"&gt;
+  &lt;li&gt;
+    &lt;a href="/tags#PBR-ref"&gt;PBR &lt;span&gt;1&lt;/span&gt;&lt;/a&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;a href="/tags#AreaLights-ref"&gt;AreaLights &lt;span&gt;1&lt;/span&gt;&lt;/a&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;a href="/tags#Roughness-ref"&gt;Roughness &lt;span&gt;1&lt;/span&gt;&lt;/a&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;a href="/tags#Materials-ref"&gt;Materials &lt;span&gt;1&lt;/span&gt;&lt;/a&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;a href="/tags#blog-ref"&gt;blog &lt;span&gt;1&lt;/span&gt;&lt;/a&gt;
+  &lt;/li&gt;
+&lt;/ul&gt;
+
+  &lt;h3 id="PBR-ref"&gt;PBR&lt;/h3&gt;
+    &lt;li&gt;&lt;a href="/posts/arealightsandpbr"&gt;Area Lights with Physically Based Rendering&lt;/a&gt;&lt;/li&gt;
+  &lt;h3 id="AreaLights-ref"&gt;AreaLights&lt;/h3&gt;
+    &lt;li&gt;&lt;a href="/posts/arealightsandpbr"&gt;Area Lights with Physically Based Rendering&lt;/a&gt;&lt;/li&gt;
+  &lt;h3 id="Roughness-ref"&gt;Roughness&lt;/h3&gt;
+    &lt;li&gt;&lt;a href="/posts/arealightsandpbr"&gt;Area Lights with Physically Based Rendering&lt;/a&gt;&lt;/li&gt;
+  &lt;h3 id="Materials-ref"&gt;Materials&lt;/h3&gt;
+    &lt;li&gt;&lt;a href="/posts/arealightsandpbr"&gt;Area Lights with Physically Based Rendering&lt;/a&gt;&lt;/li&gt;
+  &lt;h3 id="blog-ref"&gt;blog&lt;/h3&gt;
+    &lt;li&gt;&lt;a href="/posts/first"&gt;First post&lt;/a&gt;&lt;/li&gt;
+ 
+</description>
+    </item>
+  </channel>
+</rss>

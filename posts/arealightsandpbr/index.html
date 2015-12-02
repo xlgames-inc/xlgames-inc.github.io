@@ -1,0 +1,208 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Area Lights with Physically Based Rendering</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="author" content="XL Games">
+
+    <!-- Le HTML5 shim, for IE6-8 support of HTML elements -->
+    <!--[if lt IE 9]>
+      <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+
+    <!-- Le styles -->
+<link href='/assets/stylesheets/bootstrap.min-93b47f97c3444c4711853ed5140d82a1.css' type='text/css' rel='stylesheet' media='all'>
+<link href='/assets/stylesheets/style-a88fce574e723470155fd4f111bc145f.css' type='text/css' rel='stylesheet' media='all'>
+<link href='/assets/stylesheets/google_prettify/sons-of-obsidian-5e05343fd0c18e0a05231023b643245c.css' type='text/css' rel='stylesheet' media='all'>
+    <!-- Le fav and touch icons -->
+  <!-- Update these with your own images
+    <link rel="shortcut icon" href="images/favicon.ico">
+    <link rel="apple-touch-icon" href="images/apple-touch-icon.png">
+    <link rel="apple-touch-icon" sizes="72x72" href="images/apple-touch-icon-72x72.png">
+    <link rel="apple-touch-icon" sizes="114x114" href="images/apple-touch-icon-114x114.png">
+  -->
+  </head>
+
+  <body>
+
+    <div class="navbar">
+      <div class="navbar-inner">
+        <div class="container-narrow">
+          <a class="brand" href="/">XLE development blog</a>
+          <ul class="nav">
+              
+                <li><a href="/tags">Tags</a></li>
+              
+              
+                <li><a href="/categories">Categories</a></li>
+              
+              
+                <li><a href="/pages">Pages</a></li>
+              
+              
+                <li><a href="/about">About</a></li>
+              
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="container-narrow">
+
+      <div class="content">
+        
+<div class="page-header">
+  <h1>Area Lights with Physically Based Rendering </h1>
+</div>
+
+<div class="row-fluid post-full">
+  <div class="span12">
+    <div class="date">
+      <span>2015-12-02</strong>
+    </div>
+    <div class="content">
+      <p>XLE now support a few area light types: <em>sphere</em>, <em>tube</em> &amp; <em>rectangle</em> (with <em>disc</em> and maybe some other shapes coming soon). Maybe in a future post I&#39;ll go into some details about the implementation (actually, it&#39;s quite interesting!). But this post is about something different: this post is about why they are important.</p>
+
+<p>I&#39;m finding that it makes a huge difference. So much so that not only do we want to support area lights -- we also want to outlaw non-area lights. Point light sources are now the enemy!</p>
+
+<h2 id="toc_0">PBR Concept</h2>
+
+<p>The biggest buzzword at the moment is Physically Based Renderering (or PBR, or sometimes Physically Based Shading). But what does that mean, really?
+Partially it means sampling values from the real world. But really it&#39;s just a container under which we&#39;re placing many related concepts.</p>
+
+<p>One of these &quot;sub-concepts&quot; of PBR is the idea that a single material should work in many different lighting environments.</p>
+
+<p>In the past, artists often tweaked the material settings for objects to suit the lighting environment they are in. This is a problem because it means that if the object moves into another lighting environment, the material settings must be tweaked to match.</p>
+
+<p>This happen in both movies and games. In games, it&#39;s particularly a problem for games with a day/night cycle. In games where time is changing, the lighting environment is also always changing. Previously this means that extreme lighting settings (sunsets, etc) had to be more subtle than real-life. What we want is materials that look correct in all possible lighting environments.</p>
+
+<h2 id="toc_1">Specular highlight size</h2>
+
+<p>There&#39;s a simple way to think about this. Let&#39;s consider the size of a specular highlight.</p>
+
+<p>Here are 5 spheres rendered in Blender with Cook Torrence lighting.
+<img src="/assets/media/SpecularExample.png"></p>
+
+<p>Each sphere is reflecting the same light, but the material settings are changed to change the size of highlight in each sphere.</p>
+
+<p>In older games, this was the only way to change the size of the highlight. If a highlight appeared too small or too big, an artist would change the material settings.</p>
+
+<p>However there should be something else that should effect the size of the highlight: obviously, it&#39;s the shape of the light! We need area lights to achieve that.</p>
+
+<h2 id="toc_2">New model for specular highlights</h2>
+
+<p>So, we have two important concepts to control the size of the specular highlights:
+- <strong>material roughness</strong>
+- <strong>light size</strong></p>
+
+<p>Notice that these ideas are simpler and clearer than concepts in older engines. Previously we might talk about <em>&quot;gloss&quot;</em> or <em>&quot;specular power&quot;</em> or <em>&quot;specular hardness.&quot;</em> But what do those really mean?</p>
+
+<p>Roughness is much clearer. It&#39;s just a single value between 0 and 1. And it&#39;s linear -- not exponential! It&#39;s probably the most important variable of our material model (other than Color, I guess).</p>
+
+<h3 id="toc_3">Roughness</h3>
+
+<p>Roughness controls the size of the highlight by spreading the light energy over a large area.</p>
+
+<p>Notice the image above. In one extreme the highlight is a dense, concentrated point of light. In the other extreme, the specular light energy is spread out over a very large area, so that it appear almost like diffuse lighting.</p>
+
+<p>This is critical for us because in XLE, all materials are reflective. But when the roughness is very high, the reflections get spread out over a very large area, so that they appear almost diffuse.</p>
+
+<p>Also, both specular highlights and IBL reflections get spread out in the same way. Sometimes it&#39;s even difficult to tell what is a specular highlight, and what is a reflection.</p>
+
+<h3 id="toc_4">Light size</h3>
+
+<p>With rectangle and sphere lights, the size of the highlight will change significantly with the size of the light (and also the distance to the light). But it changes in a very different way to roughness. Large lights give an appearance that just wasn&#39;t possible previously.</p>
+
+<p>If we want to make a very large specular highlight, we can do that by changing the size of the light. So there is no need to tweak the material any more!</p>
+
+<h2 id="toc_5">No more point lights</h2>
+
+<p>Now, the only problem with this is point lights no longer look correct. If the material is balanced correctly for use with area lights, then highlights from point lights will look unnaturally too small. This is logical, because point light sources don&#39;t exist in reality.</p>
+
+<p>Fortunately, sphere lights are only slightly more expensive than point lights. And we can use the same BRDFs with sphere lights. So it&#39;s an easy transition.</p>
+
+<p>So the solution is to always use area lights, and never use point lights.</p>
+
+<h2 id="toc_6">Authoring material settings</h2>
+
+<p>Even though we&#39;ve created a separation between material settings and lighting environment settings, I&#39;m still finding that we will probably need some kind of standard lighting environment for authoring the material settings.</p>
+
+<p>That is, the values that artists will select for roughness may vary with the lighting environment they are testing with.</p>
+
+<p>Probably an <em>Image Based Lighting</em> environment would be best for this. This is a great reason why BRDF for IBL and dynamic lights should match as closely as possible. We should author the material settings in a 100% IBL environment, and then we should expect that dynamic lights should just work.</p>
+
+<h2 id="toc_7">Simpler... and better</h2>
+
+<p>So, I found that area lights are critical to the PBR concept. So much so that an engine that doesn&#39;t support area lights shouldn&#39;t properly be called PBR.</p>
+
+<p>And I think it meets two important concepts of PBR:
+- materials should look correct in all lighting environments
+- it should be simpler and better (at the same time)</p>
+
+<p>3 cheers for area lights!</p>
+
+    </div>
+    <ul class="tag_box inline">
+      <li><i class="icon-folder-open"></i></li>
+      <li>
+        <a href="/categories#Physically Based Rendering-ref">Physically Based Rendering <span>1</span></a>
+      </li>
+    </ul>
+    <ul class="tag_box inline">
+      <li><i class="icon-tags"></i></li>
+      <li>
+        <a href="/tags#PBR-ref">PBR <span>1</span></a>
+      </li>
+      <li>
+        <a href="/tags#AreaLights-ref">AreaLights <span>1</span></a>
+      </li>
+      <li>
+        <a href="/tags#Roughness-ref">Roughness <span>1</span></a>
+      </li>
+      <li>
+        <a href="/tags#Materials-ref">Materials <span>1</span></a>
+      </li>
+    </ul>
+    <hr>
+    <div class="pagination">
+      <ul>
+          <li class="prev"><a href="/posts/first" title="First post">&larr; Previous</a></li>
+
+          <li><a href="/archive">Archive</a></li>
+
+          <li class="next disabled"><a>Next &rarr;</a>
+      </ul>
+    </div>
+    <hr>
+    
+  </div>
+</div>
+
+
+      </div>
+
+      <hr>
+      <div class="footer">
+        <p>&copy; XL Games 2015
+          with help from <a href="http://ruhoh.com" target="_blank" title="The Definitive Technical Blogging Framework">ruhoh</a>
+          and <a href="http://twitter.github.com/bootstrap/" target="_blank">Twitter Bootstrap</a>
+        </p>
+      </div>
+
+    </div> <!-- /container -->
+
+    <!-- Google Prettify -->
+<script src="http://cdnjs.cloudflare.com/ajax/libs/prettify/188.0.0/prettify.js"></script>
+<script>
+  var pres = document.getElementsByTagName("pre");
+  for (var i=0; i < pres.length; ++i) {
+    pres[i].className = "prettyprint linenums";
+  }
+  prettyPrint();
+</script>
+<!-- end Google Prettify -->
+    
+    
+  </body>
+</html>

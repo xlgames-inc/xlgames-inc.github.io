@@ -1,0 +1,12 @@
+title : XLE development blog
+tagline: A day in the life of a game engine
+author :
+  name : XL Games
+  email : xle@xlgames.com
+  github : xlgames-inc
+
+navigation :
+  - tags
+  - categories
+  - pages
+  - about

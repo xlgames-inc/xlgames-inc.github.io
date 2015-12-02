@@ -1,0 +1,127 @@
+<?xml version="1.0"?>
+<rss version="2.0">
+  <channel>
+    <title>XLE development blog</title>
+    <description>XLE development blog</description>
+    <link>http://xlgames-inc.github.io</link>
+    <pubDate>2015-12-02</pubDate>
+    <item>
+      <title>Area Lights with Physically Based Rendering</title>
+      <link>http://xlgames-inc.github.io/posts/arealightsandpbr</link>
+      <pubDate>2015-12-02</pubDate>
+      <description>&lt;p&gt;XLE now support a few area light types: &lt;em&gt;sphere&lt;/em&gt;, &lt;em&gt;tube&lt;/em&gt; &amp;amp; &lt;em&gt;rectangle&lt;/em&gt; (with &lt;em&gt;disc&lt;/em&gt; and maybe some other shapes coming soon). Maybe in a future post I&amp;#39;ll go into some details about the implementation (actually, it&amp;#39;s quite interesting!). But this post is about something different: this post is about why they are important.&lt;/p&gt;
+
+&lt;p&gt;I&amp;#39;m finding that it makes a huge difference. So much so that not only do we want to support area lights -- we also want to outlaw non-area lights. Point light sources are now the enemy!&lt;/p&gt;
+
+&lt;h2 id="toc_0"&gt;PBR Concept&lt;/h2&gt;
+
+&lt;p&gt;The biggest buzzword at the moment is Physically Based Renderering (or PBR, or sometimes Physically Based Shading). But what does that mean, really?
+Partially it means sampling values from the real world. But really it&amp;#39;s just a container under which we&amp;#39;re placing many related concepts.&lt;/p&gt;
+
+&lt;p&gt;One of these &amp;quot;sub-concepts&amp;quot; of PBR is the idea that a single material should work in many different lighting environments.&lt;/p&gt;
+
+&lt;p&gt;In the past, artists often tweaked the material settings for objects to suit the lighting environment they are in. This is a problem because it means that if the object moves into another lighting environment, the material settings must be tweaked to match.&lt;/p&gt;
+
+&lt;p&gt;This happen in both movies and games. In games, it&amp;#39;s particularly a problem for games with a day/night cycle. In games where time is changing, the lighting environment is also always changing. Previously this means that extreme lighting settings (sunsets, etc) had to be more subtle than real-life. What we want is materials that look correct in all possible lighting environments.&lt;/p&gt;
+
+&lt;h2 id="toc_1"&gt;Specular highlight size&lt;/h2&gt;
+
+&lt;p&gt;There&amp;#39;s a simple way to think about this. Let&amp;#39;s consider the size of a specular highlight.&lt;/p&gt;
+
+&lt;p&gt;Here are 5 spheres rendered in Blender with Cook Torrence lighting.
+&lt;img src="/assets/media/SpecularExample.png"&gt;&lt;/p&gt;
+
+&lt;p&gt;Each sphere is reflecting the same light, but the material settings are changed to change the size of highlight in each sphere.&lt;/p&gt;
+
+&lt;p&gt;In older games, this was the only way to change the size of the highlight. If a highlight appeared too small or too big, an artist would change the material settings.&lt;/p&gt;
+
+&lt;p&gt;However there should be something else that should effect the size of the highlight: obviously, it&amp;#39;s the shape of the light! We need area lights to achieve that.&lt;/p&gt;
+
+&lt;h2 id="toc_2"&gt;New model for specular highlights&lt;/h2&gt;
+
+&lt;p&gt;So, we have two important concepts to control the size of the specular highlights:
+- &lt;strong&gt;material roughness&lt;/strong&gt;
+- &lt;strong&gt;light size&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;Notice that these ideas are simpler and clearer than concepts in older engines. Previously we might talk about &lt;em&gt;&amp;quot;gloss&amp;quot;&lt;/em&gt; or &lt;em&gt;&amp;quot;specular power&amp;quot;&lt;/em&gt; or &lt;em&gt;&amp;quot;specular hardness.&amp;quot;&lt;/em&gt; But what do those really mean?&lt;/p&gt;
+
+&lt;p&gt;Roughness is much clearer. It&amp;#39;s just a single value between 0 and 1. And it&amp;#39;s linear -- not exponential! It&amp;#39;s probably the most important variable of our material model (other than Color, I guess).&lt;/p&gt;
+
+&lt;h3 id="toc_3"&gt;Roughness&lt;/h3&gt;
+
+&lt;p&gt;Roughness controls the size of the highlight by spreading the light energy over a large area.&lt;/p&gt;
+
+&lt;p&gt;Notice the image above. In one extreme the highlight is a dense, concentrated point of light. In the other extreme, the specular light energy is spread out over a very large area, so that it appear almost like diffuse lighting.&lt;/p&gt;
+
+&lt;p&gt;This is critical for us because in XLE, all materials are reflective. But when the roughness is very high, the reflections get spread out over a very large area, so that they appear almost diffuse.&lt;/p&gt;
+
+&lt;p&gt;Also, both specular highlights and IBL reflections get spread out in the same way. Sometimes it&amp;#39;s even difficult to tell what is a specular highlight, and what is a reflection.&lt;/p&gt;
+
+&lt;h3 id="toc_4"&gt;Light size&lt;/h3&gt;
+
+&lt;p&gt;With rectangle and sphere lights, the size of the highlight will change significantly with the size of the light (and also the distance to the light). But it changes in a very different way to roughness. Large lights give an appearance that just wasn&amp;#39;t possible previously.&lt;/p&gt;
+
+&lt;p&gt;If we want to make a very large specular highlight, we can do that by changing the size of the light. So there is no need to tweak the material any more!&lt;/p&gt;
+
+&lt;h2 id="toc_5"&gt;No more point lights&lt;/h2&gt;
+
+&lt;p&gt;Now, the only problem with this is point lights no longer look correct. If the material is balanced correctly for use with area lights, then highlights from point lights will look unnaturally too small. This is logical, because point light sources don&amp;#39;t exist in reality.&lt;/p&gt;
+
+&lt;p&gt;Fortunately, sphere lights are only slightly more expensive than point lights. And we can use the same BRDFs with sphere lights. So it&amp;#39;s an easy transition.&lt;/p&gt;
+
+&lt;p&gt;So the solution is to always use area lights, and never use point lights.&lt;/p&gt;
+
+&lt;h2 id="toc_6"&gt;Authoring material settings&lt;/h2&gt;
+
+&lt;p&gt;Even though we&amp;#39;ve created a separation between material settings and lighting environment settings, I&amp;#39;m still finding that we will probably need some kind of standard lighting environment for authoring the material settings.&lt;/p&gt;
+
+&lt;p&gt;That is, the values that artists will select for roughness may vary with the lighting environment they are testing with.&lt;/p&gt;
+
+&lt;p&gt;Probably an &lt;em&gt;Image Based Lighting&lt;/em&gt; environment would be best for this. This is a great reason why BRDF for IBL and dynamic lights should match as closely as possible. We should author the material settings in a 100% IBL environment, and then we should expect that dynamic lights should just work.&lt;/p&gt;
+
+&lt;h2 id="toc_7"&gt;Simpler... and better&lt;/h2&gt;
+
+&lt;p&gt;So, I found that area lights are critical to the PBR concept. So much so that an engine that doesn&amp;#39;t support area lights shouldn&amp;#39;t properly be called PBR.&lt;/p&gt;
+
+&lt;p&gt;And I think it meets two important concepts of PBR:
+- materials should look correct in all lighting environments
+- it should be simpler and better (at the same time)&lt;/p&gt;
+
+&lt;p&gt;3 cheers for area lights!&lt;/p&gt;
+</description>
+    </item>
+    <item>
+      <title>First post</title>
+      <link>http://xlgames-inc.github.io/posts/first</link>
+      <pubDate>2015-12-01</pubDate>
+      <description>&lt;p&gt;This blog will contain some day-to-day information about XLE.&lt;/p&gt;
+
+&lt;p&gt;Let&amp;#39;s start with some screenshots, rendered with XLE:&lt;/p&gt;
+
+&lt;p&gt;&lt;img src="/assets/media/CaptainSplitBrightLogo.png"&gt;&lt;br&gt;
+The Captain character from &lt;a href="http://archeage.xlgames.com/"&gt;Archeage&lt;/a&gt; (&lt;a href="http://www.trionworlds.com/archeage/en/"&gt;US site&lt;/a&gt;). &lt;/p&gt;
+
+&lt;p&gt;&lt;img src="/assets/media/Archepunk4.png"&gt;&lt;br&gt;
+One of the (many) costumes from Archeage.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src="/assets/media/SkeleCommander.png"&gt;&lt;br&gt;
+A skeleton enemy from Archeage.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src="/assets/media/Copperhead1.png"&gt;&lt;br&gt;
+A military spacecraft.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src="/assets/media/NyraAndDragon1.png"&gt;&lt;br&gt;
+One of the costumes from Archeage, and &amp;quot;Nyra&amp;quot; character.
+Nyra model comes from &lt;a href="http://www.paultosca.com/"&gt;Paul Tosca&lt;/a&gt;. Thanks for the great model, Paul!&lt;/p&gt;
+
+&lt;p&gt;&lt;img src="/assets/media/Nyra9.png"&gt;&lt;br&gt;
+Detail of Nyra&lt;/p&gt;
+
+&lt;p&gt;&lt;img src="/assets/media/Nyra10.png"&gt;&lt;br&gt;
+One more from Nyra.&lt;/p&gt;
+
+&lt;p&gt;Many of the backgrounds in these images are from &lt;a href="http://www.hdrlabs.com/sibl/archive.html"&gt;sIBL Archive&lt;/a&gt;.&lt;/p&gt;
+</description>
+    </item>
+  </channel>
+</rss>
