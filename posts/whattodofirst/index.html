@@ -77,6 +77,13 @@
 
 <p>Start up this application, and you should see a large 3D window and various other windows about.</p>
 
+<p>The level editor is based on a great project from Sony WWS <a href="https://github.com/SonyWWS/LevelEditor">SonyWWSLevelEditor</a>. 
+It has been modified to work with XLE, and some XLE specific behaviour has been added. I think this is a great example of the Open Source concept working for games developers.</p>
+
+<hr>
+
+<h2 id="toc_1">Creating an object</h2>
+
 <p>For the first minute, the 3D window will appear black. This is because shaders are compiling in the background. They will get flushed to disk on application shutdown, so it only happens the first time.</p>
 
 <p>Select <em>&quot;Window/Resources&quot;</em> to open the resources panel. You should see the directory structure under the &quot;working&quot; folder. Here, you can find <strong>.dae</strong> (Collada) files.</p>
@@ -87,13 +94,13 @@
 
 <p><br/><br/></p>
 
-<h3 id="toc_1">Collada notes</h3>
+<h3 id="toc_2">Collada notes</h3>
 
 <p>XLE should support all well formatted Collada files. But unfortunately some exporters produce poorly formatted files. For example, sometimes texture names are prefixed with <em>&quot;file://&quot;</em> -- this isn&#39;t supported in XLE.</p>
 
 <p>But you should be fine with the Blender Collada exporter, or the OpenCollada exporter for Max/Maya. You can also use <a href="http://www.assimp.org/">Open Asset Import Library</a> to convert files to Collada format.</p>
 
-<h3 id="toc_2">Placement documents</h3>
+<h3 id="toc_3">Placement documents</h3>
 
 <p>In the level editor, the main &quot;game&quot; file is like a solution file in Visual Studio. It contains links to project documents under it. One type of document is a &quot;placements&quot; document (called a <em>placements cell</em>). This contains a list of static objects with basic properties.</p>
 
@@ -107,7 +114,7 @@
 
 <hr>
 
-<h2 id="toc_3">Adding lighting settings</h2>
+<h2 id="toc_4">Adding lighting settings</h2>
 
 <p>Probably, you will want to play with some lighting settings next.</p>
 
@@ -135,7 +142,7 @@ Here you can see all of the properties for the item. You can customize the light
 
 <hr>
 
-<h2 id="toc_4">Console debugging modes</h2>
+<h2 id="toc_5">Console debugging modes</h2>
 
 <p>Next, find the &quot;IronPython&quot; window (use Window/Iron Python to enable it if it is hidden).</p>
 
@@ -145,7 +152,7 @@ Here you can see all of the properties for the item. You can customize the light
 
 <hr>
 
-<h2 id="toc_5">What about the next 10 minutes?</h2>
+<h2 id="toc_6">What about the next 10 minutes?</h2>
 
 <p>Well, that&#39;s the end of the quick introduction. The rest is up to you. Have fun!</p>
 

@@ -146,12 +146,12 @@ A metal golem character from Archeage.&lt;/p&gt;
 
 &lt;p&gt;Start up this application, and you should see a large 3D window and various other windows about.&lt;/p&gt;
 
-&lt;p&gt;For the first minute, the 3D window will appear black. This is because shaders are compiling in the background. They will get flushed to disk on application shutdown, so it only happens the first time.&lt;/p&gt;
+&lt;p&gt;The level editor is based on a great project from Sony WWS &lt;a href="https://github.com/SonyWWS/LevelEditor"&gt;SonyWWSLevelEditor&lt;/a&gt;. 
+It has been modified to work with XLE, and some XLE specific behaviour has been added. I think this is a great example of the Open Source concept working for games developers.&lt;/p&gt;
 
-&lt;p&gt;Select &lt;em&gt;"Window/Resources"&lt;/em&gt; to open the resources panel. You should see the directory structure under the "working" folder. Here, you can find &lt;strong&gt;.dae&lt;/strong&gt; (Collada) files.&lt;/p&gt;
+&lt;hr&gt;
 
-&lt;p&gt;Find a dae file, and drag it into the 3D viewport (or you can drag from Windows Explorer).&lt;/p&gt;
-
+&lt;h2 id="toc_1"&gt;Creating an object&lt;/h2&gt;
 &lt;/div&gt;
 
   &lt;div class="more"&gt;
