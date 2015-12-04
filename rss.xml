@@ -4,7 +4,7 @@
     <title>XLE development blog</title>
     <description>XLE development blog</description>
     <link>http://xlgames-inc.github.io</link>
-    <pubDate>2015-12-02</pubDate>
+    <pubDate>2015-12-04</pubDate>
     <item>
       <title>About</title>
       <link>http://xlgames-inc.github.io/about</link>
@@ -26,6 +26,7 @@
     &lt;ul&gt;
       &lt;li&gt;&lt;span&gt;2015-12-02&lt;/span&gt; &amp;raquo; &lt;a href="/posts/arealightsandpbr"&gt;Area Lights with Physically Based Rendering&lt;/a&gt;&lt;/li&gt;
       &lt;li&gt;&lt;span&gt;2015-12-01&lt;/span&gt; &amp;raquo; &lt;a href="/posts/first"&gt;First post&lt;/a&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;span&gt;2015-12-04&lt;/span&gt; &amp;raquo; &lt;a href="/posts/whattodofirst"&gt;What to do first&lt;/a&gt;&lt;/li&gt;
     &lt;/ul&gt;
 </description>
     </item>
@@ -123,6 +124,37 @@ A metal golem character from Archeage.&lt;/p&gt;
 
   &lt;div class="more"&gt;
     &lt;a href="/posts/first" class="btn btn-small"&gt;read more..&lt;/a&gt;
+  &lt;/div&gt;
+&lt;/div&gt;
+&lt;div class="post"&gt;
+  &lt;h3 class="title"&gt;&lt;a href="/posts/whattodofirst"&gt;What to do first&lt;/a&gt; &lt;span class="date"&gt;2015-12-04&lt;/span&gt;&lt;/h3&gt;
+
+  &lt;div class="summary ellipsis"&gt;
+&lt;p&gt;So, you've just downloaded XLE, and you're wondering what to do first? Here's a suggestion for the first 10 minutes:&lt;/p&gt;
+
+&lt;hr&gt;
+
+&lt;h2 id="toc_0"&gt;Startup the level editor&lt;/h2&gt;
+
+&lt;p&gt;Select the Level Editor as the startup project:
+&lt;br&gt;&lt;img src="/assets/media/SolutionExplorerLE.png"&gt;&lt;/p&gt;
+
+&lt;p&gt;You should use the &lt;strong&gt;Debug/x64&lt;/strong&gt; or &lt;strong&gt;Release/x64&lt;/strong&gt; configuration. Though XLE works in both 32 bit and 64 bits modes, normal usage for the level editor should be in 64 bits mode.&lt;/p&gt;
+
+&lt;p&gt;If you have trouble compiling, see the &lt;a href="https://github.com/xlgames-inc/XLE/wiki/CompilingFirstSteps"&gt;Getting Started Compiling page&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;Start up this application, and you should see a large 3D window and various other windows about.&lt;/p&gt;
+
+&lt;p&gt;For the first minute, the 3D window will appear black. This is because shaders are compiling in the background. They will get flushed to disk on application shutdown, so it only happens the first time.&lt;/p&gt;
+
+&lt;p&gt;Select &lt;em&gt;"Window/Resources"&lt;/em&gt; to open the resources panel. You should see the directory structure under the "working" folder. Here, you can find &lt;strong&gt;.dae&lt;/strong&gt; (Collada) files.&lt;/p&gt;
+
+&lt;p&gt;Find a dae file, and drag it into the 3D viewport (or you can drag from Windows Explorer).&lt;/p&gt;
+
+&lt;/div&gt;
+
+  &lt;div class="more"&gt;
+    &lt;a href="/posts/whattodofirst" class="btn btn-small"&gt;read more..&lt;/a&gt;
   &lt;/div&gt;
 &lt;/div&gt;
 

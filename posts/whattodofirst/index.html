@@ -1,0 +1,200 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>What to do first</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="author" content="XL Games">
+
+    <!-- Le HTML5 shim, for IE6-8 support of HTML elements -->
+    <!--[if lt IE 9]>
+      <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+
+    <!-- Le styles -->
+<link href='/assets/stylesheets/bootstrap.min-93b47f97c3444c4711853ed5140d82a1.css' type='text/css' rel='stylesheet' media='all'>
+<link href='/assets/stylesheets/style-a88fce574e723470155fd4f111bc145f.css' type='text/css' rel='stylesheet' media='all'>
+<link href='/assets/stylesheets/google_prettify/sons-of-obsidian-5e05343fd0c18e0a05231023b643245c.css' type='text/css' rel='stylesheet' media='all'>
+    <!-- Le fav and touch icons -->
+  <!-- Update these with your own images
+    <link rel="shortcut icon" href="images/favicon.ico">
+    <link rel="apple-touch-icon" href="images/apple-touch-icon.png">
+    <link rel="apple-touch-icon" sizes="72x72" href="images/apple-touch-icon-72x72.png">
+    <link rel="apple-touch-icon" sizes="114x114" href="images/apple-touch-icon-114x114.png">
+  -->
+  </head>
+
+  <body>
+
+    <div class="navbar">
+      <div class="navbar-inner">
+        <div class="container-narrow">
+          <a class="brand" href="/">XLE development blog</a>
+          <ul class="nav">
+              
+                <li><a href="/tags">Tags</a></li>
+              
+              
+                <li><a href="/categories">Categories</a></li>
+              
+              
+                <li><a href="/pages">Pages</a></li>
+              
+              
+                <li><a href="/about">About</a></li>
+              
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="container-narrow">
+
+      <div class="content">
+        
+<div class="page-header">
+  <h1>What to do first </h1>
+</div>
+
+<div class="row-fluid post-full">
+  <div class="span12">
+    <div class="date">
+      <span>2015-12-04</strong>
+    </div>
+    <div class="content">
+      <p>So, you&#39;ve just downloaded XLE, and you&#39;re wondering what to do first? Here&#39;s a suggestion for the first 10 minutes:</p>
+
+<hr>
+
+<h2 id="toc_0">Startup the level editor</h2>
+
+<p>Select the Level Editor as the startup project:
+<br/><img src="/assets/media/SolutionExplorerLE.png"></p>
+
+<p>You should use the <strong>Debug/x64</strong> or <strong>Release/x64</strong> configuration. Though XLE works in both 32 bit and 64 bits modes, normal usage for the level editor should be in 64 bits mode.</p>
+
+<p>If you have trouble compiling, see the <a href="https://github.com/xlgames-inc/XLE/wiki/CompilingFirstSteps">Getting Started Compiling page</a>.</p>
+
+<p>Start up this application, and you should see a large 3D window and various other windows about.</p>
+
+<p>For the first minute, the 3D window will appear black. This is because shaders are compiling in the background. They will get flushed to disk on application shutdown, so it only happens the first time.</p>
+
+<p>Select <em>&quot;Window/Resources&quot;</em> to open the resources panel. You should see the directory structure under the &quot;working&quot; folder. Here, you can find <strong>.dae</strong> (Collada) files.</p>
+
+<p>Find a dae file, and drag it into the 3D viewport (or you can drag from Windows Explorer).</p>
+
+<p><br/><img src="/assets/media/DesignView.png"></p>
+
+<p><br/><br/></p>
+
+<h3 id="toc_1">Collada notes</h3>
+
+<p>XLE should support all well formatted Collada files. But unfortunately some exporters produce poorly formatted files. For example, sometimes texture names are prefixed with <em>&quot;file://&quot;</em> -- this isn&#39;t supported in XLE.</p>
+
+<p>But you should be fine with the Blender Collada exporter, or the OpenCollada exporter for Max/Maya. You can also use <a href="http://www.assimp.org/">Open Asset Import Library</a> to convert files to Collada format.</p>
+
+<h3 id="toc_2">Placement documents</h3>
+
+<p>In the level editor, the main &quot;game&quot; file is like a solution file in Visual Studio. It contains links to project documents under it. One type of document is a &quot;placements&quot; document (called a <em>placements cell</em>). This contains a list of static objects with basic properties.</p>
+
+<p>Normal large world games should have many placement cells. These can be arranged in a grid structure. But cells can also be overlapping, or have irregular shapes.</p>
+
+<p><br/><img src="/assets/media/DefaultPlacementCell.png"></p>
+
+<p><br/><br/></p>
+
+<p>When you first startup the Level Editor, you get a default untitled placements document. However, you can reconfigure it by right-clicking &quot;Placements&quot; in the Project Lister and selecting &quot;Configure placements...&quot;</p>
+
+<hr>
+
+<h2 id="toc_3">Adding lighting settings</h2>
+
+<p>Probably, you will want to play with some lighting settings next.</p>
+
+<p>First, Find the &quot;Palette&quot; window (select &quot;Window/Palette&quot; to enable it if it isn&#39;t visible).</p>
+
+<p>Here, open up the &quot;Lights&quot; category. You can drag items from the &quot;Palette&quot; window into the &quot;Project Lister&quot;.</p>
+
+<p><br/><img src="/assets/media/PaletteWindow.png"></p>
+
+<p>Drag these 4 items from the &quot;Lights&quot; category of the &quot;Palette&quot; into the &quot;Project Lister&quot;:</p>
+
+<ul>
+<li>DirLight</li>
+<li>AreaLight</li>
+<li>AmbientSettings</li>
+<li>ToneMapSettings</li>
+</ul>
+
+<p>Try selecting the newly created &quot;DirLight&quot; in the Project Lister. You can press &quot;M&quot; to enable the &quot;move&quot; manipulator to move it around.</p>
+
+<p>Now, find the &quot;Property Editor&quot; window (select &quot;Window/Property Editor&quot; if it is hidden).
+Here you can see all of the properties for the item. You can customize the lighting environment by playing with the settings for the 4 items you created.</p>
+
+<p><br/><img src="/assets/media/PropertyEditor.png"></p>
+
+<hr>
+
+<h2 id="toc_4">Console debugging modes</h2>
+
+<p>Next, find the &quot;IronPython&quot; window (use Window/Iron Python to enable it if it is hidden).</p>
+
+<p>Try typing <strong>&quot;cv.DeferredDebugging = 1&quot;</strong>. This will enable a debugging mode. You can type <strong>&quot;cv.DeferredDebugging = 0&quot;</strong> to disable it again.</p>
+
+<p>Here, &quot;cv&quot; stands for <em>&quot;console variable&quot;</em>.</p>
+
+<hr>
+
+<h2 id="toc_5">What about the next 10 minutes?</h2>
+
+<p>Well, that&#39;s the end of the quick introduction. The rest is up to you. Have fun!</p>
+
+    </div>
+    <ul class="tag_box inline">
+      <li><i class="icon-folder-open"></i></li>
+    </ul>
+    <ul class="tag_box inline">
+      <li><i class="icon-tags"></i></li>
+    </ul>
+    <hr>
+    <div class="pagination">
+      <ul>
+          <li class="prev disabled"><a>&larr; Previous</a></li>
+
+          <li><a href="/archive">Archive</a></li>
+
+          <li class="next"><a href="/posts/first" title="First post">Next &rarr;</a></li>
+      </ul>
+    </div>
+    <hr>
+    
+  </div>
+</div>
+
+
+      </div>
+
+      <hr>
+      <div class="footer">
+        <p>&copy; XL Games 2015
+          with help from <a href="http://ruhoh.com" target="_blank" title="The Definitive Technical Blogging Framework">ruhoh</a>
+          and <a href="http://twitter.github.com/bootstrap/" target="_blank">Twitter Bootstrap</a>
+        </p>
+      </div>
+
+    </div> <!-- /container -->
+
+    <!-- Google Prettify -->
+<script src="http://cdnjs.cloudflare.com/ajax/libs/prettify/188.0.0/prettify.js"></script>
+<script>
+  var pres = document.getElementsByTagName("pre");
+  for (var i=0; i < pres.length; ++i) {
+    pres[i].className = "prettyprint linenums";
+  }
+  prettyPrint();
+</script>
+<!-- end Google Prettify -->
+    
+    
+  </body>
+</html>

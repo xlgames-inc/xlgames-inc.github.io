@@ -4,7 +4,7 @@
     <title>XLE development blog</title>
     <description>XLE development blog</description>
     <link>http://xlgames-inc.github.io</link>
-    <pubDate>2015-12-02</pubDate>
+    <pubDate>2015-12-04</pubDate>
     <item>
       <title>Area Lights with Physically Based Rendering</title>
       <link>http://xlgames-inc.github.io/posts/arealightsandpbr</link>
@@ -127,6 +127,98 @@ Detail of Nyra&lt;/p&gt;
 One more from Nyra.&lt;/p&gt;
 
 &lt;p&gt;Many of the backgrounds in these images are from &lt;a href="http://www.hdrlabs.com/sibl/archive.html"&gt;sIBL Archive&lt;/a&gt;.&lt;/p&gt;
+</description>
+    </item>
+    <item>
+      <title>What to do first</title>
+      <link>http://xlgames-inc.github.io/posts/whattodofirst</link>
+      <pubDate>2015-12-04</pubDate>
+      <description>&lt;p&gt;So, you&amp;#39;ve just downloaded XLE, and you&amp;#39;re wondering what to do first? Here&amp;#39;s a suggestion for the first 10 minutes:&lt;/p&gt;
+
+&lt;hr&gt;
+
+&lt;h2 id="toc_0"&gt;Startup the level editor&lt;/h2&gt;
+
+&lt;p&gt;Select the Level Editor as the startup project:
+&lt;br/&gt;&lt;img src="/assets/media/SolutionExplorerLE.png"&gt;&lt;/p&gt;
+
+&lt;p&gt;You should use the &lt;strong&gt;Debug/x64&lt;/strong&gt; or &lt;strong&gt;Release/x64&lt;/strong&gt; configuration. Though XLE works in both 32 bit and 64 bits modes, normal usage for the level editor should be in 64 bits mode.&lt;/p&gt;
+
+&lt;p&gt;If you have trouble compiling, see the &lt;a href="https://github.com/xlgames-inc/XLE/wiki/CompilingFirstSteps"&gt;Getting Started Compiling page&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;Start up this application, and you should see a large 3D window and various other windows about.&lt;/p&gt;
+
+&lt;p&gt;For the first minute, the 3D window will appear black. This is because shaders are compiling in the background. They will get flushed to disk on application shutdown, so it only happens the first time.&lt;/p&gt;
+
+&lt;p&gt;Select &lt;em&gt;&amp;quot;Window/Resources&amp;quot;&lt;/em&gt; to open the resources panel. You should see the directory structure under the &amp;quot;working&amp;quot; folder. Here, you can find &lt;strong&gt;.dae&lt;/strong&gt; (Collada) files.&lt;/p&gt;
+
+&lt;p&gt;Find a dae file, and drag it into the 3D viewport (or you can drag from Windows Explorer).&lt;/p&gt;
+
+&lt;p&gt;&lt;br/&gt;&lt;img src="/assets/media/DesignView.png"&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;br/&gt;&lt;br/&gt;&lt;/p&gt;
+
+&lt;h3 id="toc_1"&gt;Collada notes&lt;/h3&gt;
+
+&lt;p&gt;XLE should support all well formatted Collada files. But unfortunately some exporters produce poorly formatted files. For example, sometimes texture names are prefixed with &lt;em&gt;&amp;quot;file://&amp;quot;&lt;/em&gt; -- this isn&amp;#39;t supported in XLE.&lt;/p&gt;
+
+&lt;p&gt;But you should be fine with the Blender Collada exporter, or the OpenCollada exporter for Max/Maya. You can also use &lt;a href="http://www.assimp.org/"&gt;Open Asset Import Library&lt;/a&gt; to convert files to Collada format.&lt;/p&gt;
+
+&lt;h3 id="toc_2"&gt;Placement documents&lt;/h3&gt;
+
+&lt;p&gt;In the level editor, the main &amp;quot;game&amp;quot; file is like a solution file in Visual Studio. It contains links to project documents under it. One type of document is a &amp;quot;placements&amp;quot; document (called a &lt;em&gt;placements cell&lt;/em&gt;). This contains a list of static objects with basic properties.&lt;/p&gt;
+
+&lt;p&gt;Normal large world games should have many placement cells. These can be arranged in a grid structure. But cells can also be overlapping, or have irregular shapes.&lt;/p&gt;
+
+&lt;p&gt;&lt;br/&gt;&lt;img src="/assets/media/DefaultPlacementCell.png"&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;br/&gt;&lt;br/&gt;&lt;/p&gt;
+
+&lt;p&gt;When you first startup the Level Editor, you get a default untitled placements document. However, you can reconfigure it by right-clicking &amp;quot;Placements&amp;quot; in the Project Lister and selecting &amp;quot;Configure placements...&amp;quot;&lt;/p&gt;
+
+&lt;hr&gt;
+
+&lt;h2 id="toc_3"&gt;Adding lighting settings&lt;/h2&gt;
+
+&lt;p&gt;Probably, you will want to play with some lighting settings next.&lt;/p&gt;
+
+&lt;p&gt;First, Find the &amp;quot;Palette&amp;quot; window (select &amp;quot;Window/Palette&amp;quot; to enable it if it isn&amp;#39;t visible).&lt;/p&gt;
+
+&lt;p&gt;Here, open up the &amp;quot;Lights&amp;quot; category. You can drag items from the &amp;quot;Palette&amp;quot; window into the &amp;quot;Project Lister&amp;quot;.&lt;/p&gt;
+
+&lt;p&gt;&lt;br/&gt;&lt;img src="/assets/media/PaletteWindow.png"&gt;&lt;/p&gt;
+
+&lt;p&gt;Drag these 4 items from the &amp;quot;Lights&amp;quot; category of the &amp;quot;Palette&amp;quot; into the &amp;quot;Project Lister&amp;quot;:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;DirLight&lt;/li&gt;
+&lt;li&gt;AreaLight&lt;/li&gt;
+&lt;li&gt;AmbientSettings&lt;/li&gt;
+&lt;li&gt;ToneMapSettings&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Try selecting the newly created &amp;quot;DirLight&amp;quot; in the Project Lister. You can press &amp;quot;M&amp;quot; to enable the &amp;quot;move&amp;quot; manipulator to move it around.&lt;/p&gt;
+
+&lt;p&gt;Now, find the &amp;quot;Property Editor&amp;quot; window (select &amp;quot;Window/Property Editor&amp;quot; if it is hidden).
+Here you can see all of the properties for the item. You can customize the lighting environment by playing with the settings for the 4 items you created.&lt;/p&gt;
+
+&lt;p&gt;&lt;br/&gt;&lt;img src="/assets/media/PropertyEditor.png"&gt;&lt;/p&gt;
+
+&lt;hr&gt;
+
+&lt;h2 id="toc_4"&gt;Console debugging modes&lt;/h2&gt;
+
+&lt;p&gt;Next, find the &amp;quot;IronPython&amp;quot; window (use Window/Iron Python to enable it if it is hidden).&lt;/p&gt;
+
+&lt;p&gt;Try typing &lt;strong&gt;&amp;quot;cv.DeferredDebugging = 1&amp;quot;&lt;/strong&gt;. This will enable a debugging mode. You can type &lt;strong&gt;&amp;quot;cv.DeferredDebugging = 0&amp;quot;&lt;/strong&gt; to disable it again.&lt;/p&gt;
+
+&lt;p&gt;Here, &amp;quot;cv&amp;quot; stands for &lt;em&gt;&amp;quot;console variable&amp;quot;&lt;/em&gt;.&lt;/p&gt;
+
+&lt;hr&gt;
+
+&lt;h2 id="toc_5"&gt;What about the next 10 minutes?&lt;/h2&gt;
+
+&lt;p&gt;Well, that&amp;#39;s the end of the quick introduction. The rest is up to you. Have fun!&lt;/p&gt;
 </description>
     </item>
   </channel>
