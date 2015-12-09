@@ -4,7 +4,7 @@
     <title>XLE development blog</title>
     <description>XLE development blog</description>
     <link>http://xlgames-inc.github.io</link>
-    <pubDate>2015-12-04</pubDate>
+    <pubDate>2015-12-09</pubDate>
     <item>
       <title>About</title>
       <link>http://xlgames-inc.github.io/about</link>
@@ -27,6 +27,7 @@
       &lt;li&gt;&lt;span&gt;2015-12-02&lt;/span&gt; &amp;raquo; &lt;a href="/posts/arealightsandpbr"&gt;Area Lights with Physically Based Rendering&lt;/a&gt;&lt;/li&gt;
       &lt;li&gt;&lt;span&gt;2015-12-01&lt;/span&gt; &amp;raquo; &lt;a href="/posts/first"&gt;First post&lt;/a&gt;&lt;/li&gt;
       &lt;li&gt;&lt;span&gt;2015-12-04&lt;/span&gt; &amp;raquo; &lt;a href="/posts/whattodofirst"&gt;What to do first&lt;/a&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;span&gt;2015-12-09&lt;/span&gt; &amp;raquo; &lt;a href="/posts/workingonrectlights"&gt;Working some improvements to rectangle lights&lt;/a&gt;&lt;/li&gt;
     &lt;/ul&gt;
 </description>
     </item>
@@ -156,6 +157,37 @@ It has been modified to work with XLE, and some XLE specific behaviour has been 
 
   &lt;div class="more"&gt;
     &lt;a href="/posts/whattodofirst" class="btn btn-small"&gt;read more..&lt;/a&gt;
+  &lt;/div&gt;
+&lt;/div&gt;
+&lt;div class="post"&gt;
+  &lt;h3 class="title"&gt;&lt;a href="/posts/workingonrectlights"&gt;Working some improvements to rectangle lights&lt;/a&gt; &lt;span class="date"&gt;2015-12-09&lt;/span&gt;&lt;/h3&gt;
+
+  &lt;div class="summary ellipsis"&gt;
+&lt;p&gt;This is just some notes about some ideas I've been playing with lately. I've been thinking about some improvements to the specular highlights for rectangle lights!&lt;/p&gt;
+
+&lt;p&gt;The current implementation is based on the method by &lt;em&gt;Michal Drobot&lt;/em&gt; in &lt;strong&gt;GPU Pro 5&lt;/strong&gt;. I'm not going to repeat the description here (I'll only give a few details) -- but I recommend buying the book and having a look! It's quite a good method, and interesting read. Drobot describes a very practical method for diffuse and specular for rectangle and disc lights.&lt;/p&gt;
+
+&lt;p&gt;However, at extreme angles, the specular reflection of rectangle lights can sometimes show some distortion.&lt;/p&gt;
+
+&lt;p&gt;Here is my improved method:
+&lt;br&gt;&lt;img src="/assets/media/RectLightImprovements/ImprovedRectLight.png"&gt;&lt;/p&gt;
+
+&lt;p&gt;Here is the original method from Drobot:
+&lt;br&gt;&lt;img src="/assets/media/RectLightImprovements/BasicRectLight.png"&gt;&lt;/p&gt;
+
+&lt;p&gt;It appears quite distorted here, but this is a contrived example. This is a material with high "roughness" but the geometry is completely flat. In a normal scene, flat geometry will probably have a less rough material. And in a less rough material, the distortion is much less visible.&lt;/p&gt;
+
+&lt;h2 id="toc_0"&gt;Specular Cone&lt;/h2&gt;
+
+&lt;p&gt;Part of the problem is related to how the integration across the specular highlight is performed. We can calculate a cone that represents the part of the scene that contributes most greatly to the specular for a given point. When calculating the specular for a point, we assume that everything in that cone contributes very strongly to specular, and everything outside of it doesn't contribute at all.&lt;/p&gt;
+
+&lt;p&gt;This is a simplification, because really we don't want a binary on/off -- we want to weight all incoming light by the BRDF. But out simplification can be quite good for many cases.&lt;/p&gt;
+
+&lt;h2 id="toc_1"&gt;Rectangle and cone intersection&lt;/h2&gt;
+&lt;/div&gt;
+
+  &lt;div class="more"&gt;
+    &lt;a href="/posts/workingonrectlights" class="btn btn-small"&gt;read more..&lt;/a&gt;
   &lt;/div&gt;
 &lt;/div&gt;
 

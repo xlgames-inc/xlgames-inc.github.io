@@ -147,6 +147,37 @@ It has been modified to work with XLE, and some XLE specific behaviour has been 
           <a href="/posts/whattodofirst" class="btn btn-small">read more..</a>
         </div>
       </div>
+      <div class="posts">
+        <h3 class="title"><a href="/posts/workingonrectlights">Working some improvements to rectangle lights</a> <span class="date">2015-12-09</span></h3>
+
+        <div class="summary ellipsis">
+<p>This is just some notes about some ideas I've been playing with lately. I've been thinking about some improvements to the specular highlights for rectangle lights!</p>
+
+<p>The current implementation is based on the method by <em>Michal Drobot</em> in <strong>GPU Pro 5</strong>. I'm not going to repeat the description here (I'll only give a few details) -- but I recommend buying the book and having a look! It's quite a good method, and interesting read. Drobot describes a very practical method for diffuse and specular for rectangle and disc lights.</p>
+
+<p>However, at extreme angles, the specular reflection of rectangle lights can sometimes show some distortion.</p>
+
+<p>Here is my improved method:
+<br><img src="/assets/media/RectLightImprovements/ImprovedRectLight.png"></p>
+
+<p>Here is the original method from Drobot:
+<br><img src="/assets/media/RectLightImprovements/BasicRectLight.png"></p>
+
+<p>It appears quite distorted here, but this is a contrived example. This is a material with high "roughness" but the geometry is completely flat. In a normal scene, flat geometry will probably have a less rough material. And in a less rough material, the distortion is much less visible.</p>
+
+<h2 id="toc_0">Specular Cone</h2>
+
+<p>Part of the problem is related to how the integration across the specular highlight is performed. We can calculate a cone that represents the part of the scene that contributes most greatly to the specular for a given point. When calculating the specular for a point, we assume that everything in that cone contributes very strongly to specular, and everything outside of it doesn't contribute at all.</p>
+
+<p>This is a simplification, because really we don't want a binary on/off -- we want to weight all incoming light by the BRDF. But out simplification can be quite good for many cases.</p>
+
+<h2 id="toc_1">Rectangle and cone intersection</h2>
+</div>
+
+        <div class="more">
+          <a href="/posts/workingonrectlights" class="btn btn-small">read more..</a>
+        </div>
+      </div>
     
     <div class="pagination">
       <ul>

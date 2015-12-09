@@ -1,0 +1,216 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Working some improvements to rectangle lights</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="author" content="XL Games">
+
+    <!-- Le HTML5 shim, for IE6-8 support of HTML elements -->
+    <!--[if lt IE 9]>
+      <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+
+    <!-- Le styles -->
+<link href='/assets/stylesheets/bootstrap.min-93b47f97c3444c4711853ed5140d82a1.css' type='text/css' rel='stylesheet' media='all'>
+<link href='/assets/stylesheets/style-a88fce574e723470155fd4f111bc145f.css' type='text/css' rel='stylesheet' media='all'>
+<link href='/assets/stylesheets/google_prettify/sons-of-obsidian-5e05343fd0c18e0a05231023b643245c.css' type='text/css' rel='stylesheet' media='all'>
+    <!-- Le fav and touch icons -->
+  <!-- Update these with your own images
+    <link rel="shortcut icon" href="images/favicon.ico">
+    <link rel="apple-touch-icon" href="images/apple-touch-icon.png">
+    <link rel="apple-touch-icon" sizes="72x72" href="images/apple-touch-icon-72x72.png">
+    <link rel="apple-touch-icon" sizes="114x114" href="images/apple-touch-icon-114x114.png">
+  -->
+  </head>
+
+  <body>
+
+    <div class="navbar">
+      <div class="navbar-inner">
+        <div class="container-narrow">
+          <a class="brand" href="/">XLE development blog</a>
+          <ul class="nav">
+              
+                <li><a href="/tags">Tags</a></li>
+              
+              
+                <li><a href="/categories">Categories</a></li>
+              
+              
+                <li><a href="/pages">Pages</a></li>
+              
+              
+                <li><a href="/about">About</a></li>
+              
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="container-narrow">
+
+      <div class="content">
+        
+<div class="page-header">
+  <h1>Working some improvements to rectangle lights </h1>
+</div>
+
+<div class="row-fluid post-full">
+  <div class="span12">
+    <div class="date">
+      <span>2015-12-09</strong>
+    </div>
+    <div class="content">
+      <p>This is just some notes about some ideas I&#39;ve been playing with lately. I&#39;ve been thinking about some improvements to the specular highlights for rectangle lights!</p>
+
+<p>The current implementation is based on the method by <em>Michal Drobot</em> in <strong>GPU Pro 5</strong>. I&#39;m not going to repeat the description here (I&#39;ll only give a few details) -- but I recommend buying the book and having a look! It&#39;s quite a good method, and interesting read. Drobot describes a very practical method for diffuse and specular for rectangle and disc lights.</p>
+
+<p>However, at extreme angles, the specular reflection of rectangle lights can sometimes show some distortion.</p>
+
+<p>Here is my improved method:
+<br/><img src="/assets/media/RectLightImprovements/ImprovedRectLight.png"></p>
+
+<p>Here is the original method from Drobot:
+<br/><img src="/assets/media/RectLightImprovements/BasicRectLight.png"></p>
+
+<p>It appears quite distorted here, but this is a contrived example. This is a material with high &quot;roughness&quot; but the geometry is completely flat. In a normal scene, flat geometry will probably have a less rough material. And in a less rough material, the distortion is much less visible.</p>
+
+<h2 id="toc_0">Specular Cone</h2>
+
+<p>Part of the problem is related to how the integration across the specular highlight is performed. We can calculate a cone that represents the part of the scene that contributes most greatly to the specular for a given point. When calculating the specular for a point, we assume that everything in that cone contributes very strongly to specular, and everything outside of it doesn&#39;t contribute at all.</p>
+
+<p>This is a simplification, because really we don&#39;t want a binary on/off -- we want to weight all incoming light by the BRDF. But out simplification can be quite good for many cases.</p>
+
+<h2 id="toc_1">Rectangle and cone intersection</h2>
+
+<p>So, once we have our cone, we want to find how much of it is covered by the rectangle light. Ignoring shadows, we can do this by finding the intersection of the cone and the rectangle light.</p>
+
+<p>But, of course, this is quite difficult and expensive. This is starting to go into conic sections, which are a particularly complication type of geometry.</p>
+
+<p>So we need a simplification. Drobot describes a method that is very similar to his method for disc lights.</p>
+
+<p>His method treats the intersection between a plane and the cone as a circle, and then further simplifies it into a square. This method works really well when the light direction is directly towards to the sample point. But on angles, the intersection should start to distort into an ellipse.</p>
+
+<p>See, for example, this diagram from wikimedia commons:
+<br/><a title="By http://commons.wikimedia.org/wiki/User:Magister_Mathematicae [CC BY-SA 3.0 (http://creativecommons.org/licenses/by-sa/3.0)], via Wikimedia Commons" href="https://commons.wikimedia.org/wiki/File%3AConic_sections_small.png"><img width="256" alt="Conic sections small" src="https://upload.wikimedia.org/wikipedia/commons/b/bf/Conic_sections_small.png"/></a></p>
+
+<p>We don&#39;t have to care about the parabola or hyberbola cases (because our cone is infinitely long).</p>
+
+<h2 id="toc_2">Ellipse estimations</h2>
+
+<p>Our goal is to find some way to estimate the area of an intersection of that ellipse and a rectangle. And we also need to find the geometric center of that intersection.</p>
+
+<p>Working with the true ellipse here is far too expensive. The method would be extremely complex. However, we can make some estimations. Also, the rectangle and the ellipse are not aligned in any easy way -- so that makes it more complex.</p>
+
+<p>One idea is to use 2 squares, instead of one. We will place the squares near the vertices of the of the ellipse, and balance the area of the squares so that they roughly match the ellipse.</p>
+
+<p>With this method, as the ellipse widens, our simulation takes into account that widening.</p>
+
+<h2 id="toc_3">Flat on</h2>
+
+<p>2 squares seems to help in the flat-on case, also.</p>
+
+<p>Original method (one square):
+<br/><img src="/assets/media/RectLightImprovements/BasicRectLight2.png"></p>
+
+<p>Improved method (two squares):
+<br/><img src="/assets/media/RectLightImprovements/ImprovedRectLight2.png"></p>
+
+<p>As you can see, improved method helps smooth out the result.</p>
+
+<h2 id="toc_4">New artifacts</h2>
+
+<p>Unfortunately, this method adds some artifacts as well. Sometimes the influence of each square can separate, which can end up giving the impression of 2 separate specular highlights. This can cause some real problems if one square clipped by one side of the light, and the other square is clipped by the other side.</p>
+
+<p>There are also some cases where the single-square method looks better, even though it may be incorrect... With a single square, the highlight will be incorrectly sharp on extreme angles. But it still looks right to the viewer.</p>
+
+<p>So this method probably needs a few more tweaks to improve the worst cases before it is ready.</p>
+
+<h2 id="toc_5">Future improvements and ideas</h2>
+
+<p>The point of using 2 squares is to make intersection with the light geometry (which is a rectangle) easier.</p>
+
+<p>It some cases we could stretch the squares a bit to create rectangles. But since the light geometry is not aligned with the ellipse, there may not necessarily produce better results.</p>
+
+<p>We could consider trying to align the light geometry with the ellipse, and using an approximation of the light geometry instead? Since the shape of the light geometry is so important, that will probably not be a good idea.</p>
+
+<p>Also, the contribution of each square doesn&#39;t really need to be equal... Since the BRDF is not constant over the ellipse, we could maybe find a better way to balance the contribution of each square? There may be a better way to calculate the representative point here...?</p>
+
+    </div>
+    <ul class="tag_box inline">
+      <li><i class="icon-folder-open"></i></li>
+    </ul>
+    <ul class="tag_box inline">
+      <li><i class="icon-tags"></i></li>
+    </ul>
+    <hr>
+    <div class="pagination">
+      <ul>
+          <li class="prev disabled"><a>&larr; Previous</a></li>
+
+          <li><a href="/archive">Archive</a></li>
+
+          <li class="next"><a href="/posts/whattodofirst" title="What to do first">Next &rarr;</a></li>
+      </ul>
+    </div>
+    <hr>
+    <div id="disqus_thread"></div>
+<script>
+    var disqus_developer = 1;
+    var disqus_shortname = 'xledev'; // required: replace example with your forum shortname
+    /* * * DON'T EDIT BELOW THIS LINE * * */
+    (function() {
+        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+        dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<a href="http://disqus.com" class="dsq-brlink">blog comments powered by <span class="logo-disqus">Disqus</span></a>
+
+  </div>
+</div>
+
+
+      </div>
+
+      <hr>
+      <div class="footer">
+        <p>&copy; XL Games 2015
+          with help from <a href="http://ruhoh.com" target="_blank" title="The Definitive Technical Blogging Framework">ruhoh</a>
+          and <a href="http://twitter.github.com/bootstrap/" target="_blank">Twitter Bootstrap</a>
+        </p>
+      </div>
+
+    </div> <!-- /container -->
+
+    <!-- Google Prettify -->
+<script src="http://cdnjs.cloudflare.com/ajax/libs/prettify/188.0.0/prettify.js"></script>
+<script>
+  var pres = document.getElementsByTagName("pre");
+  for (var i=0; i < pres.length; ++i) {
+    pres[i].className = "prettyprint linenums";
+  }
+  prettyPrint();
+</script>
+<!-- end Google Prettify -->
+    <script type="text/javascript">
+
+  var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', 'UA-71034032-1']);
+  _gaq.push(['_trackPageview']);
+  
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+
+</script>
+
+
+    
+  </body>
+</html>

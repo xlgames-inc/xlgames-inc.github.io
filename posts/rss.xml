@@ -4,7 +4,7 @@
     <title>XLE development blog</title>
     <description>XLE development blog</description>
     <link>http://xlgames-inc.github.io</link>
-    <pubDate>2015-12-04</pubDate>
+    <pubDate>2015-12-09</pubDate>
     <item>
       <title>Area Lights with Physically Based Rendering</title>
       <link>http://xlgames-inc.github.io/posts/arealightsandpbr</link>
@@ -226,6 +226,86 @@ Here you can see all of the properties for the item. You can customize the light
 &lt;h2 id="toc_6"&gt;What about the next 10 minutes?&lt;/h2&gt;
 
 &lt;p&gt;Well, that&amp;#39;s the end of the quick introduction. The rest is up to you. Have fun!&lt;/p&gt;
+</description>
+    </item>
+    <item>
+      <title>Working some improvements to rectangle lights</title>
+      <link>http://xlgames-inc.github.io/posts/workingonrectlights</link>
+      <pubDate>2015-12-09</pubDate>
+      <description>&lt;p&gt;This is just some notes about some ideas I&amp;#39;ve been playing with lately. I&amp;#39;ve been thinking about some improvements to the specular highlights for rectangle lights!&lt;/p&gt;
+
+&lt;p&gt;The current implementation is based on the method by &lt;em&gt;Michal Drobot&lt;/em&gt; in &lt;strong&gt;GPU Pro 5&lt;/strong&gt;. I&amp;#39;m not going to repeat the description here (I&amp;#39;ll only give a few details) -- but I recommend buying the book and having a look! It&amp;#39;s quite a good method, and interesting read. Drobot describes a very practical method for diffuse and specular for rectangle and disc lights.&lt;/p&gt;
+
+&lt;p&gt;However, at extreme angles, the specular reflection of rectangle lights can sometimes show some distortion.&lt;/p&gt;
+
+&lt;p&gt;Here is my improved method:
+&lt;br/&gt;&lt;img src="/assets/media/RectLightImprovements/ImprovedRectLight.png"&gt;&lt;/p&gt;
+
+&lt;p&gt;Here is the original method from Drobot:
+&lt;br/&gt;&lt;img src="/assets/media/RectLightImprovements/BasicRectLight.png"&gt;&lt;/p&gt;
+
+&lt;p&gt;It appears quite distorted here, but this is a contrived example. This is a material with high &amp;quot;roughness&amp;quot; but the geometry is completely flat. In a normal scene, flat geometry will probably have a less rough material. And in a less rough material, the distortion is much less visible.&lt;/p&gt;
+
+&lt;h2 id="toc_0"&gt;Specular Cone&lt;/h2&gt;
+
+&lt;p&gt;Part of the problem is related to how the integration across the specular highlight is performed. We can calculate a cone that represents the part of the scene that contributes most greatly to the specular for a given point. When calculating the specular for a point, we assume that everything in that cone contributes very strongly to specular, and everything outside of it doesn&amp;#39;t contribute at all.&lt;/p&gt;
+
+&lt;p&gt;This is a simplification, because really we don&amp;#39;t want a binary on/off -- we want to weight all incoming light by the BRDF. But out simplification can be quite good for many cases.&lt;/p&gt;
+
+&lt;h2 id="toc_1"&gt;Rectangle and cone intersection&lt;/h2&gt;
+
+&lt;p&gt;So, once we have our cone, we want to find how much of it is covered by the rectangle light. Ignoring shadows, we can do this by finding the intersection of the cone and the rectangle light.&lt;/p&gt;
+
+&lt;p&gt;But, of course, this is quite difficult and expensive. This is starting to go into conic sections, which are a particularly complication type of geometry.&lt;/p&gt;
+
+&lt;p&gt;So we need a simplification. Drobot describes a method that is very similar to his method for disc lights.&lt;/p&gt;
+
+&lt;p&gt;His method treats the intersection between a plane and the cone as a circle, and then further simplifies it into a square. This method works really well when the light direction is directly towards to the sample point. But on angles, the intersection should start to distort into an ellipse.&lt;/p&gt;
+
+&lt;p&gt;See, for example, this diagram from wikimedia commons:
+&lt;br/&gt;&lt;a title="By http://commons.wikimedia.org/wiki/User:Magister_Mathematicae [CC BY-SA 3.0 (http://creativecommons.org/licenses/by-sa/3.0)], via Wikimedia Commons" href="https://commons.wikimedia.org/wiki/File%3AConic_sections_small.png"&gt;&lt;img width="256" alt="Conic sections small" src="https://upload.wikimedia.org/wikipedia/commons/b/bf/Conic_sections_small.png"/&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;We don&amp;#39;t have to care about the parabola or hyberbola cases (because our cone is infinitely long).&lt;/p&gt;
+
+&lt;h2 id="toc_2"&gt;Ellipse estimations&lt;/h2&gt;
+
+&lt;p&gt;Our goal is to find some way to estimate the area of an intersection of that ellipse and a rectangle. And we also need to find the geometric center of that intersection.&lt;/p&gt;
+
+&lt;p&gt;Working with the true ellipse here is far too expensive. The method would be extremely complex. However, we can make some estimations. Also, the rectangle and the ellipse are not aligned in any easy way -- so that makes it more complex.&lt;/p&gt;
+
+&lt;p&gt;One idea is to use 2 squares, instead of one. We will place the squares near the vertices of the of the ellipse, and balance the area of the squares so that they roughly match the ellipse.&lt;/p&gt;
+
+&lt;p&gt;With this method, as the ellipse widens, our simulation takes into account that widening.&lt;/p&gt;
+
+&lt;h2 id="toc_3"&gt;Flat on&lt;/h2&gt;
+
+&lt;p&gt;2 squares seems to help in the flat-on case, also.&lt;/p&gt;
+
+&lt;p&gt;Original method (one square):
+&lt;br/&gt;&lt;img src="/assets/media/RectLightImprovements/BasicRectLight2.png"&gt;&lt;/p&gt;
+
+&lt;p&gt;Improved method (two squares):
+&lt;br/&gt;&lt;img src="/assets/media/RectLightImprovements/ImprovedRectLight2.png"&gt;&lt;/p&gt;
+
+&lt;p&gt;As you can see, improved method helps smooth out the result.&lt;/p&gt;
+
+&lt;h2 id="toc_4"&gt;New artifacts&lt;/h2&gt;
+
+&lt;p&gt;Unfortunately, this method adds some artifacts as well. Sometimes the influence of each square can separate, which can end up giving the impression of 2 separate specular highlights. This can cause some real problems if one square clipped by one side of the light, and the other square is clipped by the other side.&lt;/p&gt;
+
+&lt;p&gt;There are also some cases where the single-square method looks better, even though it may be incorrect... With a single square, the highlight will be incorrectly sharp on extreme angles. But it still looks right to the viewer.&lt;/p&gt;
+
+&lt;p&gt;So this method probably needs a few more tweaks to improve the worst cases before it is ready.&lt;/p&gt;
+
+&lt;h2 id="toc_5"&gt;Future improvements and ideas&lt;/h2&gt;
+
+&lt;p&gt;The point of using 2 squares is to make intersection with the light geometry (which is a rectangle) easier.&lt;/p&gt;
+
+&lt;p&gt;It some cases we could stretch the squares a bit to create rectangles. But since the light geometry is not aligned with the ellipse, there may not necessarily produce better results.&lt;/p&gt;
+
+&lt;p&gt;We could consider trying to align the light geometry with the ellipse, and using an approximation of the light geometry instead? Since the shape of the light geometry is so important, that will probably not be a good idea.&lt;/p&gt;
+
+&lt;p&gt;Also, the contribution of each square doesn&amp;#39;t really need to be equal... Since the BRDF is not constant over the ellipse, we could maybe find a better way to balance the contribution of each square? There may be a better way to calculate the representative point here...?&lt;/p&gt;
 </description>
     </item>
   </channel>
