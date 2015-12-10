@@ -369,6 +369,12 @@ Here you can see all of the properties for the item. You can customize the light
     &lt;td class="tg-yw4l"&gt;&lt;img src="/assets/media/RectLightImprovements/ImprovedRectLight4.png"&gt;&lt;/td&gt;
   &lt;/tr&gt;
 &lt;/table&gt;&lt;/p&gt;
+
+&lt;h2 id="toc_7"&gt;In-engine visualization&lt;/h2&gt;
+
+&lt;p&gt;You can use the cvar &amp;quot;LightResolveDebugging&amp;quot; to visualize the squares, intersection ellipse and representative points. Type &amp;quot;cv.LightResolveDebugging = True&amp;quot; in the IronPython window in the editor.&lt;/p&gt;
+
+&lt;p&gt;&lt;br/&gt;&lt;img src="/assets/media/RectLightImprovements/Visualization.png"&gt;&lt;/p&gt;
 </description>
     </item>
   </channel>
