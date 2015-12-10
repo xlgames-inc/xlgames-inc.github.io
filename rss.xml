@@ -4,7 +4,7 @@
     <title>XLE development blog</title>
     <description>XLE development blog</description>
     <link>http://xlgames-inc.github.io</link>
-    <pubDate>2015-12-09</pubDate>
+    <pubDate>2015-12-10</pubDate>
     <item>
       <title>About</title>
       <link>http://xlgames-inc.github.io/about</link>
@@ -42,6 +42,9 @@
   &lt;li&gt;
     &lt;a href="/categories#blog-ref"&gt;blog &lt;span&gt;1&lt;/span&gt;&lt;/a&gt;
   &lt;/li&gt;
+  &lt;li&gt;
+    &lt;a href="/categories#Light Resolve-ref"&gt;Light Resolve &lt;span&gt;1&lt;/span&gt;&lt;/a&gt;
+  &lt;/li&gt;
 &lt;/ul&gt;
 
   &lt;h3&gt;Physically Based Rendering (1)&lt;/h3&gt;
@@ -51,6 +54,10 @@
   &lt;h3&gt;blog (1)&lt;/h3&gt;
   &lt;ul&gt;
       &lt;li&gt;&lt;a href="/posts/first"&gt;First post&lt;/a&gt;&lt;/li&gt;
+  &lt;/ul&gt;
+  &lt;h3&gt;Light Resolve (1)&lt;/h3&gt;
+  &lt;ul&gt;
+      &lt;li&gt;&lt;a href="/posts/workingonrectlights"&gt;Working some improvements to rectangle lights&lt;/a&gt;&lt;/li&gt;
   &lt;/ul&gt;
 </description>
     </item>
@@ -163,27 +170,32 @@ It has been modified to work with XLE, and some XLE specific behaviour has been 
   &lt;h3 class="title"&gt;&lt;a href="/posts/workingonrectlights"&gt;Working some improvements to rectangle lights&lt;/a&gt; &lt;span class="date"&gt;2015-12-09&lt;/span&gt;&lt;/h3&gt;
 
   &lt;div class="summary ellipsis"&gt;
+&lt;p&gt;&lt;strong&gt;Post updated on 2015-12-10&lt;/strong&gt;&lt;/p&gt;
+
 &lt;p&gt;This is just some notes about some ideas I've been playing with lately. I've been thinking about some improvements to the specular highlights for rectangle lights!&lt;/p&gt;
 
 &lt;p&gt;The current implementation is based on the method by &lt;em&gt;Michal Drobot&lt;/em&gt; in &lt;strong&gt;GPU Pro 5&lt;/strong&gt;. I'm not going to repeat the description here (I'll only give a few details) -- but I recommend buying the book and having a look! It's quite a good method, and interesting read. Drobot describes a very practical method for diffuse and specular for rectangle and disc lights.&lt;/p&gt;
 
 &lt;p&gt;However, at extreme angles, the specular reflection of rectangle lights can sometimes show some distortion.&lt;/p&gt;
 
-&lt;p&gt;Here is my improved method:
-&lt;br&gt;&lt;img src="/assets/media/RectLightImprovements/ImprovedRectLight.png"&gt;&lt;/p&gt;
-
-&lt;p&gt;Here is the original method from Drobot:
-&lt;br&gt;&lt;img src="/assets/media/RectLightImprovements/BasicRectLight.png"&gt;&lt;/p&gt;
-
-&lt;p&gt;It appears quite distorted here, but this is a contrived example. This is a material with high "roughness" but the geometry is completely flat. In a normal scene, flat geometry will probably have a less rough material. And in a less rough material, the distortion is much less visible.&lt;/p&gt;
-
-&lt;h2 id="toc_0"&gt;Specular Cone&lt;/h2&gt;
-
-&lt;p&gt;Part of the problem is related to how the integration across the specular highlight is performed. We can calculate a cone that represents the part of the scene that contributes most greatly to the specular for a given point. When calculating the specular for a point, we assume that everything in that cone contributes very strongly to specular, and everything outside of it doesn't contribute at all.&lt;/p&gt;
-
-&lt;p&gt;This is a simplification, because really we don't want a binary on/off -- we want to weight all incoming light by the BRDF. But out simplification can be quite good for many cases.&lt;/p&gt;
-
-&lt;h2 id="toc_1"&gt;Rectangle and cone intersection&lt;/h2&gt;
+&lt;p&gt;Here is a comparison:
+&lt;style type="text/css"&gt;
+.tg  {border-collapse:collapse;border-spacing:0;}
+.tg td{font-family:Arial, sans-serif;font-size:14px;padding:10px 5px;border-style:solid;border-width:1px;overflow:hidden;word-break:normal;}
+.tg th{font-family:Arial, sans-serif;font-size:14px;font-weight:normal;padding:10px 5px;border-style:solid;border-width:1px;overflow:hidden;word-break:normal;}
+.tg .tg-yw4l{vertical-align:top}
+&lt;/style&gt;
+&lt;/p&gt;
+&lt;table class="tg"&gt;
+  &lt;tr&gt;
+    &lt;th class="tg-yw4l"&gt;Original Method&lt;/th&gt;
+    &lt;th class="tg-yw4l"&gt;New Method&lt;/th&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+    &lt;td class="tg-yw4l"&gt;&lt;img src="/assets/media/RectLightImprovements/BasicRectLight.png"&gt;&lt;/td&gt;
+    &lt;td class="tg-yw4l"&gt;&lt;img src="/assets/media/RectLightImprovements/ImprovedRectLight.png"&gt;&lt;/td&gt;
+  &lt;/tr&gt;
+&lt;/table&gt;
 &lt;/div&gt;
 
   &lt;div class="more"&gt;
@@ -233,7 +245,7 @@ It has been modified to work with XLE, and some XLE specific behaviour has been 
     &lt;a href="/tags#PBR-ref"&gt;PBR &lt;span&gt;1&lt;/span&gt;&lt;/a&gt;
   &lt;/li&gt;
   &lt;li&gt;
-    &lt;a href="/tags#AreaLights-ref"&gt;AreaLights &lt;span&gt;1&lt;/span&gt;&lt;/a&gt;
+    &lt;a href="/tags#AreaLights-ref"&gt;AreaLights &lt;span&gt;2&lt;/span&gt;&lt;/a&gt;
   &lt;/li&gt;
   &lt;li&gt;
     &lt;a href="/tags#Roughness-ref"&gt;Roughness &lt;span&gt;1&lt;/span&gt;&lt;/a&gt;
@@ -244,18 +256,24 @@ It has been modified to work with XLE, and some XLE specific behaviour has been 
   &lt;li&gt;
     &lt;a href="/tags#blog-ref"&gt;blog &lt;span&gt;1&lt;/span&gt;&lt;/a&gt;
   &lt;/li&gt;
+  &lt;li&gt;
+    &lt;a href="/tags#RectangleLights-ref"&gt;RectangleLights &lt;span&gt;1&lt;/span&gt;&lt;/a&gt;
+  &lt;/li&gt;
 &lt;/ul&gt;
 
   &lt;h3 id="PBR-ref"&gt;PBR&lt;/h3&gt;
     &lt;li&gt;&lt;a href="/posts/arealightsandpbr"&gt;Area Lights with Physically Based Rendering&lt;/a&gt;&lt;/li&gt;
   &lt;h3 id="AreaLights-ref"&gt;AreaLights&lt;/h3&gt;
     &lt;li&gt;&lt;a href="/posts/arealightsandpbr"&gt;Area Lights with Physically Based Rendering&lt;/a&gt;&lt;/li&gt;
+    &lt;li&gt;&lt;a href="/posts/workingonrectlights"&gt;Working some improvements to rectangle lights&lt;/a&gt;&lt;/li&gt;
   &lt;h3 id="Roughness-ref"&gt;Roughness&lt;/h3&gt;
     &lt;li&gt;&lt;a href="/posts/arealightsandpbr"&gt;Area Lights with Physically Based Rendering&lt;/a&gt;&lt;/li&gt;
   &lt;h3 id="Materials-ref"&gt;Materials&lt;/h3&gt;
     &lt;li&gt;&lt;a href="/posts/arealightsandpbr"&gt;Area Lights with Physically Based Rendering&lt;/a&gt;&lt;/li&gt;
   &lt;h3 id="blog-ref"&gt;blog&lt;/h3&gt;
     &lt;li&gt;&lt;a href="/posts/first"&gt;First post&lt;/a&gt;&lt;/li&gt;
+  &lt;h3 id="RectangleLights-ref"&gt;RectangleLights&lt;/h3&gt;
+    &lt;li&gt;&lt;a href="/posts/workingonrectlights"&gt;Working some improvements to rectangle lights&lt;/a&gt;&lt;/li&gt;
  
 </description>
     </item>
