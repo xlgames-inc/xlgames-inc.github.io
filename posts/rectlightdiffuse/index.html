@@ -2,7 +2,7 @@
 <html lang="en">
   <head>
     <meta charset="utf-8">
-    <title>First post</title>
+    <title>Rectangle Light diffuse vs 3DS Max</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="author" content="XL Games">
 
@@ -53,70 +53,92 @@
       <div class="content">
         
 <div class="page-header">
-  <h1>First post </h1>
+  <h1>Rectangle Light diffuse vs 3DS Max </h1>
 </div>
 
 <div class="row-fluid post-full">
   <div class="span12">
     <div class="date">
-      <span>2015-12-01</strong>
+      <span>2015-12-11</strong>
     </div>
     <div class="content">
-      <p>This blog will contain some day-to-day information about XLE.</p>
+      <p>Just a quick note on rectangle light diffuse. In XLE, rectangle lights are slightly different from the default rectangle lights in 3DS Max.</p>
 
-<p>Let&#39;s start with some screenshots, rendered with XLE:</p>
+<style type="text/css">
+.tg  {border-collapse:collapse;border-spacing:0;}
+.tg td{font-family:Arial, sans-serif;font-size:14px;padding:10px 5px;border-style:solid;border-width:1px;overflow:hidden;word-break:normal;}
+.tg th{font-family:Arial, sans-serif;font-size:14px;font-weight:normal;padding:10px 5px;border-style:solid;border-width:1px;overflow:hidden;word-break:normal;}
+.tg .tg-yw4l{vertical-align:top}
+</style>
 
-<p><img src="/assets/media/CaptainSplitBrightLogo.png"><br>
-The Captain character from <a href="http://archeage.xlgames.com/">Archeage</a> (<a href="http://www.trionworlds.com/archeage/en/">US site</a>). </p>
+<table class="tg">
+  <tr>
+    <th class="tg-yw4l">XLE lights</th>
+    <th class="tg-yw4l">3DS Max lights (Quicksilver renderer)</th>
+  </tr>
+  <tr>
+    <td class="tg-yw4l"><img src="/assets/media/RectLightDiffuse/XLELightDiag.png"></td>
+    <td class="tg-yw4l"><img src="/assets/media/RectLightDiffuse/MaxLightDiag.png"></td>
+  </tr>
+  <tr>
+    <td class="tg-yw4l"><img src="/assets/media/RectLightDiffuse/XLEDefault.png"></td>
+    <td class="tg-yw4l"><img src="/assets/media/RectLightDiffuse/MaxComparison.png"></td>
+  </tr>
+</table>
 
-<p><img src="/assets/media/Archepunk4.png"><br>
-One of the (many) costumes from Archeage.</p>
+<p>XLE rectangle lights emit light mostly in the forward direction (and a reduced amount sideways). But in the 3DS Max Quicksilver renderer, rectangle lights emit light in all direction.</p>
 
-<p><img src="/assets/media/SkeleCommander.png"><br>
-A skeleton enemy from Archeage.</p>
+<h2 id="toc_0">Edge cases</h2>
 
-<p><img src="/assets/media/Copperhead1.png"><br>
-A military spacecraft.</p>
+<p>This is partially because the method we&#39;re using for diffuse doesn&#39;t work well on extreme angles. In the above example, the light plane and the <strong>top</strong>/<strong>bottom</strong>/<strong>left</strong>/<strong>right</strong> walls are actually perpendicular.</p>
 
-<p><img src="/assets/media/gweonid4.png"><br>
-The &quot;Gweonid&quot; character from Archeage.</p>
+<p>This causes weird problems right on the edges.</p>
 
-<p><img src="/assets/media/MetalGolem0.png"><br>
-A metal golem character from Archeage.</p>
+<table class="tg">
+  <tr>
+    <th class="tg-yw4l">XLE emulating 3DS Max</th>
+    <th class="tg-yw4l">3DS Max lights (Quicksilver Renderer)</th>
+  </tr>
+  <tr>
+    <td class="tg-yw4l"><img src="/assets/media/RectLightDiffuse/XLEEmulateMax.png"></td>
+    <td class="tg-yw4l"><img src="/assets/media/RectLightDiffuse/MaxComparison.png"></td>
+  </tr>
+</table>
 
-<p><img src="/assets/media/NyraAndDragon1.png"><br>
-One of the costumes from Archeage, and &quot;Nyra&quot; character.
-Nyra model comes from <a href="http://www.paultosca.com/">Paul Tosca</a>. Thanks for the great model, Paul!</p>
+<p>In the above example, the left and right walls look fine. But the top and bottom walls are missing their highlight. This is because the light is quite tall. A square light might be fine.</p>
 
-<p><img src="/assets/media/Nyra9.png"><br>
-Detail of Nyra</p>
+<p>But you can see that, in general, the 3DS Max result and the XLE result is quite similar.</p>
 
-<p><img src="/assets/media/Nyra10.png"><br>
-One more from Nyra.</p>
+<h2 id="toc_1">Practical uses</h2>
 
-<p>Many of the backgrounds in these images are from <a href="http://www.hdrlabs.com/sibl/archive.html">sIBL Archive</a>.</p>
+<p>It might be possible to fix this with some research and a few tricks. But it&#39;s not clear if that would really be useful. Rectangle lights might be most useful for things like windows, TV screens, photography reflectors, etc. In these cases we normally want the light to always go forward, anyway.</p>
+
+<p>Plus, if we block off the extreme edges, we have some easy options for shadowing.</p>
 
     </div>
     <ul class="tag_box inline">
       <li><i class="icon-folder-open"></i></li>
       <li>
-        <a href="/categories#blog-ref">blog <span>1</span></a>
+        <a href="/categories#Light Resolve-ref">Light Resolve <span>2</span></a>
       </li>
     </ul>
     <ul class="tag_box inline">
       <li><i class="icon-tags"></i></li>
       <li>
-        <a href="/tags#blog-ref">blog <span>1</span></a>
+        <a href="/tags#AreaLights-ref">AreaLights <span>3</span></a>
+      </li>
+      <li>
+        <a href="/tags#RectangleLights-ref">RectangleLights <span>2</span></a>
       </li>
     </ul>
     <hr>
     <div class="pagination">
       <ul>
-          <li class="prev"><a href="/posts/rectlightdiffuse" title="Rectangle Light diffuse vs 3DS Max">&larr; Previous</a></li>
+          <li class="prev"><a href="/posts/whattodofirst" title="What to do first">&larr; Previous</a></li>
 
           <li><a href="/archive">Archive</a></li>
 
-          <li class="next"><a href="/posts/arealightsandpbr" title="Area Lights with Physically Based Rendering">Next &rarr;</a></li>
+          <li class="next"><a href="/posts/first" title="First post">Next &rarr;</a></li>
       </ul>
     </div>
     <hr>

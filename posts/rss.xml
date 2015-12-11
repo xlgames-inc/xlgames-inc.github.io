@@ -4,7 +4,7 @@
     <title>XLE development blog</title>
     <description>XLE development blog</description>
     <link>http://xlgames-inc.github.io</link>
-    <pubDate>2015-12-10</pubDate>
+    <pubDate>2015-12-11</pubDate>
     <item>
       <title>Area Lights with Physically Based Rendering</title>
       <link>http://xlgames-inc.github.io/posts/arealightsandpbr</link>
@@ -127,6 +127,64 @@ Detail of Nyra&lt;/p&gt;
 One more from Nyra.&lt;/p&gt;
 
 &lt;p&gt;Many of the backgrounds in these images are from &lt;a href="http://www.hdrlabs.com/sibl/archive.html"&gt;sIBL Archive&lt;/a&gt;.&lt;/p&gt;
+</description>
+    </item>
+    <item>
+      <title>Rectangle Light diffuse vs 3DS Max</title>
+      <link>http://xlgames-inc.github.io/posts/rectlightdiffuse</link>
+      <pubDate>2015-12-11</pubDate>
+      <description>&lt;p&gt;Just a quick note on rectangle light diffuse. In XLE, rectangle lights are slightly different from the default rectangle lights in 3DS Max.&lt;/p&gt;
+
+&lt;style type="text/css"&gt;
+.tg  {border-collapse:collapse;border-spacing:0;}
+.tg td{font-family:Arial, sans-serif;font-size:14px;padding:10px 5px;border-style:solid;border-width:1px;overflow:hidden;word-break:normal;}
+.tg th{font-family:Arial, sans-serif;font-size:14px;font-weight:normal;padding:10px 5px;border-style:solid;border-width:1px;overflow:hidden;word-break:normal;}
+.tg .tg-yw4l{vertical-align:top}
+&lt;/style&gt;
+
+&lt;table class="tg"&gt;
+  &lt;tr&gt;
+    &lt;th class="tg-yw4l"&gt;XLE lights&lt;/th&gt;
+    &lt;th class="tg-yw4l"&gt;3DS Max lights (Quicksilver renderer)&lt;/th&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+    &lt;td class="tg-yw4l"&gt;&lt;img src="/assets/media/RectLightDiffuse/XLELightDiag.png"&gt;&lt;/td&gt;
+    &lt;td class="tg-yw4l"&gt;&lt;img src="/assets/media/RectLightDiffuse/MaxLightDiag.png"&gt;&lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+    &lt;td class="tg-yw4l"&gt;&lt;img src="/assets/media/RectLightDiffuse/XLEDefault.png"&gt;&lt;/td&gt;
+    &lt;td class="tg-yw4l"&gt;&lt;img src="/assets/media/RectLightDiffuse/MaxComparison.png"&gt;&lt;/td&gt;
+  &lt;/tr&gt;
+&lt;/table&gt;
+
+&lt;p&gt;XLE rectangle lights emit light mostly in the forward direction (and a reduced amount sideways). But in the 3DS Max Quicksilver renderer, rectangle lights emit light in all direction.&lt;/p&gt;
+
+&lt;h2 id="toc_0"&gt;Edge cases&lt;/h2&gt;
+
+&lt;p&gt;This is partially because the method we&amp;#39;re using for diffuse doesn&amp;#39;t work well on extreme angles. In the above example, the light plane and the &lt;strong&gt;top&lt;/strong&gt;/&lt;strong&gt;bottom&lt;/strong&gt;/&lt;strong&gt;left&lt;/strong&gt;/&lt;strong&gt;right&lt;/strong&gt; walls are actually perpendicular.&lt;/p&gt;
+
+&lt;p&gt;This causes weird problems right on the edges.&lt;/p&gt;
+
+&lt;table class="tg"&gt;
+  &lt;tr&gt;
+    &lt;th class="tg-yw4l"&gt;XLE emulating 3DS Max&lt;/th&gt;
+    &lt;th class="tg-yw4l"&gt;3DS Max lights (Quicksilver Renderer)&lt;/th&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+    &lt;td class="tg-yw4l"&gt;&lt;img src="/assets/media/RectLightDiffuse/XLEEmulateMax.png"&gt;&lt;/td&gt;
+    &lt;td class="tg-yw4l"&gt;&lt;img src="/assets/media/RectLightDiffuse/MaxComparison.png"&gt;&lt;/td&gt;
+  &lt;/tr&gt;
+&lt;/table&gt;
+
+&lt;p&gt;In the above example, the left and right walls look fine. But the top and bottom walls are missing their highlight. This is because the light is quite tall. A square light might be fine.&lt;/p&gt;
+
+&lt;p&gt;But you can see that, in general, the 3DS Max result and the XLE result is quite similar.&lt;/p&gt;
+
+&lt;h2 id="toc_1"&gt;Practical uses&lt;/h2&gt;
+
+&lt;p&gt;It might be possible to fix this with some research and a few tricks. But it&amp;#39;s not clear if that would really be useful. Rectangle lights might be most useful for things like windows, TV screens, photography reflectors, etc. In these cases we normally want the light to always go forward, anyway.&lt;/p&gt;
+
+&lt;p&gt;Plus, if we block off the extreme edges, we have some easy options for shadowing.&lt;/p&gt;
 </description>
     </item>
     <item>

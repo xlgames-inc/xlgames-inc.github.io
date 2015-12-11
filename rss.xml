@@ -4,7 +4,7 @@
     <title>XLE development blog</title>
     <description>XLE development blog</description>
     <link>http://xlgames-inc.github.io</link>
-    <pubDate>2015-12-10</pubDate>
+    <pubDate>2015-12-11</pubDate>
     <item>
       <title>About</title>
       <link>http://xlgames-inc.github.io/about</link>
@@ -26,6 +26,7 @@
     &lt;ul&gt;
       &lt;li&gt;&lt;span&gt;2015-12-02&lt;/span&gt; &amp;raquo; &lt;a href="/posts/arealightsandpbr"&gt;Area Lights with Physically Based Rendering&lt;/a&gt;&lt;/li&gt;
       &lt;li&gt;&lt;span&gt;2015-12-01&lt;/span&gt; &amp;raquo; &lt;a href="/posts/first"&gt;First post&lt;/a&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;span&gt;2015-12-11&lt;/span&gt; &amp;raquo; &lt;a href="/posts/rectlightdiffuse"&gt;Rectangle Light diffuse vs 3DS Max&lt;/a&gt;&lt;/li&gt;
       &lt;li&gt;&lt;span&gt;2015-12-04&lt;/span&gt; &amp;raquo; &lt;a href="/posts/whattodofirst"&gt;What to do first&lt;/a&gt;&lt;/li&gt;
       &lt;li&gt;&lt;span&gt;2015-12-09&lt;/span&gt; &amp;raquo; &lt;a href="/posts/workingonrectlights"&gt;Working some improvements to rectangle lights&lt;/a&gt;&lt;/li&gt;
     &lt;/ul&gt;
@@ -43,7 +44,7 @@
     &lt;a href="/categories#blog-ref"&gt;blog &lt;span&gt;1&lt;/span&gt;&lt;/a&gt;
   &lt;/li&gt;
   &lt;li&gt;
-    &lt;a href="/categories#Light Resolve-ref"&gt;Light Resolve &lt;span&gt;1&lt;/span&gt;&lt;/a&gt;
+    &lt;a href="/categories#Light Resolve-ref"&gt;Light Resolve &lt;span&gt;2&lt;/span&gt;&lt;/a&gt;
   &lt;/li&gt;
 &lt;/ul&gt;
 
@@ -55,8 +56,9 @@
   &lt;ul&gt;
       &lt;li&gt;&lt;a href="/posts/first"&gt;First post&lt;/a&gt;&lt;/li&gt;
   &lt;/ul&gt;
-  &lt;h3&gt;Light Resolve (1)&lt;/h3&gt;
+  &lt;h3&gt;Light Resolve (2)&lt;/h3&gt;
   &lt;ul&gt;
+      &lt;li&gt;&lt;a href="/posts/rectlightdiffuse"&gt;Rectangle Light diffuse vs 3DS Max&lt;/a&gt;&lt;/li&gt;
       &lt;li&gt;&lt;a href="/posts/workingonrectlights"&gt;Working some improvements to rectangle lights&lt;/a&gt;&lt;/li&gt;
   &lt;/ul&gt;
 </description>
@@ -133,6 +135,39 @@ A metal golem character from Archeage.&lt;/p&gt;
 
   &lt;div class="more"&gt;
     &lt;a href="/posts/first" class="btn btn-small"&gt;read more..&lt;/a&gt;
+  &lt;/div&gt;
+&lt;/div&gt;
+&lt;div class="post"&gt;
+  &lt;h3 class="title"&gt;&lt;a href="/posts/rectlightdiffuse"&gt;Rectangle Light diffuse vs 3DS Max&lt;/a&gt; &lt;span class="date"&gt;2015-12-11&lt;/span&gt;&lt;/h3&gt;
+
+  &lt;div class="summary ellipsis"&gt;
+&lt;p&gt;Just a quick note on rectangle light diffuse. In XLE, rectangle lights are slightly different from the default rectangle lights in 3DS Max.&lt;/p&gt;
+
+&lt;style type="text/css"&gt;
+.tg  {border-collapse:collapse;border-spacing:0;}
+.tg td{font-family:Arial, sans-serif;font-size:14px;padding:10px 5px;border-style:solid;border-width:1px;overflow:hidden;word-break:normal;}
+.tg th{font-family:Arial, sans-serif;font-size:14px;font-weight:normal;padding:10px 5px;border-style:solid;border-width:1px;overflow:hidden;word-break:normal;}
+.tg .tg-yw4l{vertical-align:top}
+&lt;/style&gt;
+
+&lt;table class="tg"&gt;
+  &lt;tr&gt;
+    &lt;th class="tg-yw4l"&gt;XLE lights&lt;/th&gt;
+    &lt;th class="tg-yw4l"&gt;3DS Max lights (Quicksilver renderer)&lt;/th&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+    &lt;td class="tg-yw4l"&gt;&lt;img src="/assets/media/RectLightDiffuse/XLELightDiag.png"&gt;&lt;/td&gt;
+    &lt;td class="tg-yw4l"&gt;&lt;img src="/assets/media/RectLightDiffuse/MaxLightDiag.png"&gt;&lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+    &lt;td class="tg-yw4l"&gt;&lt;img src="/assets/media/RectLightDiffuse/XLEDefault.png"&gt;&lt;/td&gt;
+    &lt;td class="tg-yw4l"&gt;&lt;img src="/assets/media/RectLightDiffuse/MaxComparison.png"&gt;&lt;/td&gt;
+  &lt;/tr&gt;
+&lt;/table&gt;
+&lt;/div&gt;
+
+  &lt;div class="more"&gt;
+    &lt;a href="/posts/rectlightdiffuse" class="btn btn-small"&gt;read more..&lt;/a&gt;
   &lt;/div&gt;
 &lt;/div&gt;
 &lt;div class="post"&gt;
@@ -245,7 +280,7 @@ It has been modified to work with XLE, and some XLE specific behaviour has been 
     &lt;a href="/tags#PBR-ref"&gt;PBR &lt;span&gt;1&lt;/span&gt;&lt;/a&gt;
   &lt;/li&gt;
   &lt;li&gt;
-    &lt;a href="/tags#AreaLights-ref"&gt;AreaLights &lt;span&gt;2&lt;/span&gt;&lt;/a&gt;
+    &lt;a href="/tags#AreaLights-ref"&gt;AreaLights &lt;span&gt;3&lt;/span&gt;&lt;/a&gt;
   &lt;/li&gt;
   &lt;li&gt;
     &lt;a href="/tags#Roughness-ref"&gt;Roughness &lt;span&gt;1&lt;/span&gt;&lt;/a&gt;
@@ -257,7 +292,7 @@ It has been modified to work with XLE, and some XLE specific behaviour has been 
     &lt;a href="/tags#blog-ref"&gt;blog &lt;span&gt;1&lt;/span&gt;&lt;/a&gt;
   &lt;/li&gt;
   &lt;li&gt;
-    &lt;a href="/tags#RectangleLights-ref"&gt;RectangleLights &lt;span&gt;1&lt;/span&gt;&lt;/a&gt;
+    &lt;a href="/tags#RectangleLights-ref"&gt;RectangleLights &lt;span&gt;2&lt;/span&gt;&lt;/a&gt;
   &lt;/li&gt;
 &lt;/ul&gt;
 
@@ -265,6 +300,7 @@ It has been modified to work with XLE, and some XLE specific behaviour has been 
     &lt;li&gt;&lt;a href="/posts/arealightsandpbr"&gt;Area Lights with Physically Based Rendering&lt;/a&gt;&lt;/li&gt;
   &lt;h3 id="AreaLights-ref"&gt;AreaLights&lt;/h3&gt;
     &lt;li&gt;&lt;a href="/posts/arealightsandpbr"&gt;Area Lights with Physically Based Rendering&lt;/a&gt;&lt;/li&gt;
+    &lt;li&gt;&lt;a href="/posts/rectlightdiffuse"&gt;Rectangle Light diffuse vs 3DS Max&lt;/a&gt;&lt;/li&gt;
     &lt;li&gt;&lt;a href="/posts/workingonrectlights"&gt;Working some improvements to rectangle lights&lt;/a&gt;&lt;/li&gt;
   &lt;h3 id="Roughness-ref"&gt;Roughness&lt;/h3&gt;
     &lt;li&gt;&lt;a href="/posts/arealightsandpbr"&gt;Area Lights with Physically Based Rendering&lt;/a&gt;&lt;/li&gt;
@@ -273,6 +309,7 @@ It has been modified to work with XLE, and some XLE specific behaviour has been 
   &lt;h3 id="blog-ref"&gt;blog&lt;/h3&gt;
     &lt;li&gt;&lt;a href="/posts/first"&gt;First post&lt;/a&gt;&lt;/li&gt;
   &lt;h3 id="RectangleLights-ref"&gt;RectangleLights&lt;/h3&gt;
+    &lt;li&gt;&lt;a href="/posts/rectlightdiffuse"&gt;Rectangle Light diffuse vs 3DS Max&lt;/a&gt;&lt;/li&gt;
     &lt;li&gt;&lt;a href="/posts/workingonrectlights"&gt;Working some improvements to rectangle lights&lt;/a&gt;&lt;/li&gt;
  
 </description>
