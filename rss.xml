@@ -4,7 +4,7 @@
     <title>XLE development blog</title>
     <description>XLE development blog</description>
     <link>http://xlgames-inc.github.io</link>
-    <pubDate>2015-12-11</pubDate>
+    <pubDate>December 16, 2015</pubDate>
     <item>
       <title>About</title>
       <link>http://xlgames-inc.github.io/about</link>
@@ -24,11 +24,12 @@
   &lt;h2&gt;2015&lt;/h2&gt;
     &lt;h3&gt;December&lt;/h3&gt;
     &lt;ul&gt;
-      &lt;li&gt;&lt;span&gt;2015-12-02&lt;/span&gt; &amp;raquo; &lt;a href="/posts/arealightsandpbr"&gt;Area Lights with Physically Based Rendering&lt;/a&gt;&lt;/li&gt;
-      &lt;li&gt;&lt;span&gt;2015-12-01&lt;/span&gt; &amp;raquo; &lt;a href="/posts/first"&gt;First post&lt;/a&gt;&lt;/li&gt;
-      &lt;li&gt;&lt;span&gt;2015-12-11&lt;/span&gt; &amp;raquo; &lt;a href="/posts/rectlightdiffuse"&gt;Rectangle Light diffuse vs 3DS Max&lt;/a&gt;&lt;/li&gt;
-      &lt;li&gt;&lt;span&gt;2015-12-04&lt;/span&gt; &amp;raquo; &lt;a href="/posts/whattodofirst"&gt;What to do first&lt;/a&gt;&lt;/li&gt;
-      &lt;li&gt;&lt;span&gt;2015-12-09&lt;/span&gt; &amp;raquo; &lt;a href="/posts/workingonrectlights"&gt;Working some improvements to rectangle lights&lt;/a&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;span&gt;December 16, 2015&lt;/span&gt; &amp;raquo; &lt;a href="/posts/functionlinkedshaders"&gt;Dynamic Function Linking Graph for Shaders&lt;/a&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;span&gt;December 11, 2015&lt;/span&gt; &amp;raquo; &lt;a href="/posts/rectlightdiffuse"&gt;Rectangle Light diffuse vs 3DS Max&lt;/a&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;span&gt;December 09, 2015&lt;/span&gt; &amp;raquo; &lt;a href="/posts/workingonrectlights"&gt;Working some improvements to rectangle lights&lt;/a&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;span&gt;December 04, 2015&lt;/span&gt; &amp;raquo; &lt;a href="/posts/whattodofirst"&gt;What to do first&lt;/a&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;span&gt;December 02, 2015&lt;/span&gt; &amp;raquo; &lt;a href="/posts/arealightsandpbr"&gt;Area Lights with Physically Based Rendering&lt;/a&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;span&gt;December 01, 2015&lt;/span&gt; &amp;raquo; &lt;a href="/posts/first"&gt;First post&lt;/a&gt;&lt;/li&gt;
     &lt;/ul&gt;
 </description>
     </item>
@@ -38,28 +39,24 @@
       <description>
 &lt;ul class="tag_box inline"&gt;
   &lt;li&gt;
-    &lt;a href="/categories#Physically Based Rendering-ref"&gt;Physically Based Rendering &lt;span&gt;1&lt;/span&gt;&lt;/a&gt;
+    &lt;a href="/categories#XLE-ref"&gt;XLE &lt;span&gt;5&lt;/span&gt;&lt;/a&gt;
   &lt;/li&gt;
   &lt;li&gt;
     &lt;a href="/categories#blog-ref"&gt;blog &lt;span&gt;1&lt;/span&gt;&lt;/a&gt;
   &lt;/li&gt;
-  &lt;li&gt;
-    &lt;a href="/categories#Light Resolve-ref"&gt;Light Resolve &lt;span&gt;2&lt;/span&gt;&lt;/a&gt;
-  &lt;/li&gt;
 &lt;/ul&gt;
 
-  &lt;h3&gt;Physically Based Rendering (1)&lt;/h3&gt;
+  &lt;h3&gt;XLE (5)&lt;/h3&gt;
   &lt;ul&gt;
       &lt;li&gt;&lt;a href="/posts/arealightsandpbr"&gt;Area Lights with Physically Based Rendering&lt;/a&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;a href="/posts/functionlinkedshaders"&gt;Dynamic Function Linking Graph for Shaders&lt;/a&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;a href="/posts/rectlightdiffuse"&gt;Rectangle Light diffuse vs 3DS Max&lt;/a&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;a href="/posts/whattodofirst"&gt;What to do first&lt;/a&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;a href="/posts/workingonrectlights"&gt;Working some improvements to rectangle lights&lt;/a&gt;&lt;/li&gt;
   &lt;/ul&gt;
   &lt;h3&gt;blog (1)&lt;/h3&gt;
   &lt;ul&gt;
       &lt;li&gt;&lt;a href="/posts/first"&gt;First post&lt;/a&gt;&lt;/li&gt;
-  &lt;/ul&gt;
-  &lt;h3&gt;Light Resolve (2)&lt;/h3&gt;
-  &lt;ul&gt;
-      &lt;li&gt;&lt;a href="/posts/rectlightdiffuse"&gt;Rectangle Light diffuse vs 3DS Max&lt;/a&gt;&lt;/li&gt;
-      &lt;li&gt;&lt;a href="/posts/workingonrectlights"&gt;Working some improvements to rectangle lights&lt;/a&gt;&lt;/li&gt;
   &lt;/ul&gt;
 </description>
     </item>
@@ -73,72 +70,61 @@
 &lt;p&gt;For more information, see our &lt;a href="https://github.com/xlgames-inc/XLE/wiki"&gt;wiki on Github&lt;/a&gt;&lt;/p&gt;
 &lt;p&gt;Dev team contact: &lt;a href="mailto:xle@xlgames.com"&gt;xle@xlgames.com&lt;/a&gt; (in English or Korean)&lt;/p&gt;
 
+  &lt;h2&gt;2015&lt;/h2&gt;
+    &lt;h3&gt;December&lt;/h3&gt;
+    &lt;ul&gt;
+      &lt;li&gt;&lt;span&gt;December 16, 2015&lt;/span&gt; &amp;raquo; &lt;a href="/posts/functionlinkedshaders"&gt;Dynamic Function Linking Graph for Shaders&lt;/a&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;span&gt;December 11, 2015&lt;/span&gt; &amp;raquo; &lt;a href="/posts/rectlightdiffuse"&gt;Rectangle Light diffuse vs 3DS Max&lt;/a&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;span&gt;December 09, 2015&lt;/span&gt; &amp;raquo; &lt;a href="/posts/workingonrectlights"&gt;Working some improvements to rectangle lights&lt;/a&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;span&gt;December 04, 2015&lt;/span&gt; &amp;raquo; &lt;a href="/posts/whattodofirst"&gt;What to do first&lt;/a&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;span&gt;December 02, 2015&lt;/span&gt; &amp;raquo; &lt;a href="/posts/arealightsandpbr"&gt;Area Lights with Physically Based Rendering&lt;/a&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;span&gt;December 01, 2015&lt;/span&gt; &amp;raquo; &lt;a href="/posts/first"&gt;First post&lt;/a&gt;&lt;/li&gt;
+    &lt;/ul&gt;
+
+&lt;p&gt;&lt;img src="/assets/media/NyraAndDragon1.png"&gt;&lt;/p&gt;
+
+&lt;hr /&gt;
 
 &lt;div class="post"&gt;
-  &lt;h3 class="title"&gt;&lt;a href="/posts/arealightsandpbr"&gt;Area Lights with Physically Based Rendering&lt;/a&gt; &lt;span class="date"&gt;2015-12-02&lt;/span&gt;&lt;/h3&gt;
+  &lt;h3 class="title"&gt;&lt;a href="/posts/functionlinkedshaders"&gt;Dynamic Function Linking Graph for Shaders&lt;/a&gt;&lt;br /&gt; &lt;span class="date"&gt;December 16, 2015&lt;/span&gt;&lt;/h3&gt;
 
   &lt;div class="summary ellipsis"&gt;
-&lt;p&gt;XLE now support a few area light types: &lt;em&gt;sphere&lt;/em&gt;, &lt;em&gt;tube&lt;/em&gt; &amp;amp; &lt;em&gt;rectangle&lt;/em&gt; (with &lt;em&gt;disc&lt;/em&gt; and maybe some other shapes coming soon). Maybe in a future post I'll go into some details about the implementation (actually, it's quite interesting!). But this post is about something different: this post is about why they are important.&lt;/p&gt;
+&lt;p&gt;For many modern engines, the shear quantity of different configuration options for shaders can start to be a major burden. Many compile-time options can end up increasing the number of compiled shaders exponentially. It can get to the point where the shaders data image can make up a large segment of download time, and compile time can be a major hassle during development.&lt;/p&gt;
 
-&lt;p&gt;I'm finding that it makes a huge difference. So much so that not only do we want to support area lights -- we also want to outlaw non-area lights. Point light sources are now the enemy!&lt;/p&gt;
+&lt;p&gt;For example, a pixel shader for forward lit scene elements will often need to be specialized to suit the number and types of lights nearby. If we have a few different types of lights, the number of combinations can become very quickly unmanageable.&lt;/p&gt;
 
-&lt;h2 id="toc_0"&gt;PBR Concept&lt;/h2&gt;
+&lt;p&gt;But we really need a lot of compile time options! They are very useful.&lt;/p&gt;
 
-&lt;p&gt;The biggest buzzword at the moment is Physically Based Renderering (or PBR, or sometimes Physically Based Shading). But what does that mean, really?
-Partially it means sampling values from the real world. But really it's just a container under which we're placing many related concepts.&lt;/p&gt;
+&lt;h2 id="toc_0"&gt;Dynamic linking methods in D3D&lt;/h2&gt;
 
-&lt;p&gt;One of these "sub-concepts" of PBR is the idea that a single material should work in many different lighting environments.&lt;/p&gt;
+&lt;p&gt;What we really need is a way to do dynamic linking of shaders -- so that we can construct the particular shader we need at runtime.&lt;/p&gt;
 
-&lt;p&gt;In the past, artists often tweaked the material settings for objects to suit the lighting environment they are in. This is a problem because it means that if the object moves into another lighting environment, the material settings must be tweaked to match.&lt;/p&gt;
+&lt;p&gt;D3D provides a few different methods for dynamic shader linking.
+The one simple method involves "classes" and "interfaces."&lt;/p&gt;
 
-&lt;p&gt;This happen in both movies and games. In games, it's particularly a problem for games with a day/night cycle. In games where time is changing, the lighting environment is also always changing. Previously this means that extreme lighting settings (sunsets, etc) had to be more subtle than real-life. What we want is materials that look correct in all possible lighting environments.&lt;/p&gt;
+&lt;h2 id="toc_1"&gt;Classes and interfaces&lt;/h2&gt;
 
-&lt;h2 id="toc_1"&gt;Specular highlight size&lt;/h2&gt;
+&lt;p&gt;In the shader code, we can define an interface like this:&lt;/p&gt;
 
-&lt;p&gt;There's a simple way to think about this. Let's consider the size of a specular highlight.&lt;/p&gt;
-
-&lt;p&gt;Here are 5 spheres rendered in Blender with Cook Torrence lighting.
-&lt;img src="/assets/media/SpecularExample.png"&gt;&lt;/p&gt;
-
+&lt;pre&gt;&lt;code&gt;interface ILightResolver
+{
+    float3 Resolve(
+        GBufferValues sample,
+        LightSampleExtra sampleExtra,
+        LightDesc light,
+        float3 worldPosition,
+        float3 directionToEye,
+        LightScreenDest screenDest);
+};
+&lt;/code&gt;&lt;/pre&gt;
 &lt;/div&gt;
 
   &lt;div class="more"&gt;
-    &lt;a href="/posts/arealightsandpbr" class="btn btn-small"&gt;read more..&lt;/a&gt;
+    &lt;a href="/posts/functionlinkedshaders" class="btn btn-small"&gt;read more..&lt;/a&gt;
   &lt;/div&gt;
 &lt;/div&gt;
 &lt;div class="post"&gt;
-  &lt;h3 class="title"&gt;&lt;a href="/posts/first"&gt;First post&lt;/a&gt; &lt;span class="date"&gt;2015-12-01&lt;/span&gt;&lt;/h3&gt;
-
-  &lt;div class="summary ellipsis"&gt;
-&lt;p&gt;This blog will contain some day-to-day information about XLE.&lt;/p&gt;
-
-&lt;p&gt;Let's start with some screenshots, rendered with XLE:&lt;/p&gt;
-
-&lt;p&gt;&lt;img src="/assets/media/CaptainSplitBrightLogo.png"&gt;&lt;br&gt;
-The Captain character from &lt;a href="http://archeage.xlgames.com/"&gt;Archeage&lt;/a&gt; (&lt;a href="http://www.trionworlds.com/archeage/en/"&gt;US site&lt;/a&gt;). &lt;/p&gt;
-
-&lt;p&gt;&lt;img src="/assets/media/Archepunk4.png"&gt;&lt;br&gt;
-One of the (many) costumes from Archeage.&lt;/p&gt;
-
-&lt;p&gt;&lt;img src="/assets/media/SkeleCommander.png"&gt;&lt;br&gt;
-A skeleton enemy from Archeage.&lt;/p&gt;
-
-&lt;p&gt;&lt;img src="/assets/media/Copperhead1.png"&gt;&lt;br&gt;
-A military spacecraft.&lt;/p&gt;
-
-&lt;p&gt;&lt;img src="/assets/media/gweonid4.png"&gt;&lt;br&gt;
-The "Gweonid" character from Archeage.&lt;/p&gt;
-
-&lt;p&gt;&lt;img src="/assets/media/MetalGolem0.png"&gt;&lt;br&gt;
-A metal golem character from Archeage.&lt;/p&gt;
-&lt;/div&gt;
-
-  &lt;div class="more"&gt;
-    &lt;a href="/posts/first" class="btn btn-small"&gt;read more..&lt;/a&gt;
-  &lt;/div&gt;
-&lt;/div&gt;
-&lt;div class="post"&gt;
-  &lt;h3 class="title"&gt;&lt;a href="/posts/rectlightdiffuse"&gt;Rectangle Light diffuse vs 3DS Max&lt;/a&gt; &lt;span class="date"&gt;2015-12-11&lt;/span&gt;&lt;/h3&gt;
+  &lt;h3 class="title"&gt;&lt;a href="/posts/rectlightdiffuse"&gt;Rectangle Light diffuse vs 3DS Max&lt;/a&gt;&lt;br /&gt; &lt;span class="date"&gt;December 11, 2015&lt;/span&gt;&lt;/h3&gt;
 
   &lt;div class="summary ellipsis"&gt;
 &lt;p&gt;Just a quick note on rectangle light diffuse. In XLE, rectangle lights are slightly different from the default rectangle lights in 3DS Max.&lt;/p&gt;
@@ -171,38 +157,7 @@ A metal golem character from Archeage.&lt;/p&gt;
   &lt;/div&gt;
 &lt;/div&gt;
 &lt;div class="post"&gt;
-  &lt;h3 class="title"&gt;&lt;a href="/posts/whattodofirst"&gt;What to do first&lt;/a&gt; &lt;span class="date"&gt;2015-12-04&lt;/span&gt;&lt;/h3&gt;
-
-  &lt;div class="summary ellipsis"&gt;
-&lt;p&gt;So, you've just downloaded XLE, and you're wondering what to do first? Here's a suggestion for the first 10 minutes:&lt;/p&gt;
-
-&lt;hr&gt;
-
-&lt;h2 id="toc_0"&gt;Startup the level editor&lt;/h2&gt;
-
-&lt;p&gt;Select the Level Editor as the startup project:
-&lt;br&gt;&lt;img src="/assets/media/SolutionExplorerLE.png"&gt;&lt;/p&gt;
-
-&lt;p&gt;You should use the &lt;strong&gt;Debug/x64&lt;/strong&gt; or &lt;strong&gt;Release/x64&lt;/strong&gt; configuration. Though XLE works in both 32 bit and 64 bits modes, normal usage for the level editor should be in 64 bits mode.&lt;/p&gt;
-
-&lt;p&gt;If you have trouble compiling, see the &lt;a href="https://github.com/xlgames-inc/XLE/wiki/CompilingFirstSteps"&gt;Getting Started Compiling page&lt;/a&gt;.&lt;/p&gt;
-
-&lt;p&gt;Start up this application, and you should see a large 3D window and various other windows about.&lt;/p&gt;
-
-&lt;p&gt;The level editor is based on a great project from Sony WWS &lt;a href="https://github.com/SonyWWS/LevelEditor"&gt;SonyWWSLevelEditor&lt;/a&gt;. 
-It has been modified to work with XLE, and some XLE specific behaviour has been added. I think this is a great example of the Open Source concept working for games developers.&lt;/p&gt;
-
-&lt;hr&gt;
-
-&lt;h2 id="toc_1"&gt;Creating an object&lt;/h2&gt;
-&lt;/div&gt;
-
-  &lt;div class="more"&gt;
-    &lt;a href="/posts/whattodofirst" class="btn btn-small"&gt;read more..&lt;/a&gt;
-  &lt;/div&gt;
-&lt;/div&gt;
-&lt;div class="post"&gt;
-  &lt;h3 class="title"&gt;&lt;a href="/posts/workingonrectlights"&gt;Working some improvements to rectangle lights&lt;/a&gt; &lt;span class="date"&gt;2015-12-09&lt;/span&gt;&lt;/h3&gt;
+  &lt;h3 class="title"&gt;&lt;a href="/posts/workingonrectlights"&gt;Working some improvements to rectangle lights&lt;/a&gt;&lt;br /&gt; &lt;span class="date"&gt;December 09, 2015&lt;/span&gt;&lt;/h3&gt;
 
   &lt;div class="summary ellipsis"&gt;
 &lt;p&gt;&lt;strong&gt;Post updated on 2015-12-10&lt;/strong&gt;&lt;/p&gt;
@@ -237,10 +192,74 @@ It has been modified to work with XLE, and some XLE specific behaviour has been 
     &lt;a href="/posts/workingonrectlights" class="btn btn-small"&gt;read more..&lt;/a&gt;
   &lt;/div&gt;
 &lt;/div&gt;
+&lt;div class="post"&gt;
+  &lt;h3 class="title"&gt;&lt;a href="/posts/whattodofirst"&gt;What to do first&lt;/a&gt;&lt;br /&gt; &lt;span class="date"&gt;December 04, 2015&lt;/span&gt;&lt;/h3&gt;
+
+  &lt;div class="summary ellipsis"&gt;
+&lt;p&gt;So, you've just downloaded XLE, and you're wondering what to do first? Here's a suggestion for the first 10 minutes:&lt;/p&gt;
+
+&lt;hr&gt;
+
+&lt;h2 id="toc_0"&gt;Startup the level editor&lt;/h2&gt;
+
+&lt;p&gt;Select the Level Editor as the startup project:
+&lt;br&gt;&lt;img src="/assets/media/SolutionExplorerLE.png"&gt;&lt;/p&gt;
+
+&lt;p&gt;You should use the &lt;strong&gt;Debug/x64&lt;/strong&gt; or &lt;strong&gt;Release/x64&lt;/strong&gt; configuration. Though XLE works in both 32 bit and 64 bits modes, normal usage for the level editor should be in 64 bits mode.&lt;/p&gt;
+
+&lt;p&gt;If you have trouble compiling, see the &lt;a href="https://github.com/xlgames-inc/XLE/wiki/CompilingFirstSteps"&gt;Getting Started Compiling page&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;Start up this application, and you should see a large 3D window and various other windows about.&lt;/p&gt;
+
+&lt;p&gt;The level editor is based on a great project from Sony WWS &lt;a href="https://github.com/SonyWWS/LevelEditor"&gt;SonyWWSLevelEditor&lt;/a&gt;.
+It has been modified to work with XLE, and some XLE specific behaviour has been added. I think this is a great example of the Open Source concept working for games developers.&lt;/p&gt;
+
+&lt;hr&gt;
+
+&lt;h2 id="toc_1"&gt;Creating an object&lt;/h2&gt;
+&lt;/div&gt;
+
+  &lt;div class="more"&gt;
+    &lt;a href="/posts/whattodofirst" class="btn btn-small"&gt;read more..&lt;/a&gt;
+  &lt;/div&gt;
+&lt;/div&gt;
+&lt;div class="post"&gt;
+  &lt;h3 class="title"&gt;&lt;a href="/posts/arealightsandpbr"&gt;Area Lights with Physically Based Rendering&lt;/a&gt;&lt;br /&gt; &lt;span class="date"&gt;December 02, 2015&lt;/span&gt;&lt;/h3&gt;
+
+  &lt;div class="summary ellipsis"&gt;
+&lt;p&gt;XLE now support a few area light types: &lt;em&gt;sphere&lt;/em&gt;, &lt;em&gt;tube&lt;/em&gt; &amp;amp; &lt;em&gt;rectangle&lt;/em&gt; (with &lt;em&gt;disc&lt;/em&gt; and maybe some other shapes coming soon). Maybe in a future post I'll go into some details about the implementation (actually, it's quite interesting!). But this post is about something different: this post is about why they are important.&lt;/p&gt;
+
+&lt;p&gt;I'm finding that it makes a huge difference. So much so that not only do we want to support area lights -- we also want to outlaw non-area lights. Point light sources are now the enemy!&lt;/p&gt;
+
+&lt;h2 id="toc_0"&gt;PBR Concept&lt;/h2&gt;
+
+&lt;p&gt;The biggest buzzword at the moment is Physically Based Renderering (or PBR, or sometimes Physically Based Shading). But what does that mean, really?
+Partially it means sampling values from the real world. But really it's just a container under which we're placing many related concepts.&lt;/p&gt;
+
+&lt;p&gt;One of these "sub-concepts" of PBR is the idea that a single material should work in many different lighting environments.&lt;/p&gt;
+
+&lt;p&gt;In the past, artists often tweaked the material settings for objects to suit the lighting environment they are in. This is a problem because it means that if the object moves into another lighting environment, the material settings must be tweaked to match.&lt;/p&gt;
+
+&lt;p&gt;This happen in both movies and games. In games, it's particularly a problem for games with a day/night cycle. In games where time is changing, the lighting environment is also always changing. Previously this means that extreme lighting settings (sunsets, etc) had to be more subtle than real-life. What we want is materials that look correct in all possible lighting environments.&lt;/p&gt;
+
+&lt;h2 id="toc_1"&gt;Specular highlight size&lt;/h2&gt;
+
+&lt;p&gt;There's a simple way to think about this. Let's consider the size of a specular highlight.&lt;/p&gt;
+
+&lt;p&gt;Here are 5 spheres rendered in Blender with Cook Torrence lighting.
+&lt;img src="/assets/media/SpecularExample.png"&gt;&lt;/p&gt;
+
+&lt;/div&gt;
+
+  &lt;div class="more"&gt;
+    &lt;a href="/posts/arealightsandpbr" class="btn btn-small"&gt;read more..&lt;/a&gt;
+  &lt;/div&gt;
+&lt;/div&gt;
 
 &lt;div class="pagination"&gt;
   &lt;ul&gt;
       &lt;li class="active"&gt;&lt;a href="/posts/index/1"&gt;1&lt;/a&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;a href="/posts/index/2"&gt;2&lt;/a&gt;&lt;/li&gt;
   &lt;/ul&gt;
 &lt;/div&gt;
 </description>
@@ -292,6 +311,12 @@ It has been modified to work with XLE, and some XLE specific behaviour has been 
     &lt;a href="/tags#blog-ref"&gt;blog &lt;span&gt;1&lt;/span&gt;&lt;/a&gt;
   &lt;/li&gt;
   &lt;li&gt;
+    &lt;a href="/tags#D3D-ref"&gt;D3D &lt;span&gt;1&lt;/span&gt;&lt;/a&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;a href="/tags#ShaderCompile-ref"&gt;ShaderCompile &lt;span&gt;1&lt;/span&gt;&lt;/a&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
     &lt;a href="/tags#RectangleLights-ref"&gt;RectangleLights &lt;span&gt;2&lt;/span&gt;&lt;/a&gt;
   &lt;/li&gt;
 &lt;/ul&gt;
@@ -308,6 +333,10 @@ It has been modified to work with XLE, and some XLE specific behaviour has been 
     &lt;li&gt;&lt;a href="/posts/arealightsandpbr"&gt;Area Lights with Physically Based Rendering&lt;/a&gt;&lt;/li&gt;
   &lt;h3 id="blog-ref"&gt;blog&lt;/h3&gt;
     &lt;li&gt;&lt;a href="/posts/first"&gt;First post&lt;/a&gt;&lt;/li&gt;
+  &lt;h3 id="D3D-ref"&gt;D3D&lt;/h3&gt;
+    &lt;li&gt;&lt;a href="/posts/functionlinkedshaders"&gt;Dynamic Function Linking Graph for Shaders&lt;/a&gt;&lt;/li&gt;
+  &lt;h3 id="ShaderCompile-ref"&gt;ShaderCompile&lt;/h3&gt;
+    &lt;li&gt;&lt;a href="/posts/functionlinkedshaders"&gt;Dynamic Function Linking Graph for Shaders&lt;/a&gt;&lt;/li&gt;
   &lt;h3 id="RectangleLights-ref"&gt;RectangleLights&lt;/h3&gt;
     &lt;li&gt;&lt;a href="/posts/rectlightdiffuse"&gt;Rectangle Light diffuse vs 3DS Max&lt;/a&gt;&lt;/li&gt;
     &lt;li&gt;&lt;a href="/posts/workingonrectlights"&gt;Working some improvements to rectangle lights&lt;/a&gt;&lt;/li&gt;

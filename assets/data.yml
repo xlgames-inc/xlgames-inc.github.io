@@ -7,6 +7,5 @@ author :
 
 navigation :
   - tags
-  - categories
-  - pages
+  - archive
   - about

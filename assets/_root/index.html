@@ -10,10 +10,17 @@ description:
 <p>For more information, see our <a href="https://github.com/xlgames-inc/XLE/wiki">wiki on Github</a></p>
 <p>Dev team contact: <a href="mailto:xle@xlgames.com">xle@xlgames.com</a> (in English or Korean)</p>
 
+{{# posts.collated }}
+  {{> posts_collate }}
+{{/ posts.collated }}
+
+<p><img src="{{urls.media}}/NyraAndDragon1.png"></p>
+
+<hr />
 
 {{# posts.paginator }}
 <div class="post">
-  <h3 class="title"><a href="{{url}}">{{title}}</a> <span class="date">{{ date }}</span></h3>
+  <h3 class="title"><a href="{{url}}">{{title}}</a><br /> <span class="date">{{ date }}</span></h3>
 
   {{{ summary }}}
 

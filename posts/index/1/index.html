@@ -13,7 +13,7 @@
 
     <!-- Le styles -->
 <link href='/assets/stylesheets/bootstrap.min-93b47f97c3444c4711853ed5140d82a1.css' type='text/css' rel='stylesheet' media='all'>
-<link href='/assets/stylesheets/style-a88fce574e723470155fd4f111bc145f.css' type='text/css' rel='stylesheet' media='all'>
+<link href='/assets/stylesheets/style-1dcb1d39791f3457afa56d279fcf0945.css' type='text/css' rel='stylesheet' media='all'>
 <link href='/assets/stylesheets/google_prettify/sons-of-obsidian-5e05343fd0c18e0a05231023b643245c.css' type='text/css' rel='stylesheet' media='all'>
     <!-- Le fav and touch icons -->
   <!-- Update these with your own images
@@ -35,10 +35,7 @@
                 <li><a href="/tags">Tags</a></li>
               
               
-                <li><a href="/categories">Categories</a></li>
-              
-              
-                <li><a href="/pages">Pages</a></li>
+                <li><a href="/archive">Archive</a></li>
               
               
                 <li><a href="/about">About</a></li>
@@ -54,70 +51,45 @@
         <div class="row-fluid">
   <div class="span12">
       <div class="posts">
-        <h3 class="title"><a href="/posts/arealightsandpbr">Area Lights with Physically Based Rendering</a> <span class="date">2015-12-02</span></h3>
+        <h3 class="title"><a href="/posts/functionlinkedshaders">Dynamic Function Linking Graph for Shaders</a><br/> <span class="date">December 16, 2015</span></h3>
 
         <div class="summary ellipsis">
-<p>XLE now support a few area light types: <em>sphere</em>, <em>tube</em> &amp; <em>rectangle</em> (with <em>disc</em> and maybe some other shapes coming soon). Maybe in a future post I'll go into some details about the implementation (actually, it's quite interesting!). But this post is about something different: this post is about why they are important.</p>
+<p>For many modern engines, the shear quantity of different configuration options for shaders can start to be a major burden. Many compile-time options can end up increasing the number of compiled shaders exponentially. It can get to the point where the shaders data image can make up a large segment of download time, and compile time can be a major hassle during development.</p>
 
-<p>I'm finding that it makes a huge difference. So much so that not only do we want to support area lights -- we also want to outlaw non-area lights. Point light sources are now the enemy!</p>
+<p>For example, a pixel shader for forward lit scene elements will often need to be specialized to suit the number and types of lights nearby. If we have a few different types of lights, the number of combinations can become very quickly unmanageable.</p>
 
-<h2 id="toc_0">PBR Concept</h2>
+<p>But we really need a lot of compile time options! They are very useful.</p>
 
-<p>The biggest buzzword at the moment is Physically Based Renderering (or PBR, or sometimes Physically Based Shading). But what does that mean, really?
-Partially it means sampling values from the real world. But really it's just a container under which we're placing many related concepts.</p>
+<h2 id="toc_0">Dynamic linking methods in D3D</h2>
 
-<p>One of these "sub-concepts" of PBR is the idea that a single material should work in many different lighting environments.</p>
+<p>What we really need is a way to do dynamic linking of shaders -- so that we can construct the particular shader we need at runtime.</p>
 
-<p>In the past, artists often tweaked the material settings for objects to suit the lighting environment they are in. This is a problem because it means that if the object moves into another lighting environment, the material settings must be tweaked to match.</p>
+<p>D3D provides a few different methods for dynamic shader linking.
+The one simple method involves "classes" and "interfaces."</p>
 
-<p>This happen in both movies and games. In games, it's particularly a problem for games with a day/night cycle. In games where time is changing, the lighting environment is also always changing. Previously this means that extreme lighting settings (sunsets, etc) had to be more subtle than real-life. What we want is materials that look correct in all possible lighting environments.</p>
+<h2 id="toc_1">Classes and interfaces</h2>
 
-<h2 id="toc_1">Specular highlight size</h2>
+<p>In the shader code, we can define an interface like this:</p>
 
-<p>There's a simple way to think about this. Let's consider the size of a specular highlight.</p>
-
-<p>Here are 5 spheres rendered in Blender with Cook Torrence lighting.
-<img src="/assets/media/SpecularExample.png"></p>
-
+<pre><code>interface ILightResolver
+{
+    float3 Resolve(
+        GBufferValues sample,
+        LightSampleExtra sampleExtra,
+        LightDesc light,
+        float3 worldPosition,
+        float3 directionToEye,
+        LightScreenDest screenDest);
+};
+</code></pre>
 </div>
 
         <div class="more">
-          <a href="/posts/arealightsandpbr" class="btn btn-small">read more..</a>
+          <a href="/posts/functionlinkedshaders" class="btn btn-small">read more..</a>
         </div>
       </div>
       <div class="posts">
-        <h3 class="title"><a href="/posts/first">First post</a> <span class="date">2015-12-01</span></h3>
-
-        <div class="summary ellipsis">
-<p>This blog will contain some day-to-day information about XLE.</p>
-
-<p>Let's start with some screenshots, rendered with XLE:</p>
-
-<p><img src="/assets/media/CaptainSplitBrightLogo.png"><br>
-The Captain character from <a href="http://archeage.xlgames.com/">Archeage</a> (<a href="http://www.trionworlds.com/archeage/en/">US site</a>). </p>
-
-<p><img src="/assets/media/Archepunk4.png"><br>
-One of the (many) costumes from Archeage.</p>
-
-<p><img src="/assets/media/SkeleCommander.png"><br>
-A skeleton enemy from Archeage.</p>
-
-<p><img src="/assets/media/Copperhead1.png"><br>
-A military spacecraft.</p>
-
-<p><img src="/assets/media/gweonid4.png"><br>
-The "Gweonid" character from Archeage.</p>
-
-<p><img src="/assets/media/MetalGolem0.png"><br>
-A metal golem character from Archeage.</p>
-</div>
-
-        <div class="more">
-          <a href="/posts/first" class="btn btn-small">read more..</a>
-        </div>
-      </div>
-      <div class="posts">
-        <h3 class="title"><a href="/posts/rectlightdiffuse">Rectangle Light diffuse vs 3DS Max</a> <span class="date">2015-12-11</span></h3>
+        <h3 class="title"><a href="/posts/rectlightdiffuse">Rectangle Light diffuse vs 3DS Max</a><br/> <span class="date">December 11, 2015</span></h3>
 
         <div class="summary ellipsis">
 <p>Just a quick note on rectangle light diffuse. In XLE, rectangle lights are slightly different from the default rectangle lights in 3DS Max.</p>
@@ -150,38 +122,7 @@ A metal golem character from Archeage.</p>
         </div>
       </div>
       <div class="posts">
-        <h3 class="title"><a href="/posts/whattodofirst">What to do first</a> <span class="date">2015-12-04</span></h3>
-
-        <div class="summary ellipsis">
-<p>So, you've just downloaded XLE, and you're wondering what to do first? Here's a suggestion for the first 10 minutes:</p>
-
-<hr>
-
-<h2 id="toc_0">Startup the level editor</h2>
-
-<p>Select the Level Editor as the startup project:
-<br><img src="/assets/media/SolutionExplorerLE.png"></p>
-
-<p>You should use the <strong>Debug/x64</strong> or <strong>Release/x64</strong> configuration. Though XLE works in both 32 bit and 64 bits modes, normal usage for the level editor should be in 64 bits mode.</p>
-
-<p>If you have trouble compiling, see the <a href="https://github.com/xlgames-inc/XLE/wiki/CompilingFirstSteps">Getting Started Compiling page</a>.</p>
-
-<p>Start up this application, and you should see a large 3D window and various other windows about.</p>
-
-<p>The level editor is based on a great project from Sony WWS <a href="https://github.com/SonyWWS/LevelEditor">SonyWWSLevelEditor</a>. 
-It has been modified to work with XLE, and some XLE specific behaviour has been added. I think this is a great example of the Open Source concept working for games developers.</p>
-
-<hr>
-
-<h2 id="toc_1">Creating an object</h2>
-</div>
-
-        <div class="more">
-          <a href="/posts/whattodofirst" class="btn btn-small">read more..</a>
-        </div>
-      </div>
-      <div class="posts">
-        <h3 class="title"><a href="/posts/workingonrectlights">Working some improvements to rectangle lights</a> <span class="date">2015-12-09</span></h3>
+        <h3 class="title"><a href="/posts/workingonrectlights">Working some improvements to rectangle lights</a><br/> <span class="date">December 09, 2015</span></h3>
 
         <div class="summary ellipsis">
 <p><strong>Post updated on 2015-12-10</strong></p>
@@ -216,10 +157,74 @@ It has been modified to work with XLE, and some XLE specific behaviour has been 
           <a href="/posts/workingonrectlights" class="btn btn-small">read more..</a>
         </div>
       </div>
+      <div class="posts">
+        <h3 class="title"><a href="/posts/whattodofirst">What to do first</a><br/> <span class="date">December 04, 2015</span></h3>
+
+        <div class="summary ellipsis">
+<p>So, you've just downloaded XLE, and you're wondering what to do first? Here's a suggestion for the first 10 minutes:</p>
+
+<hr>
+
+<h2 id="toc_0">Startup the level editor</h2>
+
+<p>Select the Level Editor as the startup project:
+<br><img src="/assets/media/SolutionExplorerLE.png"></p>
+
+<p>You should use the <strong>Debug/x64</strong> or <strong>Release/x64</strong> configuration. Though XLE works in both 32 bit and 64 bits modes, normal usage for the level editor should be in 64 bits mode.</p>
+
+<p>If you have trouble compiling, see the <a href="https://github.com/xlgames-inc/XLE/wiki/CompilingFirstSteps">Getting Started Compiling page</a>.</p>
+
+<p>Start up this application, and you should see a large 3D window and various other windows about.</p>
+
+<p>The level editor is based on a great project from Sony WWS <a href="https://github.com/SonyWWS/LevelEditor">SonyWWSLevelEditor</a>.
+It has been modified to work with XLE, and some XLE specific behaviour has been added. I think this is a great example of the Open Source concept working for games developers.</p>
+
+<hr>
+
+<h2 id="toc_1">Creating an object</h2>
+</div>
+
+        <div class="more">
+          <a href="/posts/whattodofirst" class="btn btn-small">read more..</a>
+        </div>
+      </div>
+      <div class="posts">
+        <h3 class="title"><a href="/posts/arealightsandpbr">Area Lights with Physically Based Rendering</a><br/> <span class="date">December 02, 2015</span></h3>
+
+        <div class="summary ellipsis">
+<p>XLE now support a few area light types: <em>sphere</em>, <em>tube</em> &amp; <em>rectangle</em> (with <em>disc</em> and maybe some other shapes coming soon). Maybe in a future post I'll go into some details about the implementation (actually, it's quite interesting!). But this post is about something different: this post is about why they are important.</p>
+
+<p>I'm finding that it makes a huge difference. So much so that not only do we want to support area lights -- we also want to outlaw non-area lights. Point light sources are now the enemy!</p>
+
+<h2 id="toc_0">PBR Concept</h2>
+
+<p>The biggest buzzword at the moment is Physically Based Renderering (or PBR, or sometimes Physically Based Shading). But what does that mean, really?
+Partially it means sampling values from the real world. But really it's just a container under which we're placing many related concepts.</p>
+
+<p>One of these "sub-concepts" of PBR is the idea that a single material should work in many different lighting environments.</p>
+
+<p>In the past, artists often tweaked the material settings for objects to suit the lighting environment they are in. This is a problem because it means that if the object moves into another lighting environment, the material settings must be tweaked to match.</p>
+
+<p>This happen in both movies and games. In games, it's particularly a problem for games with a day/night cycle. In games where time is changing, the lighting environment is also always changing. Previously this means that extreme lighting settings (sunsets, etc) had to be more subtle than real-life. What we want is materials that look correct in all possible lighting environments.</p>
+
+<h2 id="toc_1">Specular highlight size</h2>
+
+<p>There's a simple way to think about this. Let's consider the size of a specular highlight.</p>
+
+<p>Here are 5 spheres rendered in Blender with Cook Torrence lighting.
+<img src="/assets/media/SpecularExample.png"></p>
+
+</div>
+
+        <div class="more">
+          <a href="/posts/arealightsandpbr" class="btn btn-small">read more..</a>
+        </div>
+      </div>
     
     <div class="pagination">
       <ul>
           <li class="active"><a href="/posts/index/1">1</a></li>
+          <li><a href="/posts/index/2">2</a></li>
       </ul>
     </div>
   </div>

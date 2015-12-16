@@ -1,0 +1,358 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Dynamic Function Linking Graph for Shaders</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Stitching shaders together at runtime to deal with shader configuration explosion">
+    <meta name="author" content="XL Games">
+
+    <!-- Le HTML5 shim, for IE6-8 support of HTML elements -->
+    <!--[if lt IE 9]>
+      <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+
+    <!-- Le styles -->
+<link href='/assets/stylesheets/bootstrap.min-93b47f97c3444c4711853ed5140d82a1.css' type='text/css' rel='stylesheet' media='all'>
+<link href='/assets/stylesheets/style-1dcb1d39791f3457afa56d279fcf0945.css' type='text/css' rel='stylesheet' media='all'>
+<link href='/assets/stylesheets/google_prettify/sons-of-obsidian-5e05343fd0c18e0a05231023b643245c.css' type='text/css' rel='stylesheet' media='all'>
+    <!-- Le fav and touch icons -->
+  <!-- Update these with your own images
+    <link rel="shortcut icon" href="images/favicon.ico">
+    <link rel="apple-touch-icon" href="images/apple-touch-icon.png">
+    <link rel="apple-touch-icon" sizes="72x72" href="images/apple-touch-icon-72x72.png">
+    <link rel="apple-touch-icon" sizes="114x114" href="images/apple-touch-icon-114x114.png">
+  -->
+  </head>
+
+  <body>
+
+    <div class="navbar">
+      <div class="navbar-inner">
+        <div class="container-narrow">
+          <a class="brand" href="/">XLE development blog</a>
+          <ul class="nav">
+              
+                <li><a href="/tags">Tags</a></li>
+              
+              
+                <li><a href="/archive">Archive</a></li>
+              
+              
+                <li><a href="/about">About</a></li>
+              
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="container-narrow">
+
+      <div class="content">
+        
+<div class="page-header">
+  <h1>Dynamic Function Linking Graph for Shaders </h1>
+</div>
+
+<div class="row-fluid post-full">
+  <div class="span12">
+    <div class="date">
+      <span>December 16, 2015</strong>
+    </div>
+    <div class="content">
+      <p>For many modern engines, the shear quantity of different configuration options for shaders can start to be a major burden. Many compile-time options can end up increasing the number of compiled shaders exponentially. It can get to the point where the shaders data image can make up a large segment of download time, and compile time can be a major hassle during development.</p>
+
+<p>For example, a pixel shader for forward lit scene elements will often need to be specialized to suit the number and types of lights nearby. If we have a few different types of lights, the number of combinations can become very quickly unmanageable.</p>
+
+<p>But we really need a lot of compile time options! They are very useful.</p>
+
+<h2 id="toc_0">Dynamic linking methods in D3D</h2>
+
+<p>What we really need is a way to do dynamic linking of shaders -- so that we can construct the particular shader we need at runtime.</p>
+
+<p>D3D provides a few different methods for dynamic shader linking.
+The one simple method involves &quot;classes&quot; and &quot;interfaces.&quot;</p>
+
+<h2 id="toc_1">Classes and interfaces</h2>
+
+<p>In the shader code, we can define an interface like this:</p>
+
+<pre><code>interface ILightResolver
+{
+    float3 Resolve(
+        GBufferValues sample,
+        LightSampleExtra sampleExtra,
+        LightDesc light,
+        float3 worldPosition,
+        float3 directionToEye,
+        LightScreenDest screenDest);
+};
+</code></pre>
+
+<p>Then we can create an implementation of this interface:</p>
+
+<pre><code>class Directional : ILightResolver
+{
+    float3 Resolve(
+        GBufferValues sample,
+        LightSampleExtra sampleExtra,
+        LightDesc light,
+        float3 worldPosition,
+        float3 directionToEye,
+        LightScreenDest screenDest)
+    {
+        ...
+    }
+};
+</code></pre>
+
+<p>All of the methods in the interface function like virtual methods in C++. We can select which particular implementation to use from C++ code.
+It sounds very convenient -- and indeed it is really convenient!</p>
+
+<p>XLE has supported this method for some time; but it&#39;s mostly just used for debugging shaders.
+While his method can work very well in simple situations, it has severe performance problems in complex situations.</p>
+
+<h2 id="toc_2">Problems with lighting resolve</h2>
+
+<p>The biggest issue here is that each possible implementation class is included in the one single &quot;uber&quot; shader. There are &quot;call&quot; instructions inserted into the compiled code that will jump to the correct implementation. This jumping should be quick (actually nvidia cards have had quick branching on static bools for a very long time) but in this case the issue is the shader just becomes too large.</p>
+
+<p>If we exceed the instruction cache for pixel shaders, it could cause some very serious performance problems.</p>
+
+<p>With deferred rendering, the granularity seems wrong. We select a configuration, and then use it on a very large number of pixels. And then select the next configuration, etc... It doesn&#39;t seem right to have redundant code in the shader when we select the configuration infrequently.</p>
+
+<p>There can also be problems passing large structures through the interface. In this sample, passing GBufferValues values is not ideal. The shader compiler seems to need to consume temporary registers to hold all of the parameters passed -- and in this case the number of parameters is too large.</p>
+
+<h2 id="toc_3">Static polymorphism with interfaces</h2>
+
+<p>One of the cool things about interfaces and classes is they can be resolved at compile time! If we know the true type of the class at compile time, then the shader compiler will treat it just as a normal function call.</p>
+
+<p>This works even if we are interacting with an interface pointer. So for example, I can have the function:</p>
+
+<pre><code>ILightResolver      GetLightResolver()
+{
+    #if LIGHT_SHAPE == 1
+        Sphere result;
+    #elif LIGHT_SHAPE == 2
+        Tube result;
+    #elif LIGHT_SHAPE == 3
+        Rectangle result;
+    #else
+        Directional result;
+    #endif
+    return result;
+}
+</code></pre>
+
+<p>Now, if I call GetLightResolver().Resolve(...) is it not a dynamic jump. It is treated just as a normal function call. So I can use GetLightResolver() anywhere, and never have to write the preprocessor switch stuff again.</p>
+
+<p>This is a great hidden feature of the HLSL compiler! It&#39;s static polymorphism, just like using function overloads or templates in C++. It can really make shader code cleaner and clearer (but unfortunately this doesn&#39;t work with the feature described in the next section).</p>
+
+<h2 id="toc_4">Patching shaders together</h2>
+
+<p>Our lighting shaders can actually be split into 3 logical parts:
+1) light shape
+2) shadow cascade resolve
+3) shadow resolve</p>
+
+<p>Each part has a different configuration settings, but we can mix and match them together</p>
+
+<p>What we really want is to be able to choose a configuration for each part independently, and then just stick them all together as one. We could do this back on old consoles -- when we had a lot of control of low level stuff, we would just compile the parts of shaders, and patch them into one a runtime.</p>
+
+<h2 id="toc_5">Enter ID3D11Linker</h2>
+
+<p>Actually, D3D11 has a new feature that can do something like this. It involves the interfaces ID3D11Linker and ID3D11FunctionLinkingGraph. These are new features, but they are features of the compiler -- so they can work with any D3D 11 hardware.</p>
+
+<p>This allows us to create reusable shader &quot;libraries.&quot; The libraries can export functions using the &quot;export&quot; keyword:</p>
+
+<pre><code>export float3 DoResolve_Directional(
+    float4 position, float3 viewFrustumVector,
+    float3 worldPosition,
+    float screenSpaceOcclusion
+    MAYBE_SAMPLE_INDEX);
+</code></pre>
+
+<p>So, for example I can compile a library for light shapes, containing one exported function for each shape.</p>
+
+<p>Now, it might be nice if we could just say &quot;import float3 DoResolve_Directional(...)&quot; in another shader, right? It seems logical, but it doesn&#39;t seem to be supported. Anyway, we may want to be constructing our linking shader at runtime, and we don&#39;t really want to be compiling HLSL source at that time.</p>
+
+<p>However, there is another way...</p>
+
+<h2 id="toc_6">Function Linking Graph</h2>
+
+<p>With the Function Linking Graph we can represent a series of function calls, and the process for passing parameters between them. This is sort of like a simplified &quot;abstract syntax tree&quot; for HLSL. It doesn&#39;t support any expressions or any statements other than function calls or return statements. But it&#39;s enough to stitch together our shader from several parts.</p>
+
+<p>In XLE, we want high level code to be able to select configuration options, but in an implementation independent way. And we want our solution to fit in well with our assets system (ie, supporting hot reloads and smart handling of errors, etc).</p>
+
+<p>The best way do this is to introduce a simple scripting language. There are 2 ways to do this
+1) either a declarative oriented manner (ie, we declare the function nodes and the links between them, and let the system figure out what to do with them)
+2) or a more procedural method (ie, something that is just a thin layer over the underlying ID3D11FunctionLinkingGraph methods)</p>
+
+<p>In this case, method 2 offers an efficient and more flexible solution. And the result is almost like a simplied HLSL:</p>
+
+<pre><code>FunctionLinkingGraph:1
+
+main = DeclareInput(
+    float4 position : SV_Position,
+    float2 texCoord : TEXCOORD0,
+    float3 viewFrustumVector : VIEWFRUSTUMVECTOR
+    {{#passSampleIndex}}, uint sampleIndex : SV_SampleIndex{{/passSampleIndex}})
+
+// Link in our main module
+// We specify a filter for defines here. This is important because some defines
+// are intended for this file (eg, for Mustache symbols) while other defines
+// need to be passed down to this module
+// It&#39;s good to be strict about this list, because the fewer defines get passed
+// done to the modules, the fewer different versions of that module we have
+libLightShape = Module(lib_lightshape.sh, GBUFFER_TYPE;MSAA_SAMPLERS;MSAA_SAMPLES;DIFFUSE_METHOD)
+libShadow = Module(lib_shadow.sh, MSAA_SAMPLERS;MSAA_SAMPLES)
+libHelper = Module(lib_helper.sh, MSAA_SAMPLERS;MSAA_SAMPLES;HAS_SCREENSPACE_AO)
+
+// The basic structure is simple:
+// 1) Calculate some inputs to the resolve operations
+// 2) Perform each resolve step
+// 3) Generate the output value by combining the resolve outputs
+//
+// Steps 1 and 3 are fixes, but step 2 varies depending on the options
+// selected for the light (ie, this is where the dynamic linking occurs)
+setup = libHelper.Setup(position, viewFrustumVector)
+worldPosition = Alias(setup.2)
+worldSpaceDepth = Alias(setup.3)
+screenSpaceOcclusion = Alias(setup.4)
+{{#passSampleIndex}}PassValue(sampleIndex, setup.5){{/passSampleIndex}}
+
+light = libLightShape.DoResolve_{{shape}}(
+    position, viewFrustumVector,
+    worldPosition, screenSpaceOcclusion
+    {{#passSampleIndex}}, sampleIndex{{/passSampleIndex}})
+
+cascade = libShadow.DoResolve_{{cascade}}(
+    position, texCoord, worldSpaceDepth)
+
+shadow = libShadow.DoResolve_{{shadows}}(
+    cascade.3, cascade.4, cascade.5,
+    position
+    {{#passSampleIndex}}, sampleIndex{{/passSampleIndex}})
+
+finalize = libHelper.FinalizeResolve(light.result, shadow.result)
+output = DeclareOutput(float4 outColour : SV_Target0)
+outColour = finalize.result
+</code></pre>
+
+<p>This script is read by a simple minimal parser. This parser should be quick enough to be run during runtime without major issues.</p>
+
+<p>As a preprocessing step, I&#39;m using a Mustache compliant library. This is important for performing the customization we need. The Mustache step might be a little slow. But the result should still be ok in Release builds. In debug the string handling stuff is probably a little slower than ideal.</p>
+
+<p>So, here we&#39;re basically just declaring the modules we want to link in. Then we specify the functions we want to call, and the sources for each parameter. We pass the outputs from each function down into where they are needed.</p>
+
+<p>We can&#39;t do any expressions or math or anything else here. All we can do is call functions and pass the results to output. Since this script will be compiled at runtime, perhaps a more restrictive language is actually more ideal.</p>
+
+<h2 id="toc_7">Compiled output</h2>
+
+<p>The final compiled shader code form the stitched approach appears to be very similar to a statically linked result. There might be a little overhead in some situations (particularly since the optimizer can&#39;t optimize across the function call points). But it seems minimal.</p>
+
+<p>The stitched shader seems to use a few more temporary registers than the statically linked result (in one complex shader, the difference was 11 to 13). This may be an issue on some hardware, but maybe the benefits are worth some performance loss.</p>
+
+<h2 id="toc_8">Uncommonly used?</h2>
+
+<p>ID3D11FunctionLinkingGraph doesn&#39;t seem to be frequently used currently. I&#39;m not sure why, it&#39;s been around for a few years, it works well and it&#39;s pretty useful...</p>
+
+<p>If I do a Google search for ID3D11FunctionLinkingGraph, I only get around 3 pages right now. And there is only one clear sample (and it&#39;s a bit hard to find). It&#39;s strange to find features that are this useful, and yet still so uncommon!</p>
+
+<p>Anyway, it works in XLE fine now. So maybe now XLE can serve provide an example implementation for anyone that needs it.</p>
+
+<h2 id="toc_9">Complications</h2>
+
+<p>There are some complications involving this method. In particular, functions can refer to global bindings (like constant buffers and resources). These must be compatible for all functions used together (ie, this often means preferring explicitly bound constant buffers and resources).</p>
+
+<p>Also, there are some complex shader features that aren&#39;t supported (like interpolation modes for input parameters). And matrices can&#39;t be used for input or output parameters. But maybe that kind of missing functionality isn&#39;t a high priority.</p>
+
+<p>And the scripting language is actually extremely primitive. But it seems featureful enough to support everything we want to do with it.</p>
+
+<p>Also we can&#39;t pass structures into and out of exported functions. Thats very annoying for me, because I&#39;ve been using structures for lots of things. In particular, they are great for hiding optional parameters (like sampleIndex in the above example). Without structures, the solution for sampleIndex is a good deal more ugly.</p>
+
+    </div>
+    <ul class="tag_box inline">
+      <li><i class="icon-folder-open"></i></li>
+      <li>
+        <a href="/categories#XLE-ref">XLE <span>5</span></a>
+      </li>
+    </ul>
+    <ul class="tag_box inline">
+      <li><i class="icon-tags"></i></li>
+      <li>
+        <a href="/tags#D3D-ref">D3D <span>1</span></a>
+      </li>
+      <li>
+        <a href="/tags#ShaderCompile-ref">ShaderCompile <span>1</span></a>
+      </li>
+    </ul>
+    <hr>
+    <div class="pagination">
+      <ul>
+          <li class="prev"><a href="/posts/rectlightdiffuse" title="Rectangle Light diffuse vs 3DS Max">&larr; Previous</a></li>
+
+          <li><a href="/archive">Archive</a></li>
+
+          <li class="next disabled"><a>Next &rarr;</a>
+      </ul>
+    </div>
+    <hr>
+    <div id="disqus_thread"></div>
+<script>
+    var disqus_developer = 1;
+    var disqus_shortname = 'xledev'; // required: replace example with your forum shortname
+    /* * * DON'T EDIT BELOW THIS LINE * * */
+    (function() {
+        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+        dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<a href="http://disqus.com" class="dsq-brlink">blog comments powered by <span class="logo-disqus">Disqus</span></a>
+
+  </div>
+</div>
+
+
+      </div>
+
+      <hr>
+      <div class="footer">
+        <p>&copy; XL Games 2015
+          with help from <a href="http://ruhoh.com" target="_blank" title="The Definitive Technical Blogging Framework">ruhoh</a>
+          and <a href="http://twitter.github.com/bootstrap/" target="_blank">Twitter Bootstrap</a>
+        </p>
+      </div>
+
+    </div> <!-- /container -->
+
+    <!-- Google Prettify -->
+<script src="http://cdnjs.cloudflare.com/ajax/libs/prettify/188.0.0/prettify.js"></script>
+<script>
+  var pres = document.getElementsByTagName("pre");
+  for (var i=0; i < pres.length; ++i) {
+    pres[i].className = "prettyprint linenums";
+  }
+  prettyPrint();
+</script>
+<!-- end Google Prettify -->
+    <script type="text/javascript">
+
+  var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', 'UA-71034032-1']);
+  _gaq.push(['_trackPageview']);
+  
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+
+</script>
+
+
+    
+  </body>
+</html>
