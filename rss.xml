@@ -4,7 +4,7 @@
     <title>XLE development blog</title>
     <description>XLE development blog</description>
     <link>http://xlgames-inc.github.io</link>
-    <pubDate>December 16, 2015</pubDate>
+    <pubDate>January 21, 2016</pubDate>
     <item>
       <title>About</title>
       <link>http://xlgames-inc.github.io/about</link>
@@ -21,6 +21,11 @@
       <title>Archive</title>
       <link>http://xlgames-inc.github.io/archive</link>
       <description>
+  &lt;h2&gt;2016&lt;/h2&gt;
+    &lt;h3&gt;January&lt;/h3&gt;
+    &lt;ul&gt;
+      &lt;li&gt;&lt;span&gt;January 21, 2016&lt;/span&gt; &amp;raquo; &lt;a href="/posts/materialtool"&gt;Material and Node Diagram Tool&lt;/a&gt;&lt;/li&gt;
+    &lt;/ul&gt;
   &lt;h2&gt;2015&lt;/h2&gt;
     &lt;h3&gt;December&lt;/h3&gt;
     &lt;ul&gt;
@@ -39,17 +44,18 @@
       <description>
 &lt;ul class="tag_box inline"&gt;
   &lt;li&gt;
-    &lt;a href="/categories#XLE-ref"&gt;XLE &lt;span&gt;5&lt;/span&gt;&lt;/a&gt;
+    &lt;a href="/categories#XLE-ref"&gt;XLE &lt;span&gt;6&lt;/span&gt;&lt;/a&gt;
   &lt;/li&gt;
   &lt;li&gt;
     &lt;a href="/categories#blog-ref"&gt;blog &lt;span&gt;1&lt;/span&gt;&lt;/a&gt;
   &lt;/li&gt;
 &lt;/ul&gt;
 
-  &lt;h3&gt;XLE (5)&lt;/h3&gt;
+  &lt;h3&gt;XLE (6)&lt;/h3&gt;
   &lt;ul&gt;
       &lt;li&gt;&lt;a href="/posts/arealightsandpbr"&gt;Area Lights with Physically Based Rendering&lt;/a&gt;&lt;/li&gt;
       &lt;li&gt;&lt;a href="/posts/functionlinkedshaders"&gt;Dynamic Function Linking Graph for Shaders&lt;/a&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;a href="/posts/materialtool"&gt;Material and Node Diagram Tool&lt;/a&gt;&lt;/li&gt;
       &lt;li&gt;&lt;a href="/posts/rectlightdiffuse"&gt;Rectangle Light diffuse vs 3DS Max&lt;/a&gt;&lt;/li&gt;
       &lt;li&gt;&lt;a href="/posts/whattodofirst"&gt;What to do first&lt;/a&gt;&lt;/li&gt;
       &lt;li&gt;&lt;a href="/posts/workingonrectlights"&gt;Working some improvements to rectangle lights&lt;/a&gt;&lt;/li&gt;
@@ -70,6 +76,11 @@
 &lt;p&gt;For more information, see our &lt;a href="https://github.com/xlgames-inc/XLE/wiki"&gt;wiki on Github&lt;/a&gt;&lt;/p&gt;
 &lt;p&gt;Dev team contact: &lt;a href="mailto:xle@xlgames.com"&gt;xle@xlgames.com&lt;/a&gt; (in English or Korean)&lt;/p&gt;
 
+  &lt;h2&gt;2016&lt;/h2&gt;
+    &lt;h3&gt;January&lt;/h3&gt;
+    &lt;ul&gt;
+      &lt;li&gt;&lt;span&gt;January 21, 2016&lt;/span&gt; &amp;raquo; &lt;a href="/posts/materialtool"&gt;Material and Node Diagram Tool&lt;/a&gt;&lt;/li&gt;
+    &lt;/ul&gt;
   &lt;h2&gt;2015&lt;/h2&gt;
     &lt;h3&gt;December&lt;/h3&gt;
     &lt;ul&gt;
@@ -85,6 +96,39 @@
 
 &lt;hr /&gt;
 
+&lt;div class="post"&gt;
+  &lt;h3 class="title"&gt;&lt;a href="/posts/materialtool"&gt;Material and Node Diagram Tool&lt;/a&gt;&lt;br /&gt; &lt;span class="date"&gt;January 21, 2016&lt;/span&gt;&lt;/h3&gt;
+
+  &lt;div class="summary ellipsis"&gt;
+&lt;p&gt;The master branch has just been updated! It now includes a major new tool, called the &lt;em&gt;MaterialTool&lt;/em&gt;. This is a dedicated app for building materials and applying them to objects, and includes some cool new features...&lt;/p&gt;
+
+&lt;p&gt;In XLE, most material information can be authored in standard graphics packages (like 3DS Max, Maya, Substance Painter, etc). In particular, the most critical material values (&lt;strong&gt;color&lt;/strong&gt;, &lt;strong&gt;roughness&lt;/strong&gt;, &lt;strong&gt;specular&lt;/strong&gt; &amp;amp; &lt;strong&gt;metal&lt;/strong&gt;) can come directly from standard packages.&lt;/p&gt;
+
+&lt;p&gt;But in cases we want to add custom information to models, or even develop custom shaders for complex materials. This is were the &lt;em&gt;MaterialTool&lt;/em&gt; comes in. There is some functionality in common with the &lt;em&gt;ModelViewer&lt;/em&gt; and &lt;em&gt;LevelEditor&lt;/em&gt; tools -- but the &lt;em&gt;MaterialTool&lt;/em&gt; provides a convenient focused tool for this kind of work.&lt;/p&gt;
+
+&lt;hr&gt;
+
+&lt;h2 id="toc_0"&gt;Basic functionality&lt;/h2&gt;
+
+&lt;p&gt;&lt;br&gt;&lt;img src="/assets/media/MaterialTool/BasicWindow.png"&gt;&lt;/p&gt;
+
+&lt;p&gt;Our core functionality allows us to preview a model (much like the &lt;em&gt;ModelViewer&lt;/em&gt;, with various rendering modes), click on materials and then change their properties (such as opacity, translucency modes, and various shader flags).&lt;/p&gt;
+
+&lt;p&gt;This works within the Sony ATF framework, and so we have all of the handy features from the &lt;em&gt;LevelEditor&lt;/em&gt;, such as:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;detachable, arrangeable windows&lt;/li&gt;
+&lt;li&gt;
+&lt;em&gt;IronPython&lt;/em&gt; scripting and cvar access&lt;/li&gt;
+&lt;li&gt;interface skinning, keyboard rebinding, etc...&lt;/li&gt;
+&lt;li&gt;and, of course, it's all very extensible C# code, convenient for adding custom features&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+
+  &lt;div class="more"&gt;
+    &lt;a href="/posts/materialtool" class="btn btn-small"&gt;read more..&lt;/a&gt;
+  &lt;/div&gt;
+&lt;/div&gt;
 &lt;div class="post"&gt;
   &lt;h3 class="title"&gt;&lt;a href="/posts/functionlinkedshaders"&gt;Dynamic Function Linking Graph for Shaders&lt;/a&gt;&lt;br /&gt; &lt;span class="date"&gt;December 16, 2015&lt;/span&gt;&lt;/h3&gt;
 
@@ -223,38 +267,6 @@ It has been modified to work with XLE, and some XLE specific behaviour has been 
     &lt;a href="/posts/whattodofirst" class="btn btn-small"&gt;read more..&lt;/a&gt;
   &lt;/div&gt;
 &lt;/div&gt;
-&lt;div class="post"&gt;
-  &lt;h3 class="title"&gt;&lt;a href="/posts/arealightsandpbr"&gt;Area Lights with Physically Based Rendering&lt;/a&gt;&lt;br /&gt; &lt;span class="date"&gt;December 02, 2015&lt;/span&gt;&lt;/h3&gt;
-
-  &lt;div class="summary ellipsis"&gt;
-&lt;p&gt;XLE now support a few area light types: &lt;em&gt;sphere&lt;/em&gt;, &lt;em&gt;tube&lt;/em&gt; &amp;amp; &lt;em&gt;rectangle&lt;/em&gt; (with &lt;em&gt;disc&lt;/em&gt; and maybe some other shapes coming soon). Maybe in a future post I'll go into some details about the implementation (actually, it's quite interesting!). But this post is about something different: this post is about why they are important.&lt;/p&gt;
-
-&lt;p&gt;I'm finding that it makes a huge difference. So much so that not only do we want to support area lights -- we also want to outlaw non-area lights. Point light sources are now the enemy!&lt;/p&gt;
-
-&lt;h2 id="toc_0"&gt;PBR Concept&lt;/h2&gt;
-
-&lt;p&gt;The biggest buzzword at the moment is Physically Based Renderering (or PBR, or sometimes Physically Based Shading). But what does that mean, really?
-Partially it means sampling values from the real world. But really it's just a container under which we're placing many related concepts.&lt;/p&gt;
-
-&lt;p&gt;One of these "sub-concepts" of PBR is the idea that a single material should work in many different lighting environments.&lt;/p&gt;
-
-&lt;p&gt;In the past, artists often tweaked the material settings for objects to suit the lighting environment they are in. This is a problem because it means that if the object moves into another lighting environment, the material settings must be tweaked to match.&lt;/p&gt;
-
-&lt;p&gt;This happen in both movies and games. In games, it's particularly a problem for games with a day/night cycle. In games where time is changing, the lighting environment is also always changing. Previously this means that extreme lighting settings (sunsets, etc) had to be more subtle than real-life. What we want is materials that look correct in all possible lighting environments.&lt;/p&gt;
-
-&lt;h2 id="toc_1"&gt;Specular highlight size&lt;/h2&gt;
-
-&lt;p&gt;There's a simple way to think about this. Let's consider the size of a specular highlight.&lt;/p&gt;
-
-&lt;p&gt;Here are 5 spheres rendered in Blender with Cook Torrence lighting.
-&lt;img src="/assets/media/SpecularExample.png"&gt;&lt;/p&gt;
-
-&lt;/div&gt;
-
-  &lt;div class="more"&gt;
-    &lt;a href="/posts/arealightsandpbr" class="btn btn-small"&gt;read more..&lt;/a&gt;
-  &lt;/div&gt;
-&lt;/div&gt;
 
 &lt;div class="pagination"&gt;
   &lt;ul&gt;
@@ -317,6 +329,15 @@ Partially it means sampling values from the real world. But really it's just a c
     &lt;a href="/tags#ShaderCompile-ref"&gt;ShaderCompile &lt;span&gt;1&lt;/span&gt;&lt;/a&gt;
   &lt;/li&gt;
   &lt;li&gt;
+    &lt;a href="/tags#MaterialTool-ref"&gt;MaterialTool &lt;span&gt;1&lt;/span&gt;&lt;/a&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;a href="/tags#Tools-ref"&gt;Tools &lt;span&gt;1&lt;/span&gt;&lt;/a&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;a href="/tags#Shaders-ref"&gt;Shaders &lt;span&gt;1&lt;/span&gt;&lt;/a&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
     &lt;a href="/tags#RectangleLights-ref"&gt;RectangleLights &lt;span&gt;2&lt;/span&gt;&lt;/a&gt;
   &lt;/li&gt;
 &lt;/ul&gt;
@@ -337,6 +358,12 @@ Partially it means sampling values from the real world. But really it's just a c
     &lt;li&gt;&lt;a href="/posts/functionlinkedshaders"&gt;Dynamic Function Linking Graph for Shaders&lt;/a&gt;&lt;/li&gt;
   &lt;h3 id="ShaderCompile-ref"&gt;ShaderCompile&lt;/h3&gt;
     &lt;li&gt;&lt;a href="/posts/functionlinkedshaders"&gt;Dynamic Function Linking Graph for Shaders&lt;/a&gt;&lt;/li&gt;
+  &lt;h3 id="MaterialTool-ref"&gt;MaterialTool&lt;/h3&gt;
+    &lt;li&gt;&lt;a href="/posts/materialtool"&gt;Material and Node Diagram Tool&lt;/a&gt;&lt;/li&gt;
+  &lt;h3 id="Tools-ref"&gt;Tools&lt;/h3&gt;
+    &lt;li&gt;&lt;a href="/posts/materialtool"&gt;Material and Node Diagram Tool&lt;/a&gt;&lt;/li&gt;
+  &lt;h3 id="Shaders-ref"&gt;Shaders&lt;/h3&gt;
+    &lt;li&gt;&lt;a href="/posts/materialtool"&gt;Material and Node Diagram Tool&lt;/a&gt;&lt;/li&gt;
   &lt;h3 id="RectangleLights-ref"&gt;RectangleLights&lt;/h3&gt;
     &lt;li&gt;&lt;a href="/posts/rectlightdiffuse"&gt;Rectangle Light diffuse vs 3DS Max&lt;/a&gt;&lt;/li&gt;
     &lt;li&gt;&lt;a href="/posts/workingonrectlights"&gt;Working some improvements to rectangle lights&lt;/a&gt;&lt;/li&gt;

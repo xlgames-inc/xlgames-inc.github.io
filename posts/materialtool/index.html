@@ -1,0 +1,287 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Material and Node Diagram Tool</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="author" content="XL Games">
+
+    <!-- Le HTML5 shim, for IE6-8 support of HTML elements -->
+    <!--[if lt IE 9]>
+      <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+
+    <!-- Le styles -->
+<link href='/assets/stylesheets/bootstrap.min-93b47f97c3444c4711853ed5140d82a1.css' type='text/css' rel='stylesheet' media='all'>
+<link href='/assets/stylesheets/style-1dcb1d39791f3457afa56d279fcf0945.css' type='text/css' rel='stylesheet' media='all'>
+<link href='/assets/stylesheets/google_prettify/sons-of-obsidian-5e05343fd0c18e0a05231023b643245c.css' type='text/css' rel='stylesheet' media='all'>
+    <!-- Le fav and touch icons -->
+  <!-- Update these with your own images
+    <link rel="shortcut icon" href="images/favicon.ico">
+    <link rel="apple-touch-icon" href="images/apple-touch-icon.png">
+    <link rel="apple-touch-icon" sizes="72x72" href="images/apple-touch-icon-72x72.png">
+    <link rel="apple-touch-icon" sizes="114x114" href="images/apple-touch-icon-114x114.png">
+  -->
+  </head>
+
+  <body>
+
+    <div class="navbar">
+      <div class="navbar-inner">
+        <div class="container-narrow">
+          <a class="brand" href="/">XLE development blog</a>
+          <ul class="nav">
+              
+                <li><a href="/tags">Tags</a></li>
+              
+              
+                <li><a href="/archive">Archive</a></li>
+              
+              
+                <li><a href="/about">About</a></li>
+              
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="container-narrow">
+
+      <div class="content">
+        
+<div class="page-header">
+  <h1>Material and Node Diagram Tool </h1>
+</div>
+
+<div class="row-fluid post-full">
+  <div class="span12">
+    <div class="date">
+      <span>January 21, 2016</strong>
+    </div>
+    <div class="content">
+      <p>The master branch has just been updated! It now includes a major new tool, called the <em>MaterialTool</em>. This is a dedicated app for building materials and applying them to objects, and includes some cool new features...</p>
+
+<p>In XLE, most material information can be authored in standard graphics packages (like 3DS Max, Maya, Substance Painter, etc). In particular, the most critical material values (<strong>color</strong>, <strong>roughness</strong>, <strong>specular</strong> &amp; <strong>metal</strong>) can come directly from standard packages.</p>
+
+<p>But in cases we want to add custom information to models, or even develop custom shaders for complex materials. This is were the <em>MaterialTool</em> comes in. There is some functionality in common with the <em>ModelViewer</em> and <em>LevelEditor</em> tools -- but the <em>MaterialTool</em> provides a convenient focused tool for this kind of work.</p>
+
+<hr>
+
+<h2 id="toc_0">Basic functionality</h2>
+
+<p><br/><img src="/assets/media/MaterialTool/BasicWindow.png"></p>
+
+<p>Our core functionality allows us to preview a model (much like the <em>ModelViewer</em>, with various rendering modes), click on materials and then change their properties (such as opacity, translucency modes, and various shader flags).</p>
+
+<p>This works within the Sony ATF framework, and so we have all of the handy features from the <em>LevelEditor</em>, such as:</p>
+
+<ul>
+<li>detachable, arrangeable windows</li>
+<li><em>IronPython</em> scripting and cvar access</li>
+<li>interface skinning, keyboard rebinding, etc...</li>
+<li>and, of course, it&#39;s all very extensible C# code, convenient for adding custom features</li>
+</ul>
+
+<hr>
+
+<h2 id="toc_1">Node Diagram editor</h2>
+
+<p><br/><img src="/assets/media/MaterialTool/NodeDiagramEditor.png"></p>
+
+<p>Also integrated is a new version of the node diagram editor. This is used for building custom shaders for special cases.
+Make it possible to visually create shader logic. It&#39;s designed for use by both programmers and technical artists.</p>
+
+<p>Each diagram becomes a expression in HLSL shader code (and this can be used, just like any other shader). But these expressions can become very complex, and can (indirectly) include loops and conditions.</p>
+
+<p><br/><img src="/assets/media/MaterialTool/DiagramCharts.png"></p>
+
+<p>Each node in the diagram has a real time preview. For mathematical nodes, this might be a <strong>chart</strong>.</p>
+
+<p><br/><img src="/assets/media/MaterialTool/Preview3D.png"></p>
+
+<p>But we can also have <strong>3D previews</strong> (using a sphere, box or a full model).</p>
+
+<p><br/><img src="/assets/media/MaterialTool/PreviewTexture.png"></p>
+
+<p>Texture nodes can also be previewed using a flat <strong>2D preview</strong>.</p>
+
+<p>Previewing the diagram at every node makes the process of creating shaders much more visual. The effect of each function on the final shader becomes immediately apparent.</p>
+
+<p>For example, XLE has some shader code for converting a &quot;<em>specular color</em>&quot; texture into the new &quot;<em>roughness, specular, metal</em>&quot; scheme (for convenience reasons). Building this logic as a node diagram is infinitely easier than just working in raw <em>HLSL</em> directly, because we can see the results immediately, and in detail.</p>
+
+<hr>
+
+<h2 id="toc_2">Nodes are HLSL functions!</h2>
+
+<p>So far, the node diagram tool sounds fairly standard. But there&#39;s an important twist. A node diagram is just a collection of &quot;nodes&quot; that have been connected together. But where do those nodes come from, and what do they do?</p>
+
+<p>XLE contains a permissive <em>HLSL</em> parser (written in <em>Antlr3</em>). This parser can parse almost all valid <em>HLSL</em> code and can build an abstract syntax tree of it&#39;s contents. In particular, we can use this parser to extract the function signatures from a shader file.</p>
+
+<p>So, for example the shader file <em>Surface.h</em> contains the functions <em>VSIn_GetLocalPosition</em>, <em>VSIn_GetLocalTangent</em>, etc... Our parser can read <em>Surface.h</em> and find those functions, plus their parameters, output type, semantics, etc.</p>
+
+<p>So, there&#39;s our answer! Our nodes are actually <em>HLSL</em> functions. And since our parser works will every shader source file in XLE, that means that any shader function can be used as a node.</p>
+
+<p><br/><img src="/assets/media/MaterialTool/ShaderFragmentPalette.png"></p>
+
+<p>Nodes are dragged into the diagram from something called the shader fragment palette.</p>
+
+<p>There are no hard coded nodes, and the shader fragment palette is reloaded on the fly. So, if you&#39;re building a diagram and suddenly realize you want a new node type... Just open a text editor, add a new function into a shader file, and it can immediately be dragged into your diagram.</p>
+
+<p>The <em>xleres/Nodes</em> directory is set aside to contain functions that are specifically intended to be used as nodes. In some cases, functions in this folder are just thin wrappers over other functions. But it&#39;s recommended to mostly use functions from this directory in node diagrams, so as to isolate diagrams from shader changes.</p>
+
+<hr>
+
+<h2 id="toc_3">Each diagram is both a node type and a shader function</h2>
+
+<p>Use of HLSL as nodes creates some interesting advantages. Each diagram itself is a shader function. And so, when you save a diagram to disk, you can then use that diagram as a node in another diagram. In this way, we can have embedded diagrams very easily.</p>
+
+<p>It also means that we have full control over when to use a diagram, and when to use text-based HLSL. Some expressions are just awkward to do in diagram form.</p>
+
+<p>For example, try implementing a Modulo function as a diagram using just divide, multiply, subtract and round nodes. It can be done, but it&#39;s awkward. In cases like this, it&#39;s better to just write a text based function (in this case, using built-in shader language functions) and then use that function within your diagram.</p>
+
+<hr>
+
+<h2 id="toc_4">Complex shaders</h2>
+
+<p><br/><img src="/assets/media/MaterialTool/ProceduralWood.png"></p>
+
+<p>These methods can be used to create arbitrarily complex shaders. Above is an example of a node diagram that was duplicated from the (CC-Zero) Cycles Material Library:
+    <a href="http://www.blendswap.com/blends/view/56470">http://www.blendswap.com/blends/view/56470</a></p>
+
+<p>This is a 100% procedural texture, with no texture inputs. The XLE implementation uses the same arrangements of nodes and the same constants to give the same final results as the Cycles render engine.</p>
+
+<p>Since the output is text <em>HLSL</em> code, the normal <em>HLSL</em> compiler and optimizers apply. There are certain cases in which hand written <em>HLSL</em> code will be more efficient the diagram based stuff -- but that might be an advanced topic. In many cases, the diagram based shaders should be as efficient as hand written code.</p>
+
+<hr>
+
+<h2 id="toc_5">Using a diagram as a material</h2>
+
+<p>To use a diagram as an object material, follow these steps:</p>
+
+<ol>
+<li>Create an output node from <strong>Nodes/Outputs.sh:Output_PerPixel</strong></li>
+<li>You may need some inputs from geometry, these are usually &quot;Get&quot; or &quot;Sample&quot; functions. For example, <strong>Nodes/Texture.sh:SampleTextureDiffuse</strong>, and <strong>Surface.h:GetNormal</strong></li>
+<li>To create a material parameter, right click in empty space and select &quot;Create Input&quot;</li>
+<li>Go to <em>Edit/Diagram Settings...</em></li>
+<li>Select &quot;Technique (material for any object)&quot; as the diagram type</li>
+<li>Save your diagram! (you must save to see the results in the Model view window currently)</li>
+<li>Now you can go to the &quot;Model view&quot; window, right click an object and select <em>&quot;Assign Technique (...)&quot;</em></li>
+</ol>
+
+<p>Check out <strong>Working/Game/xleres/Objects/Basic.tech</strong> as a starting example.</p>
+
+<hr>
+
+<h2 id="toc_6">Node graph dynamic linking</h2>
+
+<p>You may notice some similarity between this technology and a previous post -- <a href="functionlinkedshaders">Dynamic Function Linking Graph for Shaders</a>. They are similar because they both involve linking together the inputs and outputs of shader functions. But unfortunately they don&#39;t work together yet... Perhaps later...?</p>
+
+<hr>
+
+<h2 id="toc_7">Other uses of the HLSL parser</h2>
+
+<p>The HLSL parser has some other cool applications... It can parse most valid HLSL code. And actually, it&#39;s fairly permissive, so some invalid HLSL code will parse, as well.</p>
+
+<p>I&#39;ve been using this parser as a linter for HLSL code in the Atom editor! There is a linter plugin for Atom, and so all it involved was creating a script that ran the &quot;ShaderScan&quot; sample. This reads HLSL code and spits out parsing errors.</p>
+
+<p>And so, those parsing errors now appear in real time while writing HLSL code in Atom. This has two uses for me, currently... It catches certain errors in the HLSL (Intellisense-style). But it&#39;s also serving as a way to test the parser itself!</p>
+
+<p>In theory, this parser could also be extended to provide automatic conversion between HLSL and GLSL (or other languages). Some engines use this kind of approach for dealing with cross platform issues. Another possibility is just to use a complex series of #defines... But either method would be awkward in it&#39;s own unique way.</p>
+
+<hr>
+
+<h2 id="toc_8">Support for other languages</h2>
+
+<p>Currently the node diagram tool is designed for use with HLSL. However, in theory it can also be used with other languages. All we need is a parser that can extract the function signatures. Since HLSL is a fairly generic c-like syntax, it shares a lot of similarity with many other languages. So the code that builds HLSL from the shader diagram could probably be easily adapted for languages (like Lua, Python, D, Swift, whatever).</p>
+
+<p>This could be handy because HLSL is tied to GPU execution only. But another language would open the door for CPU side execution -- which could be used for game logic, physics or any other systems. This would be handy, because it would mean reusing the same core node diagram functionality for multiple separate tasks.</p>
+
+    </div>
+    <ul class="tag_box inline">
+      <li><i class="icon-folder-open"></i></li>
+      <li>
+        <a href="/categories#XLE-ref">XLE <span>6</span></a>
+      </li>
+    </ul>
+    <ul class="tag_box inline">
+      <li><i class="icon-tags"></i></li>
+      <li>
+        <a href="/tags#MaterialTool-ref">MaterialTool <span>1</span></a>
+      </li>
+      <li>
+        <a href="/tags#Tools-ref">Tools <span>1</span></a>
+      </li>
+      <li>
+        <a href="/tags#Shaders-ref">Shaders <span>1</span></a>
+      </li>
+    </ul>
+    <hr>
+    <div class="pagination">
+      <ul>
+          <li class="prev"><a href="/posts/functionlinkedshaders" title="Dynamic Function Linking Graph for Shaders">&larr; Previous</a></li>
+
+          <li><a href="/archive">Archive</a></li>
+
+          <li class="next disabled"><a>Next &rarr;</a>
+      </ul>
+    </div>
+    <hr>
+    <div id="disqus_thread"></div>
+<script>
+    var disqus_developer = 1;
+    var disqus_shortname = 'xledev'; // required: replace example with your forum shortname
+    /* * * DON'T EDIT BELOW THIS LINE * * */
+    (function() {
+        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+        dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<a href="http://disqus.com" class="dsq-brlink">blog comments powered by <span class="logo-disqus">Disqus</span></a>
+
+  </div>
+</div>
+
+
+      </div>
+
+      <hr>
+      <div class="footer">
+        <p>&copy; XL Games 2015
+          with help from <a href="http://ruhoh.com" target="_blank" title="The Definitive Technical Blogging Framework">ruhoh</a>
+          and <a href="http://twitter.github.com/bootstrap/" target="_blank">Twitter Bootstrap</a>
+        </p>
+      </div>
+
+    </div> <!-- /container -->
+
+    <!-- Google Prettify -->
+<script src="http://cdnjs.cloudflare.com/ajax/libs/prettify/188.0.0/prettify.js"></script>
+<script>
+  var pres = document.getElementsByTagName("pre");
+  for (var i=0; i < pres.length; ++i) {
+    pres[i].className = "prettyprint linenums";
+  }
+  prettyPrint();
+</script>
+<!-- end Google Prettify -->
+    <script type="text/javascript">
+
+  var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', 'UA-71034032-1']);
+  _gaq.push(['_trackPageview']);
+  
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+
+</script>
+
+
+    
+  </body>
+</html>

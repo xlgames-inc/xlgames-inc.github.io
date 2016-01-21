@@ -4,7 +4,149 @@
     <title>XLE development blog</title>
     <description>XLE development blog</description>
     <link>http://xlgames-inc.github.io</link>
-    <pubDate>December 16, 2015</pubDate>
+    <pubDate>January 21, 2016</pubDate>
+    <item>
+      <title>Material and Node Diagram Tool</title>
+      <link>http://xlgames-inc.github.io/posts/materialtool</link>
+      <pubDate>January 21, 2016</pubDate>
+      <description>&lt;p&gt;The master branch has just been updated! It now includes a major new tool, called the &lt;em&gt;MaterialTool&lt;/em&gt;. This is a dedicated app for building materials and applying them to objects, and includes some cool new features...&lt;/p&gt;
+
+&lt;p&gt;In XLE, most material information can be authored in standard graphics packages (like 3DS Max, Maya, Substance Painter, etc). In particular, the most critical material values (&lt;strong&gt;color&lt;/strong&gt;, &lt;strong&gt;roughness&lt;/strong&gt;, &lt;strong&gt;specular&lt;/strong&gt; &amp;amp; &lt;strong&gt;metal&lt;/strong&gt;) can come directly from standard packages.&lt;/p&gt;
+
+&lt;p&gt;But in cases we want to add custom information to models, or even develop custom shaders for complex materials. This is were the &lt;em&gt;MaterialTool&lt;/em&gt; comes in. There is some functionality in common with the &lt;em&gt;ModelViewer&lt;/em&gt; and &lt;em&gt;LevelEditor&lt;/em&gt; tools -- but the &lt;em&gt;MaterialTool&lt;/em&gt; provides a convenient focused tool for this kind of work.&lt;/p&gt;
+
+&lt;hr&gt;
+
+&lt;h2 id="toc_0"&gt;Basic functionality&lt;/h2&gt;
+
+&lt;p&gt;&lt;br/&gt;&lt;img src="/assets/media/MaterialTool/BasicWindow.png"&gt;&lt;/p&gt;
+
+&lt;p&gt;Our core functionality allows us to preview a model (much like the &lt;em&gt;ModelViewer&lt;/em&gt;, with various rendering modes), click on materials and then change their properties (such as opacity, translucency modes, and various shader flags).&lt;/p&gt;
+
+&lt;p&gt;This works within the Sony ATF framework, and so we have all of the handy features from the &lt;em&gt;LevelEditor&lt;/em&gt;, such as:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;detachable, arrangeable windows&lt;/li&gt;
+&lt;li&gt;&lt;em&gt;IronPython&lt;/em&gt; scripting and cvar access&lt;/li&gt;
+&lt;li&gt;interface skinning, keyboard rebinding, etc...&lt;/li&gt;
+&lt;li&gt;and, of course, it&amp;#39;s all very extensible C# code, convenient for adding custom features&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;hr&gt;
+
+&lt;h2 id="toc_1"&gt;Node Diagram editor&lt;/h2&gt;
+
+&lt;p&gt;&lt;br/&gt;&lt;img src="/assets/media/MaterialTool/NodeDiagramEditor.png"&gt;&lt;/p&gt;
+
+&lt;p&gt;Also integrated is a new version of the node diagram editor. This is used for building custom shaders for special cases.
+Make it possible to visually create shader logic. It&amp;#39;s designed for use by both programmers and technical artists.&lt;/p&gt;
+
+&lt;p&gt;Each diagram becomes a expression in HLSL shader code (and this can be used, just like any other shader). But these expressions can become very complex, and can (indirectly) include loops and conditions.&lt;/p&gt;
+
+&lt;p&gt;&lt;br/&gt;&lt;img src="/assets/media/MaterialTool/DiagramCharts.png"&gt;&lt;/p&gt;
+
+&lt;p&gt;Each node in the diagram has a real time preview. For mathematical nodes, this might be a &lt;strong&gt;chart&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;p&gt;&lt;br/&gt;&lt;img src="/assets/media/MaterialTool/Preview3D.png"&gt;&lt;/p&gt;
+
+&lt;p&gt;But we can also have &lt;strong&gt;3D previews&lt;/strong&gt; (using a sphere, box or a full model).&lt;/p&gt;
+
+&lt;p&gt;&lt;br/&gt;&lt;img src="/assets/media/MaterialTool/PreviewTexture.png"&gt;&lt;/p&gt;
+
+&lt;p&gt;Texture nodes can also be previewed using a flat &lt;strong&gt;2D preview&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;p&gt;Previewing the diagram at every node makes the process of creating shaders much more visual. The effect of each function on the final shader becomes immediately apparent.&lt;/p&gt;
+
+&lt;p&gt;For example, XLE has some shader code for converting a &amp;quot;&lt;em&gt;specular color&lt;/em&gt;&amp;quot; texture into the new &amp;quot;&lt;em&gt;roughness, specular, metal&lt;/em&gt;&amp;quot; scheme (for convenience reasons). Building this logic as a node diagram is infinitely easier than just working in raw &lt;em&gt;HLSL&lt;/em&gt; directly, because we can see the results immediately, and in detail.&lt;/p&gt;
+
+&lt;hr&gt;
+
+&lt;h2 id="toc_2"&gt;Nodes are HLSL functions!&lt;/h2&gt;
+
+&lt;p&gt;So far, the node diagram tool sounds fairly standard. But there&amp;#39;s an important twist. A node diagram is just a collection of &amp;quot;nodes&amp;quot; that have been connected together. But where do those nodes come from, and what do they do?&lt;/p&gt;
+
+&lt;p&gt;XLE contains a permissive &lt;em&gt;HLSL&lt;/em&gt; parser (written in &lt;em&gt;Antlr3&lt;/em&gt;). This parser can parse almost all valid &lt;em&gt;HLSL&lt;/em&gt; code and can build an abstract syntax tree of it&amp;#39;s contents. In particular, we can use this parser to extract the function signatures from a shader file.&lt;/p&gt;
+
+&lt;p&gt;So, for example the shader file &lt;em&gt;Surface.h&lt;/em&gt; contains the functions &lt;em&gt;VSIn_GetLocalPosition&lt;/em&gt;, &lt;em&gt;VSIn_GetLocalTangent&lt;/em&gt;, etc... Our parser can read &lt;em&gt;Surface.h&lt;/em&gt; and find those functions, plus their parameters, output type, semantics, etc.&lt;/p&gt;
+
+&lt;p&gt;So, there&amp;#39;s our answer! Our nodes are actually &lt;em&gt;HLSL&lt;/em&gt; functions. And since our parser works will every shader source file in XLE, that means that any shader function can be used as a node.&lt;/p&gt;
+
+&lt;p&gt;&lt;br/&gt;&lt;img src="/assets/media/MaterialTool/ShaderFragmentPalette.png"&gt;&lt;/p&gt;
+
+&lt;p&gt;Nodes are dragged into the diagram from something called the shader fragment palette.&lt;/p&gt;
+
+&lt;p&gt;There are no hard coded nodes, and the shader fragment palette is reloaded on the fly. So, if you&amp;#39;re building a diagram and suddenly realize you want a new node type... Just open a text editor, add a new function into a shader file, and it can immediately be dragged into your diagram.&lt;/p&gt;
+
+&lt;p&gt;The &lt;em&gt;xleres/Nodes&lt;/em&gt; directory is set aside to contain functions that are specifically intended to be used as nodes. In some cases, functions in this folder are just thin wrappers over other functions. But it&amp;#39;s recommended to mostly use functions from this directory in node diagrams, so as to isolate diagrams from shader changes.&lt;/p&gt;
+
+&lt;hr&gt;
+
+&lt;h2 id="toc_3"&gt;Each diagram is both a node type and a shader function&lt;/h2&gt;
+
+&lt;p&gt;Use of HLSL as nodes creates some interesting advantages. Each diagram itself is a shader function. And so, when you save a diagram to disk, you can then use that diagram as a node in another diagram. In this way, we can have embedded diagrams very easily.&lt;/p&gt;
+
+&lt;p&gt;It also means that we have full control over when to use a diagram, and when to use text-based HLSL. Some expressions are just awkward to do in diagram form.&lt;/p&gt;
+
+&lt;p&gt;For example, try implementing a Modulo function as a diagram using just divide, multiply, subtract and round nodes. It can be done, but it&amp;#39;s awkward. In cases like this, it&amp;#39;s better to just write a text based function (in this case, using built-in shader language functions) and then use that function within your diagram.&lt;/p&gt;
+
+&lt;hr&gt;
+
+&lt;h2 id="toc_4"&gt;Complex shaders&lt;/h2&gt;
+
+&lt;p&gt;&lt;br/&gt;&lt;img src="/assets/media/MaterialTool/ProceduralWood.png"&gt;&lt;/p&gt;
+
+&lt;p&gt;These methods can be used to create arbitrarily complex shaders. Above is an example of a node diagram that was duplicated from the (CC-Zero) Cycles Material Library:
+    &lt;a href="http://www.blendswap.com/blends/view/56470"&gt;http://www.blendswap.com/blends/view/56470&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;This is a 100% procedural texture, with no texture inputs. The XLE implementation uses the same arrangements of nodes and the same constants to give the same final results as the Cycles render engine.&lt;/p&gt;
+
+&lt;p&gt;Since the output is text &lt;em&gt;HLSL&lt;/em&gt; code, the normal &lt;em&gt;HLSL&lt;/em&gt; compiler and optimizers apply. There are certain cases in which hand written &lt;em&gt;HLSL&lt;/em&gt; code will be more efficient the diagram based stuff -- but that might be an advanced topic. In many cases, the diagram based shaders should be as efficient as hand written code.&lt;/p&gt;
+
+&lt;hr&gt;
+
+&lt;h2 id="toc_5"&gt;Using a diagram as a material&lt;/h2&gt;
+
+&lt;p&gt;To use a diagram as an object material, follow these steps:&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;Create an output node from &lt;strong&gt;Nodes/Outputs.sh:Output_PerPixel&lt;/strong&gt;&lt;/li&gt;
+&lt;li&gt;You may need some inputs from geometry, these are usually &amp;quot;Get&amp;quot; or &amp;quot;Sample&amp;quot; functions. For example, &lt;strong&gt;Nodes/Texture.sh:SampleTextureDiffuse&lt;/strong&gt;, and &lt;strong&gt;Surface.h:GetNormal&lt;/strong&gt;&lt;/li&gt;
+&lt;li&gt;To create a material parameter, right click in empty space and select &amp;quot;Create Input&amp;quot;&lt;/li&gt;
+&lt;li&gt;Go to &lt;em&gt;Edit/Diagram Settings...&lt;/em&gt;&lt;/li&gt;
+&lt;li&gt;Select &amp;quot;Technique (material for any object)&amp;quot; as the diagram type&lt;/li&gt;
+&lt;li&gt;Save your diagram! (you must save to see the results in the Model view window currently)&lt;/li&gt;
+&lt;li&gt;Now you can go to the &amp;quot;Model view&amp;quot; window, right click an object and select &lt;em&gt;&amp;quot;Assign Technique (...)&amp;quot;&lt;/em&gt;&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;Check out &lt;strong&gt;Working/Game/xleres/Objects/Basic.tech&lt;/strong&gt; as a starting example.&lt;/p&gt;
+
+&lt;hr&gt;
+
+&lt;h2 id="toc_6"&gt;Node graph dynamic linking&lt;/h2&gt;
+
+&lt;p&gt;You may notice some similarity between this technology and a previous post -- &lt;a href="functionlinkedshaders"&gt;Dynamic Function Linking Graph for Shaders&lt;/a&gt;. They are similar because they both involve linking together the inputs and outputs of shader functions. But unfortunately they don&amp;#39;t work together yet... Perhaps later...?&lt;/p&gt;
+
+&lt;hr&gt;
+
+&lt;h2 id="toc_7"&gt;Other uses of the HLSL parser&lt;/h2&gt;
+
+&lt;p&gt;The HLSL parser has some other cool applications... It can parse most valid HLSL code. And actually, it&amp;#39;s fairly permissive, so some invalid HLSL code will parse, as well.&lt;/p&gt;
+
+&lt;p&gt;I&amp;#39;ve been using this parser as a linter for HLSL code in the Atom editor! There is a linter plugin for Atom, and so all it involved was creating a script that ran the &amp;quot;ShaderScan&amp;quot; sample. This reads HLSL code and spits out parsing errors.&lt;/p&gt;
+
+&lt;p&gt;And so, those parsing errors now appear in real time while writing HLSL code in Atom. This has two uses for me, currently... It catches certain errors in the HLSL (Intellisense-style). But it&amp;#39;s also serving as a way to test the parser itself!&lt;/p&gt;
+
+&lt;p&gt;In theory, this parser could also be extended to provide automatic conversion between HLSL and GLSL (or other languages). Some engines use this kind of approach for dealing with cross platform issues. Another possibility is just to use a complex series of #defines... But either method would be awkward in it&amp;#39;s own unique way.&lt;/p&gt;
+
+&lt;hr&gt;
+
+&lt;h2 id="toc_8"&gt;Support for other languages&lt;/h2&gt;
+
+&lt;p&gt;Currently the node diagram tool is designed for use with HLSL. However, in theory it can also be used with other languages. All we need is a parser that can extract the function signatures. Since HLSL is a fairly generic c-like syntax, it shares a lot of similarity with many other languages. So the code that builds HLSL from the shader diagram could probably be easily adapted for languages (like Lua, Python, D, Swift, whatever).&lt;/p&gt;
+
+&lt;p&gt;This could be handy because HLSL is tied to GPU execution only. But another language would open the door for CPU side execution -- which could be used for game logic, physics or any other systems. This would be handy, because it would mean reusing the same core node diagram functionality for multiple separate tasks.&lt;/p&gt;
+</description>
+    </item>
     <item>
       <title>Dynamic Function Linking Graph for Shaders</title>
       <link>http://xlgames-inc.github.io/posts/functionlinkedshaders</link>

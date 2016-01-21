@@ -71,6 +71,13 @@
         <h3 class="title"><a href="/archive">Archive</a><br/> <span class="date"></span></h3>
 
         <div class="summary">
+  <h2>2016</h2>
+    <h3>January</h3>
+    <ul>
+      <li>
+<span>January 21, 2016</span> » <a href="/posts/materialtool">Material and Node Diagram Tool</a>
+</li>
+    </ul>
   <h2>2015</h2>
     <h3>December</h3>
     <ul>
@@ -102,29 +109,27 @@
       <div class="_root">
         <h3 class="title"><a href="/categories">Categories</a><br/> <span class="date"></span></h3>
 
-        <div class="summary">
+        <div class="summary ellipsis">
 <ul class="tag_box inline">
   <li>
-    <a href="/categories#XLE-ref">XLE <span>5</span></a>
+    <a href="/categories#XLE-ref">XLE <span>6</span></a>
   </li>
   <li>
     <a href="/categories#blog-ref">blog <span>1</span></a>
   </li>
 </ul>
 
-  <h3>XLE (5)</h3>
+  <h3>XLE (6)</h3>
   <ul>
       <li><a href="/posts/arealightsandpbr">Area Lights with Physically Based Rendering</a></li>
       <li><a href="/posts/functionlinkedshaders">Dynamic Function Linking Graph for Shaders</a></li>
+      <li><a href="/posts/materialtool">Material and Node Diagram Tool</a></li>
       <li><a href="/posts/rectlightdiffuse">Rectangle Light diffuse vs 3DS Max</a></li>
       <li><a href="/posts/whattodofirst">What to do first</a></li>
       <li><a href="/posts/workingonrectlights">Working some improvements to rectangle lights</a></li>
   </ul>
   <h3>blog (1)</h3>
-  <ul>
-      <li><a href="/posts/first">First post</a></li>
-  </ul>
-</div>
+  </div>
 
         <div class="more">
           <a href="/categories" class="btn btn-small">read more..</a>
@@ -134,34 +139,29 @@
         <h3 class="title"><a href="/">Home</a><br/> <span class="date"></span></h3>
 
         <div class="summary ellipsis">
-<p>For many modern engines, the shear quantity of different configuration options for shaders can start to be a major burden. Many compile-time options can end up increasing the number of compiled shaders exponentially. It can get to the point where the shaders data image can make up a large segment of download time, and compile time can be a major hassle during development.</p>
+<p>The master branch has just been updated! It now includes a major new tool, called the <em>MaterialTool</em>. This is a dedicated app for building materials and applying them to objects, and includes some cool new features...</p>
 
-<p>For example, a pixel shader for forward lit scene elements will often need to be specialized to suit the number and types of lights nearby. If we have a few different types of lights, the number of combinations can become very quickly unmanageable.</p>
+<p>In XLE, most material information can be authored in standard graphics packages (like 3DS Max, Maya, Substance Painter, etc). In particular, the most critical material values (<strong>color</strong>, <strong>roughness</strong>, <strong>specular</strong> &amp; <strong>metal</strong>) can come directly from standard packages.</p>
 
-<p>But we really need a lot of compile time options! They are very useful.</p>
+<p>But in cases we want to add custom information to models, or even develop custom shaders for complex materials. This is were the <em>MaterialTool</em> comes in. There is some functionality in common with the <em>ModelViewer</em> and <em>LevelEditor</em> tools -- but the <em>MaterialTool</em> provides a convenient focused tool for this kind of work.</p>
 
-<h2 id="toc_0">Dynamic linking methods in D3D</h2>
+<hr>
 
-<p>What we really need is a way to do dynamic linking of shaders -- so that we can construct the particular shader we need at runtime.</p>
+<h2 id="toc_0">Basic functionality</h2>
 
-<p>D3D provides a few different methods for dynamic shader linking.
-The one simple method involves "classes" and "interfaces."</p>
+<p><br><img src="/assets/media/MaterialTool/BasicWindow.png"></p>
 
-<h2 id="toc_1">Classes and interfaces</h2>
+<p>Our core functionality allows us to preview a model (much like the <em>ModelViewer</em>, with various rendering modes), click on materials and then change their properties (such as opacity, translucency modes, and various shader flags).</p>
 
-<p>In the shader code, we can define an interface like this:</p>
+<p>This works within the Sony ATF framework, and so we have all of the handy features from the <em>LevelEditor</em>, such as:</p>
 
-<pre><code>interface ILightResolver
-{
-    float3 Resolve(
-        GBufferValues sample,
-        LightSampleExtra sampleExtra,
-        LightDesc light,
-        float3 worldPosition,
-        float3 directionToEye,
-        LightScreenDest screenDest);
-};
-</code></pre>
+<ul>
+<li>detachable, arrangeable windows</li>
+<li>
+<em>IronPython</em> scripting and cvar access</li>
+<li>interface skinning, keyboard rebinding, etc...</li>
+<li>and, of course, it's all very extensible C# code, convenient for adding custom features</li>
+</ul>
 </div>
 
         <div class="more">
