@@ -4,7 +4,26 @@
     <title>XLE development blog</title>
     <description>XLE development blog</description>
     <link>http://xlgames-inc.github.io</link>
-    <pubDate>January 21, 2016</pubDate>
+    <pubDate>January 22, 2016</pubDate>
+    <item>
+      <title>Transmission Node Diagram</title>
+      <link>http://xlgames-inc.github.io/posts/transmissionnodegraph</link>
+      <pubDate>January 22, 2016</pubDate>
+      <description>&lt;p&gt;Here is a node diagram for the specular transmission function (BTDF) from Walter, et al, from &lt;em&gt;&amp;quot;Microfacet Models for Refraction through Rough Surfaces.&amp;quot;&lt;/em&gt;
+Also known as the &amp;quot;GGX&amp;quot; model (or Trowbridge-Reitz).&lt;/p&gt;
+
+&lt;p&gt;&lt;br/&gt;&lt;img src="/assets/media/MaterialTool/WalterGGXTransmission.png"&gt;&lt;/p&gt;
+
+&lt;p&gt;You can see how the node graph comes in handy for debugging a shader function like this. It&amp;#39;s useful to visualize each term and see it&amp;#39;s effects.
+For example, the &amp;quot;D&amp;quot; term of the BTDF is a node on the diagram. And we can visualize the effects of that term independent of everything else.&lt;/p&gt;
+
+&lt;p&gt;In this case, the diagram saves a HLSL function, and that function is called by text-based HLSL code. This will become part of some new functionality for specular transmission through thin surfaces.&lt;/p&gt;
+
+&lt;p&gt;I&amp;#39;ll pop this in a new &amp;quot;experimental&amp;quot; branch.&lt;/p&gt;
+
+&lt;p&gt;See the post from yesterday, &lt;a href="materialtool"&gt;Material and Node Diagram Tool&lt;/a&gt;, for more information.&lt;/p&gt;
+</description>
+    </item>
     <item>
       <title>Material and Node Diagram Tool</title>
       <link>http://xlgames-inc.github.io/posts/materialtool</link>

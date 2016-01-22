@@ -75,6 +75,9 @@
     <h3>January</h3>
     <ul>
       <li>
+<span>January 22, 2016</span> » <a href="/posts/transmissionnodegraph">Transmission Node Diagram</a>
+</li>
+      <li>
 <span>January 21, 2016</span> » <a href="/posts/materialtool">Material and Node Diagram Tool</a>
 </li>
     </ul>
@@ -112,23 +115,23 @@
         <div class="summary ellipsis">
 <ul class="tag_box inline">
   <li>
-    <a href="/categories#XLE-ref">XLE <span>6</span></a>
+    <a href="/categories#XLE-ref">XLE <span>7</span></a>
   </li>
   <li>
     <a href="/categories#blog-ref">blog <span>1</span></a>
   </li>
 </ul>
 
-  <h3>XLE (6)</h3>
+  <h3>XLE (7)</h3>
   <ul>
       <li><a href="/posts/arealightsandpbr">Area Lights with Physically Based Rendering</a></li>
       <li><a href="/posts/functionlinkedshaders">Dynamic Function Linking Graph for Shaders</a></li>
       <li><a href="/posts/materialtool">Material and Node Diagram Tool</a></li>
       <li><a href="/posts/rectlightdiffuse">Rectangle Light diffuse vs 3DS Max</a></li>
+      <li><a href="/posts/transmissionnodegraph">Transmission Node Diagram</a></li>
       <li><a href="/posts/whattodofirst">What to do first</a></li>
       <li><a href="/posts/workingonrectlights">Working some improvements to rectangle lights</a></li>
   </ul>
-  <h3>blog (1)</h3>
   </div>
 
         <div class="more">
@@ -138,30 +141,20 @@
       <div class="_root">
         <h3 class="title"><a href="/">Home</a><br/> <span class="date"></span></h3>
 
-        <div class="summary ellipsis">
-<p>The master branch has just been updated! It now includes a major new tool, called the <em>MaterialTool</em>. This is a dedicated app for building materials and applying them to objects, and includes some cool new features...</p>
+        <div class="summary">
+<p>Here is a node diagram for the specular transmission function (BTDF) from Walter, et al, from <em>"Microfacet Models for Refraction through Rough Surfaces."</em>
+Also known as the "GGX" model (or Trowbridge-Reitz).</p>
 
-<p>In XLE, most material information can be authored in standard graphics packages (like 3DS Max, Maya, Substance Painter, etc). In particular, the most critical material values (<strong>color</strong>, <strong>roughness</strong>, <strong>specular</strong> &amp; <strong>metal</strong>) can come directly from standard packages.</p>
+<p><br><img src="/assets/media/MaterialTool/WalterGGXTransmission.png"></p>
 
-<p>But in cases we want to add custom information to models, or even develop custom shaders for complex materials. This is were the <em>MaterialTool</em> comes in. There is some functionality in common with the <em>ModelViewer</em> and <em>LevelEditor</em> tools -- but the <em>MaterialTool</em> provides a convenient focused tool for this kind of work.</p>
+<p>You can see how the node graph comes in handy for debugging a shader function like this. It's useful to visualize each term and see it's effects.
+For example, the "D" term of the BTDF is a node on the diagram. And we can visualize the effects of that term independent of everything else.</p>
 
-<hr>
+<p>In this case, the diagram saves a HLSL function, and that function is called by text-based HLSL code. This will become part of some new functionality for specular transmission through thin surfaces.</p>
 
-<h2 id="toc_0">Basic functionality</h2>
+<p>I'll pop this in a new "experimental" branch.</p>
 
-<p><br><img src="/assets/media/MaterialTool/BasicWindow.png"></p>
-
-<p>Our core functionality allows us to preview a model (much like the <em>ModelViewer</em>, with various rendering modes), click on materials and then change their properties (such as opacity, translucency modes, and various shader flags).</p>
-
-<p>This works within the Sony ATF framework, and so we have all of the handy features from the <em>LevelEditor</em>, such as:</p>
-
-<ul>
-<li>detachable, arrangeable windows</li>
-<li>
-<em>IronPython</em> scripting and cvar access</li>
-<li>interface skinning, keyboard rebinding, etc...</li>
-<li>and, of course, it's all very extensible C# code, convenient for adding custom features</li>
-</ul>
+<p>See the post from yesterday, <a href="materialtool">Material and Node Diagram Tool</a>, for more information.</p>
 </div>
 
         <div class="more">

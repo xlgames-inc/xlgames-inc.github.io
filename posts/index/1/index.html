@@ -51,6 +51,29 @@
         <div class="row-fluid">
   <div class="span12">
       <div class="posts">
+        <h3 class="title"><a href="/posts/transmissionnodegraph">Transmission Node Diagram</a><br/> <span class="date">January 22, 2016</span></h3>
+
+        <div class="summary">
+<p>Here is a node diagram for the specular transmission function (BTDF) from Walter, et al, from <em>"Microfacet Models for Refraction through Rough Surfaces."</em>
+Also known as the "GGX" model (or Trowbridge-Reitz).</p>
+
+<p><br><img src="/assets/media/MaterialTool/WalterGGXTransmission.png"></p>
+
+<p>You can see how the node graph comes in handy for debugging a shader function like this. It's useful to visualize each term and see it's effects.
+For example, the "D" term of the BTDF is a node on the diagram. And we can visualize the effects of that term independent of everything else.</p>
+
+<p>In this case, the diagram saves a HLSL function, and that function is called by text-based HLSL code. This will become part of some new functionality for specular transmission through thin surfaces.</p>
+
+<p>I'll pop this in a new "experimental" branch.</p>
+
+<p>See the post from yesterday, <a href="materialtool">Material and Node Diagram Tool</a>, for more information.</p>
+</div>
+
+        <div class="more">
+          <a href="/posts/transmissionnodegraph" class="btn btn-small">read more..</a>
+        </div>
+      </div>
+      <div class="posts">
         <h3 class="title"><a href="/posts/materialtool">Material and Node Diagram Tool</a><br/> <span class="date">January 21, 2016</span></h3>
 
         <div class="summary ellipsis">
@@ -188,37 +211,6 @@ The one simple method involves "classes" and "interfaces."</p>
 
         <div class="more">
           <a href="/posts/workingonrectlights" class="btn btn-small">read more..</a>
-        </div>
-      </div>
-      <div class="posts">
-        <h3 class="title"><a href="/posts/whattodofirst">What to do first</a><br/> <span class="date">December 04, 2015</span></h3>
-
-        <div class="summary ellipsis">
-<p>So, you've just downloaded XLE, and you're wondering what to do first? Here's a suggestion for the first 10 minutes:</p>
-
-<hr>
-
-<h2 id="toc_0">Startup the level editor</h2>
-
-<p>Select the Level Editor as the startup project:
-<br><img src="/assets/media/SolutionExplorerLE.png"></p>
-
-<p>You should use the <strong>Debug/x64</strong> or <strong>Release/x64</strong> configuration. Though XLE works in both 32 bit and 64 bits modes, normal usage for the level editor should be in 64 bits mode.</p>
-
-<p>If you have trouble compiling, see the <a href="https://github.com/xlgames-inc/XLE/wiki/CompilingFirstSteps">Getting Started Compiling page</a>.</p>
-
-<p>Start up this application, and you should see a large 3D window and various other windows about.</p>
-
-<p>The level editor is based on a great project from Sony WWS <a href="https://github.com/SonyWWS/LevelEditor">SonyWWSLevelEditor</a>.
-It has been modified to work with XLE, and some XLE specific behaviour has been added. I think this is a great example of the Open Source concept working for games developers.</p>
-
-<hr>
-
-<h2 id="toc_1">Creating an object</h2>
-</div>
-
-        <div class="more">
-          <a href="/posts/whattodofirst" class="btn btn-small">read more..</a>
         </div>
       </div>
     
