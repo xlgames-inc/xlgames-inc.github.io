@@ -2,7 +2,7 @@
 <html lang="en">
   <head>
     <meta charset="utf-8">
-    <title>Rectangle Light diffuse vs 3DS Max</title>
+    <title>Transmitted specular</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="author" content="XL Games">
 
@@ -50,67 +50,52 @@
       <div class="content">
         
 <div class="page-header">
-  <h1>Rectangle Light diffuse vs 3DS Max </h1>
+  <h1>Transmitted specular </h1>
 </div>
 
 <div class="row-fluid post-full">
   <div class="span12">
     <div class="date">
-      <span>December 11, 2015</strong>
+      <span>January 25, 2016</strong>
     </div>
     <div class="content">
-      <p>Just a quick note on rectangle light diffuse. In XLE, rectangle lights are slightly different from the default rectangle lights in 3DS Max.</p>
+      <p>I&#39;ve modified the lighting equations to allow for transmitted (as well as reflected) specular for dynamic lightings. Transmitted specular means the light is on the opposite side of the object, but light is coming through the object towards the viewer.</p>
 
-<style type="text/css">
-.tg  {border-collapse:collapse;border-spacing:0;}
-.tg td{font-family:Arial, sans-serif;font-size:14px;padding:10px 5px;border-style:solid;border-width:1px;overflow:hidden;word-break:normal;}
-.tg th{font-family:Arial, sans-serif;font-size:14px;font-weight:normal;padding:10px 5px;border-style:solid;border-width:1px;overflow:hidden;word-break:normal;}
-.tg .tg-yw4l{vertical-align:top}
-</style>
+<p>This is important for thin materials (such as leaves)</p>
 
-<table class="tg">
-  <tr>
-    <th class="tg-yw4l">XLE lights</th>
-    <th class="tg-yw4l">3DS Max lights (Quicksilver renderer)</th>
-  </tr>
-  <tr>
-    <td class="tg-yw4l"><img src="/assets/media/RectLightDiffuse/XLELightDiag.png"></td>
-    <td class="tg-yw4l"><img src="/assets/media/RectLightDiffuse/MaxLightDiag.png"></td>
-  </tr>
-  <tr>
-    <td class="tg-yw4l"><img src="/assets/media/RectLightDiffuse/XLEDefault.png"></td>
-    <td class="tg-yw4l"><img src="/assets/media/RectLightDiffuse/MaxComparison.png"></td>
-  </tr>
-</table>
+<h3 id="toc_0">No transmitted specular:</h3>
 
-<p>XLE rectangle lights emit light mostly in the forward direction (and a reduced amount sideways). But in the 3DS Max Quicksilver renderer, rectangle lights emit light in all direction.</p>
+<p><br/><img src="/assets/media/TransSpec/LeavesNoTransSpec.png"></p>
 
-<h2 id="toc_0">Edge cases</h2>
+<h3 id="toc_1">With transmitted specular:</h3>
 
-<p>This is partially because the method we&#39;re using for diffuse doesn&#39;t work well on extreme angles. In the above example, the light plane and the <strong>top</strong>/<strong>bottom</strong>/<strong>left</strong>/<strong>right</strong> walls are actually perpendicular.</p>
+<p><br/><img src="/assets/media/TransSpec/LeavesTransSpec.png"></p>
 
-<p>This causes weird problems right on the edges.</p>
+<p>Here the amount of transmission is maybe slightly too high -- but it shows the effect well.
+This works particularly well with shadowed directional lights and geometry using order independent transparency. The above screenshot is exactly that situation. The tree leaves are rendered with stochastic transparency (which works particularly well for this model). So we get a nice halo effect around the edges of the tree.</p>
 
-<table class="tg">
-  <tr>
-    <th class="tg-yw4l">XLE emulating 3DS Max</th>
-    <th class="tg-yw4l">3DS Max lights (Quicksilver Renderer)</th>
-  </tr>
-  <tr>
-    <td class="tg-yw4l"><img src="/assets/media/RectLightDiffuse/XLEEmulateMax.png"></td>
-    <td class="tg-yw4l"><img src="/assets/media/RectLightDiffuse/MaxComparison.png"></td>
-  </tr>
-</table>
+<p>And, if you look closely, you can see that the tree shadowing is blocking the transmitted specular, giving a volumetric look.</p>
 
-<p>In the above example, the left and right walls look fine. But the top and bottom walls are missing their highlight. This is because the light is quite tall. A square light might be fine.</p>
+<p>This model is built in a way to create a lot of noise in the normals. As you can see here:
+<br/><img src="/assets/media/TransSpec/LeavesNormals.png"></p>
 
-<p>But you can see that, in general, the 3DS Max result and the XLE result is quite similar.</p>
+<p>Normals point in every direction, and there is a lot of local variation.</p>
 
-<h2 id="toc_1">Practical uses</h2>
+<p>The transmitted specular really helps highlight this noise. It helps to make the tree canopy feel more 3D, and it helps to hide the &quot;true&quot; triangular geometry. The preview reflected-only specular just wasn&#39;t able to do this as well.</p>
 
-<p>It might be possible to fix this with some research and a few tricks. But it&#39;s not clear if that would really be useful. Rectangle lights might be most useful for things like windows, TV screens, photography reflectors, etc. In these cases we normally want the light to always go forward, anyway.</p>
+<h2 id="toc_2">It&#39;s expensive!</h2>
 
-<p>Plus, if we block off the extreme edges, we have some easy options for shadowing.</p>
+<p>The transmitted specular calculation is actually a second, additional, specular calculation -- and it&#39;s a little more expensive than the reflected specular. It&#39;s using the node diagram from the previous post, <a href="transmissionnodegraph">Transmission Node Diagram</a>. So it&#39;s not really cheap. It&#39;s particularly expensive in this case, because stochastic transparency can result in many lighting calculations per pixel (for the different depth layers).</p>
+
+<h2 id="toc_3">IBL implementation</h2>
+
+<p>This is not currently working with image based lighting. Part of the <strong>IBL</strong> principle is that every effect applied to &quot;dynamic&quot; lighting should also be applied to <strong>IBL</strong> -- (so material appear the same under both types of lights, and so we can fade distant dynamic lights into precalculated IBL).</p>
+
+<p>It might be interesting to try to get it working under IBL, so I&#39;ll give it a shot.</p>
+
+<h2 id="toc_4">Better doubled sided GGX specular equation</h2>
+
+<p>When the shader flag <em>&quot;MAT<em>DOUBLE</em>SIDED_LIGHTING&quot;</em> is set, the specular equation is now double sided. The results will be symmetrical for a flipped normal (ie, <em>Specular(normal)</em>==<em>Specular(-normal)</em>, for all normals). It can be handy in cases like this, where the normals are pointing in all directions.</p>
 
     </div>
     <ul class="tag_box inline">
@@ -125,17 +110,23 @@
         <a href="/tags#AreaLights-ref">AreaLights <span>4</span></a>
       </li>
       <li>
-        <a href="/tags#RectangleLights-ref">RectangleLights <span>2</span></a>
+        <a href="/tags#Lights-ref">Lights <span>1</span></a>
+      </li>
+      <li>
+        <a href="/tags#Specular-ref">Specular <span>1</span></a>
+      </li>
+      <li>
+        <a href="/tags#GGX-ref">GGX <span>1</span></a>
       </li>
     </ul>
     <hr>
     <div class="pagination">
       <ul>
-          <li class="prev"><a href="/posts/workingonrectlights" title="Working some improvements to rectangle lights">&larr; Previous</a></li>
+          <li class="prev"><a href="/posts/transmissionnodegraph" title="Transmission Node Diagram">&larr; Previous</a></li>
 
           <li><a href="/archive">Archive</a></li>
 
-          <li class="next"><a href="/posts/functionlinkedshaders" title="Dynamic Function Linking Graph for Shaders">Next &rarr;</a></li>
+          <li class="next disabled"><a>Next &rarr;</a>
       </ul>
     </div>
     <hr>

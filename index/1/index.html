@@ -75,6 +75,9 @@
     <h3>January</h3>
     <ul>
       <li>
+<span>January 25, 2016</span> » <a href="/posts/transmittedspecular">Transmitted specular</a>
+</li>
+      <li>
 <span>January 22, 2016</span> » <a href="/posts/transmissionnodegraph">Transmission Node Diagram</a>
 </li>
       <li>
@@ -115,24 +118,25 @@
         <div class="summary ellipsis">
 <ul class="tag_box inline">
   <li>
-    <a href="/categories#XLE-ref">XLE <span>7</span></a>
+    <a href="/categories#XLE-ref">XLE <span>8</span></a>
   </li>
   <li>
     <a href="/categories#blog-ref">blog <span>1</span></a>
   </li>
 </ul>
 
-  <h3>XLE (7)</h3>
+  <h3>XLE (8)</h3>
   <ul>
       <li><a href="/posts/arealightsandpbr">Area Lights with Physically Based Rendering</a></li>
       <li><a href="/posts/functionlinkedshaders">Dynamic Function Linking Graph for Shaders</a></li>
       <li><a href="/posts/materialtool">Material and Node Diagram Tool</a></li>
       <li><a href="/posts/rectlightdiffuse">Rectangle Light diffuse vs 3DS Max</a></li>
       <li><a href="/posts/transmissionnodegraph">Transmission Node Diagram</a></li>
+      <li><a href="/posts/transmittedspecular">Transmitted specular</a></li>
       <li><a href="/posts/whattodofirst">What to do first</a></li>
       <li><a href="/posts/workingonrectlights">Working some improvements to rectangle lights</a></li>
   </ul>
-  </div>
+</div>
 
         <div class="more">
           <a href="/categories" class="btn btn-small">read more..</a>
@@ -141,20 +145,28 @@
       <div class="_root">
         <h3 class="title"><a href="/">Home</a><br/> <span class="date"></span></h3>
 
-        <div class="summary">
-<p>Here is a node diagram for the specular transmission function (BTDF) from Walter, et al, from <em>"Microfacet Models for Refraction through Rough Surfaces."</em>
-Also known as the "GGX" model (or Trowbridge-Reitz).</p>
+        <div class="summary ellipsis">
+<p>I've modified the lighting equations to allow for transmitted (as well as reflected) specular for dynamic lightings. Transmitted specular means the light is on the opposite side of the object, but light is coming through the object towards the viewer.</p>
 
-<p><br><img src="/assets/media/MaterialTool/WalterGGXTransmission.png"></p>
+<p>This is important for thin materials (such as leaves)</p>
 
-<p>You can see how the node graph comes in handy for debugging a shader function like this. It's useful to visualize each term and see it's effects.
-For example, the "D" term of the BTDF is a node on the diagram. And we can visualize the effects of that term independent of everything else.</p>
+<h3 id="toc_0">No transmitted specular:</h3>
 
-<p>In this case, the diagram saves a HLSL function, and that function is called by text-based HLSL code. This will become part of some new functionality for specular transmission through thin surfaces.</p>
+<p><br><img src="/assets/media/TransSpec/LeavesNoTransSpec.png"></p>
 
-<p>I'll pop this in a new "experimental" branch.</p>
+<h3 id="toc_1">With transmitted specular:</h3>
 
-<p>See the post from yesterday, <a href="materialtool">Material and Node Diagram Tool</a>, for more information.</p>
+<p><br><img src="/assets/media/TransSpec/LeavesTransSpec.png"></p>
+
+<p>Here the amount of transmission is maybe slightly too high -- but it shows the effect well.
+This works particularly well with shadowed directional lights and geometry using order independent transparency. The above screenshot is exactly that situation. The tree leaves are rendered with stochastic transparency (which works particularly well for this model). So we get a nice halo effect around the edges of the tree.</p>
+
+<p>And, if you look closely, you can see that the tree shadowing is blocking the transmitted specular, giving a volumetric look.</p>
+
+<p>This model is built in a way to create a lot of noise in the normals. As you can see here:
+<br><img src="/assets/media/TransSpec/LeavesNormals.png"></p>
+
+<p>Normals point in every direction, and there is a lot of local variation.</p>
 </div>
 
         <div class="more">

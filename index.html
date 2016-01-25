@@ -64,6 +64,7 @@
   <h2>2016</h2>
     <h3>January</h3>
     <ul>
+      <li><span>January 25, 2016</span> &raquo; <a href="/posts/transmittedspecular">Transmitted specular</a></li>
       <li><span>January 22, 2016</span> &raquo; <a href="/posts/transmissionnodegraph">Transmission Node Diagram</a></li>
       <li><span>January 21, 2016</span> &raquo; <a href="/posts/materialtool">Material and Node Diagram Tool</a></li>
     </ul>
@@ -82,6 +83,37 @@
 
 <hr />
 
+<div class="post">
+  <h3 class="title"><a href="/posts/transmittedspecular">Transmitted specular</a><br /> <span class="date">January 25, 2016</span></h3>
+
+  <div class="summary ellipsis">
+<p>I've modified the lighting equations to allow for transmitted (as well as reflected) specular for dynamic lightings. Transmitted specular means the light is on the opposite side of the object, but light is coming through the object towards the viewer.</p>
+
+<p>This is important for thin materials (such as leaves)</p>
+
+<h3 id="toc_0">No transmitted specular:</h3>
+
+<p><br><img src="/assets/media/TransSpec/LeavesNoTransSpec.png"></p>
+
+<h3 id="toc_1">With transmitted specular:</h3>
+
+<p><br><img src="/assets/media/TransSpec/LeavesTransSpec.png"></p>
+
+<p>Here the amount of transmission is maybe slightly too high -- but it shows the effect well.
+This works particularly well with shadowed directional lights and geometry using order independent transparency. The above screenshot is exactly that situation. The tree leaves are rendered with stochastic transparency (which works particularly well for this model). So we get a nice halo effect around the edges of the tree.</p>
+
+<p>And, if you look closely, you can see that the tree shadowing is blocking the transmitted specular, giving a volumetric look.</p>
+
+<p>This model is built in a way to create a lot of noise in the normals. As you can see here:
+<br><img src="/assets/media/TransSpec/LeavesNormals.png"></p>
+
+<p>Normals point in every direction, and there is a lot of local variation.</p>
+</div>
+
+  <div class="more">
+    <a href="/posts/transmittedspecular" class="btn btn-small">read more..</a>
+  </div>
+</div>
 <div class="post">
   <h3 class="title"><a href="/posts/transmissionnodegraph">Transmission Node Diagram</a><br /> <span class="date">January 22, 2016</span></h3>
 
@@ -207,42 +239,6 @@ The one simple method involves "classes" and "interfaces."</p>
 
   <div class="more">
     <a href="/posts/rectlightdiffuse" class="btn btn-small">read more..</a>
-  </div>
-</div>
-<div class="post">
-  <h3 class="title"><a href="/posts/workingonrectlights">Working some improvements to rectangle lights</a><br /> <span class="date">December 09, 2015</span></h3>
-
-  <div class="summary ellipsis">
-<p><strong>Post updated on 2015-12-10</strong></p>
-
-<p>This is just some notes about some ideas I've been playing with lately. I've been thinking about some improvements to the specular highlights for rectangle lights!</p>
-
-<p>The current implementation is based on the method by <em>Michal Drobot</em> in <strong>GPU Pro 5</strong>. I'm not going to repeat the description here (I'll only give a few details) -- but I recommend buying the book and having a look! It's quite a good method, and interesting read. Drobot describes a very practical method for diffuse and specular for rectangle and disc lights.</p>
-
-<p>However, at extreme angles, the specular reflection of rectangle lights can sometimes show some distortion.</p>
-
-<p>Here is a comparison:
-<style type="text/css">
-.tg  {border-collapse:collapse;border-spacing:0;}
-.tg td{font-family:Arial, sans-serif;font-size:14px;padding:10px 5px;border-style:solid;border-width:1px;overflow:hidden;word-break:normal;}
-.tg th{font-family:Arial, sans-serif;font-size:14px;font-weight:normal;padding:10px 5px;border-style:solid;border-width:1px;overflow:hidden;word-break:normal;}
-.tg .tg-yw4l{vertical-align:top}
-</style>
-</p>
-<table class="tg">
-  <tr>
-    <th class="tg-yw4l">Original Method</th>
-    <th class="tg-yw4l">New Method</th>
-  </tr>
-  <tr>
-    <td class="tg-yw4l"><img src="/assets/media/RectLightImprovements/BasicRectLight.png"></td>
-    <td class="tg-yw4l"><img src="/assets/media/RectLightImprovements/ImprovedRectLight.png"></td>
-  </tr>
-</table>
-</div>
-
-  <div class="more">
-    <a href="/posts/workingonrectlights" class="btn btn-small">read more..</a>
   </div>
 </div>
 

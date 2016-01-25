@@ -4,7 +4,50 @@
     <title>XLE development blog</title>
     <description>XLE development blog</description>
     <link>http://xlgames-inc.github.io</link>
-    <pubDate>January 22, 2016</pubDate>
+    <pubDate>January 25, 2016</pubDate>
+    <item>
+      <title>Transmitted specular</title>
+      <link>http://xlgames-inc.github.io/posts/transmittedspecular</link>
+      <pubDate>January 25, 2016</pubDate>
+      <description>&lt;p&gt;I&amp;#39;ve modified the lighting equations to allow for transmitted (as well as reflected) specular for dynamic lightings. Transmitted specular means the light is on the opposite side of the object, but light is coming through the object towards the viewer.&lt;/p&gt;
+
+&lt;p&gt;This is important for thin materials (such as leaves)&lt;/p&gt;
+
+&lt;h3 id="toc_0"&gt;No transmitted specular:&lt;/h3&gt;
+
+&lt;p&gt;&lt;br/&gt;&lt;img src="/assets/media/TransSpec/LeavesNoTransSpec.png"&gt;&lt;/p&gt;
+
+&lt;h3 id="toc_1"&gt;With transmitted specular:&lt;/h3&gt;
+
+&lt;p&gt;&lt;br/&gt;&lt;img src="/assets/media/TransSpec/LeavesTransSpec.png"&gt;&lt;/p&gt;
+
+&lt;p&gt;Here the amount of transmission is maybe slightly too high -- but it shows the effect well.
+This works particularly well with shadowed directional lights and geometry using order independent transparency. The above screenshot is exactly that situation. The tree leaves are rendered with stochastic transparency (which works particularly well for this model). So we get a nice halo effect around the edges of the tree.&lt;/p&gt;
+
+&lt;p&gt;And, if you look closely, you can see that the tree shadowing is blocking the transmitted specular, giving a volumetric look.&lt;/p&gt;
+
+&lt;p&gt;This model is built in a way to create a lot of noise in the normals. As you can see here:
+&lt;br/&gt;&lt;img src="/assets/media/TransSpec/LeavesNormals.png"&gt;&lt;/p&gt;
+
+&lt;p&gt;Normals point in every direction, and there is a lot of local variation.&lt;/p&gt;
+
+&lt;p&gt;The transmitted specular really helps highlight this noise. It helps to make the tree canopy feel more 3D, and it helps to hide the &amp;quot;true&amp;quot; triangular geometry. The preview reflected-only specular just wasn&amp;#39;t able to do this as well.&lt;/p&gt;
+
+&lt;h2 id="toc_2"&gt;It&amp;#39;s expensive!&lt;/h2&gt;
+
+&lt;p&gt;The transmitted specular calculation is actually a second, additional, specular calculation -- and it&amp;#39;s a little more expensive than the reflected specular. It&amp;#39;s using the node diagram from the previous post, &lt;a href="transmissionnodegraph"&gt;Transmission Node Diagram&lt;/a&gt;. So it&amp;#39;s not really cheap. It&amp;#39;s particularly expensive in this case, because stochastic transparency can result in many lighting calculations per pixel (for the different depth layers).&lt;/p&gt;
+
+&lt;h2 id="toc_3"&gt;IBL implementation&lt;/h2&gt;
+
+&lt;p&gt;This is not currently working with image based lighting. Part of the &lt;strong&gt;IBL&lt;/strong&gt; principle is that every effect applied to &amp;quot;dynamic&amp;quot; lighting should also be applied to &lt;strong&gt;IBL&lt;/strong&gt; -- (so material appear the same under both types of lights, and so we can fade distant dynamic lights into precalculated IBL).&lt;/p&gt;
+
+&lt;p&gt;It might be interesting to try to get it working under IBL, so I&amp;#39;ll give it a shot.&lt;/p&gt;
+
+&lt;h2 id="toc_4"&gt;Better doubled sided GGX specular equation&lt;/h2&gt;
+
+&lt;p&gt;When the shader flag &lt;em&gt;&amp;quot;MAT&lt;em&gt;DOUBLE&lt;/em&gt;SIDED_LIGHTING&amp;quot;&lt;/em&gt; is set, the specular equation is now double sided. The results will be symmetrical for a flipped normal (ie, &lt;em&gt;Specular(normal)&lt;/em&gt;==&lt;em&gt;Specular(-normal)&lt;/em&gt;, for all normals). It can be handy in cases like this, where the normals are pointing in all directions.&lt;/p&gt;
+</description>
+    </item>
     <item>
       <title>Transmission Node Diagram</title>
       <link>http://xlgames-inc.github.io/posts/transmissionnodegraph</link>
