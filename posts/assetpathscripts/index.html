@@ -1,0 +1,217 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Processing textures with the XLE scriptable asset path</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="author" content="XL Games">
+
+    <!-- Le HTML5 shim, for IE6-8 support of HTML elements -->
+    <!--[if lt IE 9]>
+      <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+
+    <!-- Le styles -->
+<link href='/assets/stylesheets/bootstrap.min-93b47f97c3444c4711853ed5140d82a1.css' type='text/css' rel='stylesheet' media='all'>
+<link href='/assets/stylesheets/style-1dcb1d39791f3457afa56d279fcf0945.css' type='text/css' rel='stylesheet' media='all'>
+<link href='/assets/stylesheets/google_prettify/sons-of-obsidian-5e05343fd0c18e0a05231023b643245c.css' type='text/css' rel='stylesheet' media='all'>
+    <!-- Le fav and touch icons -->
+  <!-- Update these with your own images
+    <link rel="shortcut icon" href="images/favicon.ico">
+    <link rel="apple-touch-icon" href="images/apple-touch-icon.png">
+    <link rel="apple-touch-icon" sizes="72x72" href="images/apple-touch-icon-72x72.png">
+    <link rel="apple-touch-icon" sizes="114x114" href="images/apple-touch-icon-114x114.png">
+  -->
+  </head>
+
+  <body>
+
+    <div class="navbar">
+      <div class="navbar-inner">
+        <div class="container-narrow">
+          <a class="brand" href="/">XLE development blog</a>
+          <ul class="nav">
+              
+                <li><a href="/tags">Tags</a></li>
+              
+              
+                <li><a href="/archive">Archive</a></li>
+              
+              
+                <li><a href="/about">About</a></li>
+              
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="container-narrow">
+
+      <div class="content">
+        
+<div class="page-header">
+  <h1>Processing textures with the XLE scriptable asset path </h1>
+</div>
+
+<div class="row-fluid post-full">
+  <div class="span12">
+    <div class="date">
+      <span>January 26, 2016</strong>
+    </div>
+    <div class="content">
+      <p>I&#39;ve included a few Gradle scripts in the XLE distribution. This is mostly just a simple set of tools I use for my own testing. But you may find it useful for your own needs.</p>
+
+<p>Of course this system isn&#39;t designed to be 100% robust and fool proof. Actually, it&#39;s just a few simple scripts. But it is scalable and flexible.</p>
+
+<h2 id="toc_0">Gradle</h2>
+
+<p>At heart, an <strong>&quot;asset path&quot;</strong> is some system that can identify changed assets, recognize processing working that needs to be performed with those assets, and schedule that work.</p>
+
+<p>For example, we might have an asset for a sky background texture. Various processing tools need to pre-filter this texture so it can be used for image based lighting. Whenever the texture changes (or when the processing tools change) we want to execute the processing steps and produce intermediate assets.</p>
+
+<p>XLE does some processing at runtime. But that is only practical for short processing steps. Expensive processing steps need some other solution.</p>
+
+<p>So we need some build system to manage assets and dependences. Are requirements are similar to build systems we use for code. But most code-oriented build systems don&#39;t work well for assets.</p>
+
+<p>I picked <em>Gradle</em> because of it&#39;s procedural nature. It allows us to specify input assets -- but also to give instructions to the build path on how to handle that object. For example, we need to tell the build path if a texture is a sky texture, a normals texture, or some other type... That kind of thing just falls out of <em>Gradle</em> very easily.</p>
+
+<h2 id="toc_1">Executing Gradle</h2>
+
+<p>First, you need to install Gradle, from: <a href="http://gradle.org/gradle-download/">http://gradle.org/gradle-download/</a></p>
+
+<p>In Tools/AssetPath, we have the &quot;settings.gradle&quot; root project file. Also, this folder contains some &quot;groovy&quot; source files that contain gradle task type implementations. So, there is a task type for processing sky textures -- which basically just involves executing a number of command line operations.</p>
+
+<p>I&#39;ve also defined a root task called <strong>&quot;tex&quot;</strong>. This is where gradle starts to shine. The &quot;tex&quot; task searches through the entire working folder for build.gradle files that contain tasks whose names being with <strong>&quot;tex...&quot;</strong>. All of the tasks found become subtasks of the root &quot;tex&quot; task.</p>
+
+<p>So, we can create a <strong>&quot;build.gradle&quot;</strong> in any folder in the working directory. And if we add tasks to that file that being with &quot;tex&quot; (typically &quot;tex0&quot;, &quot;tex1&quot;, etc), they will be automatically added as subtasks of the root &quot;tex&quot; task.</p>
+
+<p>This is important because when we execute gradle (using the <em>&quot;Tools/AssetPath/execute.bat&quot;</em> batch file) and pass the root task &quot;tex&quot; on the command line, this has the effect of execute all &quot;tex...&quot; tasks in the entire working directory.</p>
+
+<p>Pretty cool, right? We can also execute individual tasks using the normal gradle command line.</p>
+
+<p>There is an example in git in <em>&quot;Working/Game/xleres/DefaultResources/build.gradle.&quot;</em> This project will generate the standard lookup tables.</p>
+
+<h2 id="toc_2">Processing Textures</h2>
+
+<p>Executing Gradle is just the first step. Gradle is just going to chain together command line operations. Those operations require a bunch of tools.</p>
+
+<p>One of the most useful task types is &quot;xle.EquiRectEnv.&quot; This takes in a equirectangular (ie, paranoramic) environment map and produces 3 important textures: Cubemap background, Specular IBL texture and Diffuse IBL texture.</p>
+
+<p>This get a little complicated. This is just the pipeline I use for processing these textures myself. So it&#39;s a little complicated and involved right now.</p>
+
+<p>First, install these:</p>
+
+<ol>
+<li><em>AMD CubemapGen</em> (<a href="http://developer.amd.com/tools-and-sdks/archive/legacy-cpu-gpu-tools/cubemapgen/">http://developer.amd.com/tools-and-sdks/archive/legacy-cpu-gpu-tools/cubemapgen/</a>)</li>
+<li><em>Sébastien Lagarde&#39;s modified CubemapGen</em>: <a href="https://seblagarde.wordpress.com/2012/06/10/amd-cubemapgen-for-physically-based-rendering/">https://seblagarde.wordpress.com/2012/06/10/amd-cubemapgen-for-physically-based-rendering/</a></li>
+<li><em>nvcompress</em> ** from nvidia-texture-tools (see below)</li>
+<li><em>TextureProcess</em> sample from XLE</li>
+</ol>
+
+<p>All of these must in the system environment variable <strong>path</strong>. In the case of TextureProcess, don&#39;t move the executable from the Finals_** folders (because it needs to find the working directory for shaders).</p>
+
+<p>I use a slightly slightly modified version of nvidia-texture-tools that works better with HDR textures. The standard nvidia-texture-tools always tonemaps HDR textures on load-in (frustratingly). You can find my modified version here: <a href="https://github.com/djewsbury/nvidia-texture-tools">https://github.com/djewsbury/nvidia-texture-tools</a>. This modified version allows us to read HDR files (from .hdr and other formats) and write unprocessed floating point .dds file.</p>
+
+<p>Sébastien Lagarde&#39;s <strong>ModifiedCubeMapGen</strong> is used to generate the diffuse IBL texture. This goes via a spherical harmonic representation before arriving at a small cubemap.</p>
+
+<p>XLE&#39;s <strong>TextureProcess.exe</strong> is used to generate the specular IBL texture, as well as compressing to BC6. The specular IBL process reads from a equirectangular HDR map and writes a cubemap.</p>
+
+<p>All of these textures need to be compress to BC6. Awkwardly, nvidia-texture-tools doesn&#39;t support compressing HDR data to BC6 properly, but <strong>TextureProcess.exe</strong> can do that via the <strong>DirectXTex</strong> library.</p>
+
+<p>So, once you&#39;ve got all of that, compiled it all, put in all in the path... Then you&#39;re ready to process textures.</p>
+
+<p>Intermediate outputs from this process get written into the &quot;int/u&quot; (or intermediate/universal) directory. From there, you can copy it out, or do what you like. You should get a <em>(file).dds</em>, <em>(file)_diffuse.dds</em> &amp; <em>(file)_specular.dds</em>.</p>
+
+<h2 id="toc_3">Make it your own!</h2>
+
+<p>It&#39;s difficult to get this working the first time. There&#39;s a lot of work. But once it&#39;s going, all of the parts are extensible and exchangeable. It&#39;s a simple, but very flexible system. Handy for managing small, everyday processing tasks.</p>
+
+    </div>
+    <ul class="tag_box inline">
+      <li><i class="icon-folder-open"></i></li>
+      <li>
+        <a href="/categories#XLE-ref">XLE <span>9</span></a>
+      </li>
+    </ul>
+    <ul class="tag_box inline">
+      <li><i class="icon-tags"></i></li>
+      <li>
+        <a href="/tags#AssetPath-ref">AssetPath <span>1</span></a>
+      </li>
+      <li>
+        <a href="/tags#Gradle-ref">Gradle <span>1</span></a>
+      </li>
+      <li>
+        <a href="/tags#IBL-ref">IBL <span>1</span></a>
+      </li>
+    </ul>
+    <hr>
+    <div class="pagination">
+      <ul>
+          <li class="prev"><a href="/posts/transmittedspecular" title="Transmitted specular">&larr; Previous</a></li>
+
+          <li><a href="/archive">Archive</a></li>
+
+          <li class="next disabled"><a>Next &rarr;</a>
+      </ul>
+    </div>
+    <hr>
+    <div id="disqus_thread"></div>
+<script>
+    var disqus_developer = 1;
+    var disqus_shortname = 'xledev'; // required: replace example with your forum shortname
+    /* * * DON'T EDIT BELOW THIS LINE * * */
+    (function() {
+        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+        dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<a href="http://disqus.com" class="dsq-brlink">blog comments powered by <span class="logo-disqus">Disqus</span></a>
+
+  </div>
+</div>
+
+
+      </div>
+
+      <hr>
+      <div class="footer">
+        <p>&copy; XL Games 2015
+          with help from <a href="http://ruhoh.com" target="_blank" title="The Definitive Technical Blogging Framework">ruhoh</a>
+          and <a href="http://twitter.github.com/bootstrap/" target="_blank">Twitter Bootstrap</a>
+        </p>
+      </div>
+
+    </div> <!-- /container -->
+
+    <!-- Google Prettify -->
+<script src="http://cdnjs.cloudflare.com/ajax/libs/prettify/188.0.0/prettify.js"></script>
+<script>
+  var pres = document.getElementsByTagName("pre");
+  for (var i=0; i < pres.length; ++i) {
+    pres[i].className = "prettyprint linenums";
+  }
+  prettyPrint();
+</script>
+<!-- end Google Prettify -->
+    <script type="text/javascript">
+
+  var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', 'UA-71034032-1']);
+  _gaq.push(['_trackPageview']);
+  
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+
+</script>
+
+
+    
+  </body>
+</html>

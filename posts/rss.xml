@@ -4,7 +4,79 @@
     <title>XLE development blog</title>
     <description>XLE development blog</description>
     <link>http://xlgames-inc.github.io</link>
-    <pubDate>January 25, 2016</pubDate>
+    <pubDate>January 26, 2016</pubDate>
+    <item>
+      <title>Processing textures with the XLE scriptable asset path</title>
+      <link>http://xlgames-inc.github.io/posts/assetpathscripts</link>
+      <pubDate>January 26, 2016</pubDate>
+      <description>&lt;p&gt;I&amp;#39;ve included a few Gradle scripts in the XLE distribution. This is mostly just a simple set of tools I use for my own testing. But you may find it useful for your own needs.&lt;/p&gt;
+
+&lt;p&gt;Of course this system isn&amp;#39;t designed to be 100% robust and fool proof. Actually, it&amp;#39;s just a few simple scripts. But it is scalable and flexible.&lt;/p&gt;
+
+&lt;h2 id="toc_0"&gt;Gradle&lt;/h2&gt;
+
+&lt;p&gt;At heart, an &lt;strong&gt;&amp;quot;asset path&amp;quot;&lt;/strong&gt; is some system that can identify changed assets, recognize processing working that needs to be performed with those assets, and schedule that work.&lt;/p&gt;
+
+&lt;p&gt;For example, we might have an asset for a sky background texture. Various processing tools need to pre-filter this texture so it can be used for image based lighting. Whenever the texture changes (or when the processing tools change) we want to execute the processing steps and produce intermediate assets.&lt;/p&gt;
+
+&lt;p&gt;XLE does some processing at runtime. But that is only practical for short processing steps. Expensive processing steps need some other solution.&lt;/p&gt;
+
+&lt;p&gt;So we need some build system to manage assets and dependences. Are requirements are similar to build systems we use for code. But most code-oriented build systems don&amp;#39;t work well for assets.&lt;/p&gt;
+
+&lt;p&gt;I picked &lt;em&gt;Gradle&lt;/em&gt; because of it&amp;#39;s procedural nature. It allows us to specify input assets -- but also to give instructions to the build path on how to handle that object. For example, we need to tell the build path if a texture is a sky texture, a normals texture, or some other type... That kind of thing just falls out of &lt;em&gt;Gradle&lt;/em&gt; very easily.&lt;/p&gt;
+
+&lt;h2 id="toc_1"&gt;Executing Gradle&lt;/h2&gt;
+
+&lt;p&gt;First, you need to install Gradle, from: &lt;a href="http://gradle.org/gradle-download/"&gt;http://gradle.org/gradle-download/&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;In Tools/AssetPath, we have the &amp;quot;settings.gradle&amp;quot; root project file. Also, this folder contains some &amp;quot;groovy&amp;quot; source files that contain gradle task type implementations. So, there is a task type for processing sky textures -- which basically just involves executing a number of command line operations.&lt;/p&gt;
+
+&lt;p&gt;I&amp;#39;ve also defined a root task called &lt;strong&gt;&amp;quot;tex&amp;quot;&lt;/strong&gt;. This is where gradle starts to shine. The &amp;quot;tex&amp;quot; task searches through the entire working folder for build.gradle files that contain tasks whose names being with &lt;strong&gt;&amp;quot;tex...&amp;quot;&lt;/strong&gt;. All of the tasks found become subtasks of the root &amp;quot;tex&amp;quot; task.&lt;/p&gt;
+
+&lt;p&gt;So, we can create a &lt;strong&gt;&amp;quot;build.gradle&amp;quot;&lt;/strong&gt; in any folder in the working directory. And if we add tasks to that file that being with &amp;quot;tex&amp;quot; (typically &amp;quot;tex0&amp;quot;, &amp;quot;tex1&amp;quot;, etc), they will be automatically added as subtasks of the root &amp;quot;tex&amp;quot; task.&lt;/p&gt;
+
+&lt;p&gt;This is important because when we execute gradle (using the &lt;em&gt;&amp;quot;Tools/AssetPath/execute.bat&amp;quot;&lt;/em&gt; batch file) and pass the root task &amp;quot;tex&amp;quot; on the command line, this has the effect of execute all &amp;quot;tex...&amp;quot; tasks in the entire working directory.&lt;/p&gt;
+
+&lt;p&gt;Pretty cool, right? We can also execute individual tasks using the normal gradle command line.&lt;/p&gt;
+
+&lt;p&gt;There is an example in git in &lt;em&gt;&amp;quot;Working/Game/xleres/DefaultResources/build.gradle.&amp;quot;&lt;/em&gt; This project will generate the standard lookup tables.&lt;/p&gt;
+
+&lt;h2 id="toc_2"&gt;Processing Textures&lt;/h2&gt;
+
+&lt;p&gt;Executing Gradle is just the first step. Gradle is just going to chain together command line operations. Those operations require a bunch of tools.&lt;/p&gt;
+
+&lt;p&gt;One of the most useful task types is &amp;quot;xle.EquiRectEnv.&amp;quot; This takes in a equirectangular (ie, paranoramic) environment map and produces 3 important textures: Cubemap background, Specular IBL texture and Diffuse IBL texture.&lt;/p&gt;
+
+&lt;p&gt;This get a little complicated. This is just the pipeline I use for processing these textures myself. So it&amp;#39;s a little complicated and involved right now.&lt;/p&gt;
+
+&lt;p&gt;First, install these:&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;&lt;em&gt;AMD CubemapGen&lt;/em&gt; (&lt;a href="http://developer.amd.com/tools-and-sdks/archive/legacy-cpu-gpu-tools/cubemapgen/"&gt;http://developer.amd.com/tools-and-sdks/archive/legacy-cpu-gpu-tools/cubemapgen/&lt;/a&gt;)&lt;/li&gt;
+&lt;li&gt;&lt;em&gt;S&#xE9;bastien Lagarde&amp;#39;s modified CubemapGen&lt;/em&gt;: &lt;a href="https://seblagarde.wordpress.com/2012/06/10/amd-cubemapgen-for-physically-based-rendering/"&gt;https://seblagarde.wordpress.com/2012/06/10/amd-cubemapgen-for-physically-based-rendering/&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;em&gt;nvcompress&lt;/em&gt; ** from nvidia-texture-tools (see below)&lt;/li&gt;
+&lt;li&gt;&lt;em&gt;TextureProcess&lt;/em&gt; sample from XLE&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;All of these must in the system environment variable &lt;strong&gt;path&lt;/strong&gt;. In the case of TextureProcess, don&amp;#39;t move the executable from the Finals_** folders (because it needs to find the working directory for shaders).&lt;/p&gt;
+
+&lt;p&gt;I use a slightly slightly modified version of nvidia-texture-tools that works better with HDR textures. The standard nvidia-texture-tools always tonemaps HDR textures on load-in (frustratingly). You can find my modified version here: &lt;a href="https://github.com/djewsbury/nvidia-texture-tools"&gt;https://github.com/djewsbury/nvidia-texture-tools&lt;/a&gt;. This modified version allows us to read HDR files (from .hdr and other formats) and write unprocessed floating point .dds file.&lt;/p&gt;
+
+&lt;p&gt;S&#xE9;bastien Lagarde&amp;#39;s &lt;strong&gt;ModifiedCubeMapGen&lt;/strong&gt; is used to generate the diffuse IBL texture. This goes via a spherical harmonic representation before arriving at a small cubemap.&lt;/p&gt;
+
+&lt;p&gt;XLE&amp;#39;s &lt;strong&gt;TextureProcess.exe&lt;/strong&gt; is used to generate the specular IBL texture, as well as compressing to BC6. The specular IBL process reads from a equirectangular HDR map and writes a cubemap.&lt;/p&gt;
+
+&lt;p&gt;All of these textures need to be compress to BC6. Awkwardly, nvidia-texture-tools doesn&amp;#39;t support compressing HDR data to BC6 properly, but &lt;strong&gt;TextureProcess.exe&lt;/strong&gt; can do that via the &lt;strong&gt;DirectXTex&lt;/strong&gt; library.&lt;/p&gt;
+
+&lt;p&gt;So, once you&amp;#39;ve got all of that, compiled it all, put in all in the path... Then you&amp;#39;re ready to process textures.&lt;/p&gt;
+
+&lt;p&gt;Intermediate outputs from this process get written into the &amp;quot;int/u&amp;quot; (or intermediate/universal) directory. From there, you can copy it out, or do what you like. You should get a &lt;em&gt;(file).dds&lt;/em&gt;, &lt;em&gt;(file)_diffuse.dds&lt;/em&gt; &amp;amp; &lt;em&gt;(file)_specular.dds&lt;/em&gt;.&lt;/p&gt;
+
+&lt;h2 id="toc_3"&gt;Make it your own!&lt;/h2&gt;
+
+&lt;p&gt;It&amp;#39;s difficult to get this working the first time. There&amp;#39;s a lot of work. But once it&amp;#39;s going, all of the parts are extensible and exchangeable. It&amp;#39;s a simple, but very flexible system. Handy for managing small, everyday processing tasks.&lt;/p&gt;
+</description>
+    </item>
     <item>
       <title>Transmitted specular</title>
       <link>http://xlgames-inc.github.io/posts/transmittedspecular</link>

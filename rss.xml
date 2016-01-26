@@ -4,7 +4,7 @@
     <title>XLE development blog</title>
     <description>XLE development blog</description>
     <link>http://xlgames-inc.github.io</link>
-    <pubDate>January 25, 2016</pubDate>
+    <pubDate>January 26, 2016</pubDate>
     <item>
       <title>About</title>
       <link>http://xlgames-inc.github.io/about</link>
@@ -24,6 +24,7 @@
   &lt;h2&gt;2016&lt;/h2&gt;
     &lt;h3&gt;January&lt;/h3&gt;
     &lt;ul&gt;
+      &lt;li&gt;&lt;span&gt;January 26, 2016&lt;/span&gt; &amp;raquo; &lt;a href="/posts/assetpathscripts"&gt;Processing textures with the XLE scriptable asset path&lt;/a&gt;&lt;/li&gt;
       &lt;li&gt;&lt;span&gt;January 25, 2016&lt;/span&gt; &amp;raquo; &lt;a href="/posts/transmittedspecular"&gt;Transmitted specular&lt;/a&gt;&lt;/li&gt;
       &lt;li&gt;&lt;span&gt;January 22, 2016&lt;/span&gt; &amp;raquo; &lt;a href="/posts/transmissionnodegraph"&gt;Transmission Node Diagram&lt;/a&gt;&lt;/li&gt;
       &lt;li&gt;&lt;span&gt;January 21, 2016&lt;/span&gt; &amp;raquo; &lt;a href="/posts/materialtool"&gt;Material and Node Diagram Tool&lt;/a&gt;&lt;/li&gt;
@@ -46,16 +47,17 @@
       <description>
 &lt;ul class="tag_box inline"&gt;
   &lt;li&gt;
-    &lt;a href="/categories#XLE-ref"&gt;XLE &lt;span&gt;8&lt;/span&gt;&lt;/a&gt;
+    &lt;a href="/categories#XLE-ref"&gt;XLE &lt;span&gt;9&lt;/span&gt;&lt;/a&gt;
   &lt;/li&gt;
   &lt;li&gt;
     &lt;a href="/categories#blog-ref"&gt;blog &lt;span&gt;1&lt;/span&gt;&lt;/a&gt;
   &lt;/li&gt;
 &lt;/ul&gt;
 
-  &lt;h3&gt;XLE (8)&lt;/h3&gt;
+  &lt;h3&gt;XLE (9)&lt;/h3&gt;
   &lt;ul&gt;
       &lt;li&gt;&lt;a href="/posts/arealightsandpbr"&gt;Area Lights with Physically Based Rendering&lt;/a&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;a href="/posts/assetpathscripts"&gt;Processing textures with the XLE scriptable asset path&lt;/a&gt;&lt;/li&gt;
       &lt;li&gt;&lt;a href="/posts/functionlinkedshaders"&gt;Dynamic Function Linking Graph for Shaders&lt;/a&gt;&lt;/li&gt;
       &lt;li&gt;&lt;a href="/posts/materialtool"&gt;Material and Node Diagram Tool&lt;/a&gt;&lt;/li&gt;
       &lt;li&gt;&lt;a href="/posts/rectlightdiffuse"&gt;Rectangle Light diffuse vs 3DS Max&lt;/a&gt;&lt;/li&gt;
@@ -83,6 +85,7 @@
   &lt;h2&gt;2016&lt;/h2&gt;
     &lt;h3&gt;January&lt;/h3&gt;
     &lt;ul&gt;
+      &lt;li&gt;&lt;span&gt;January 26, 2016&lt;/span&gt; &amp;raquo; &lt;a href="/posts/assetpathscripts"&gt;Processing textures with the XLE scriptable asset path&lt;/a&gt;&lt;/li&gt;
       &lt;li&gt;&lt;span&gt;January 25, 2016&lt;/span&gt; &amp;raquo; &lt;a href="/posts/transmittedspecular"&gt;Transmitted specular&lt;/a&gt;&lt;/li&gt;
       &lt;li&gt;&lt;span&gt;January 22, 2016&lt;/span&gt; &amp;raquo; &lt;a href="/posts/transmissionnodegraph"&gt;Transmission Node Diagram&lt;/a&gt;&lt;/li&gt;
       &lt;li&gt;&lt;span&gt;January 21, 2016&lt;/span&gt; &amp;raquo; &lt;a href="/posts/materialtool"&gt;Material and Node Diagram Tool&lt;/a&gt;&lt;/li&gt;
@@ -102,6 +105,37 @@
 
 &lt;hr /&gt;
 
+&lt;div class="post"&gt;
+  &lt;h3 class="title"&gt;&lt;a href="/posts/assetpathscripts"&gt;Processing textures with the XLE scriptable asset path&lt;/a&gt;&lt;br /&gt; &lt;span class="date"&gt;January 26, 2016&lt;/span&gt;&lt;/h3&gt;
+
+  &lt;div class="summary ellipsis"&gt;
+&lt;p&gt;I've included a few Gradle scripts in the XLE distribution. This is mostly just a simple set of tools I use for my own testing. But you may find it useful for your own needs.&lt;/p&gt;
+
+&lt;p&gt;Of course this system isn't designed to be 100% robust and fool proof. Actually, it's just a few simple scripts. But it is scalable and flexible.&lt;/p&gt;
+
+&lt;h2 id="toc_0"&gt;Gradle&lt;/h2&gt;
+
+&lt;p&gt;At heart, an &lt;strong&gt;"asset path"&lt;/strong&gt; is some system that can identify changed assets, recognize processing working that needs to be performed with those assets, and schedule that work.&lt;/p&gt;
+
+&lt;p&gt;For example, we might have an asset for a sky background texture. Various processing tools need to pre-filter this texture so it can be used for image based lighting. Whenever the texture changes (or when the processing tools change) we want to execute the processing steps and produce intermediate assets.&lt;/p&gt;
+
+&lt;p&gt;XLE does some processing at runtime. But that is only practical for short processing steps. Expensive processing steps need some other solution.&lt;/p&gt;
+
+&lt;p&gt;So we need some build system to manage assets and dependences. Are requirements are similar to build systems we use for code. But most code-oriented build systems don't work well for assets.&lt;/p&gt;
+
+&lt;p&gt;I picked &lt;em&gt;Gradle&lt;/em&gt; because of it's procedural nature. It allows us to specify input assets -- but also to give instructions to the build path on how to handle that object. For example, we need to tell the build path if a texture is a sky texture, a normals texture, or some other type... That kind of thing just falls out of &lt;em&gt;Gradle&lt;/em&gt; very easily.&lt;/p&gt;
+
+&lt;h2 id="toc_1"&gt;Executing Gradle&lt;/h2&gt;
+
+&lt;p&gt;First, you need to install Gradle, from: &lt;a href="http://gradle.org/gradle-download/"&gt;http://gradle.org/gradle-download/&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;In Tools/AssetPath, we have the "settings.gradle" root project file. Also, this folder contains some "groovy" source files that contain gradle task type implementations. So, there is a task type for processing sky textures -- which basically just involves executing a number of command line operations.&lt;/p&gt;
+&lt;/div&gt;
+
+  &lt;div class="more"&gt;
+    &lt;a href="/posts/assetpathscripts" class="btn btn-small"&gt;read more..&lt;/a&gt;
+  &lt;/div&gt;
+&lt;/div&gt;
 &lt;div class="post"&gt;
   &lt;h3 class="title"&gt;&lt;a href="/posts/transmittedspecular"&gt;Transmitted specular&lt;/a&gt;&lt;br /&gt; &lt;span class="date"&gt;January 25, 2016&lt;/span&gt;&lt;/h3&gt;
 
@@ -227,39 +261,6 @@ The one simple method involves "classes" and "interfaces."&lt;/p&gt;
     &lt;a href="/posts/functionlinkedshaders" class="btn btn-small"&gt;read more..&lt;/a&gt;
   &lt;/div&gt;
 &lt;/div&gt;
-&lt;div class="post"&gt;
-  &lt;h3 class="title"&gt;&lt;a href="/posts/rectlightdiffuse"&gt;Rectangle Light diffuse vs 3DS Max&lt;/a&gt;&lt;br /&gt; &lt;span class="date"&gt;December 11, 2015&lt;/span&gt;&lt;/h3&gt;
-
-  &lt;div class="summary ellipsis"&gt;
-&lt;p&gt;Just a quick note on rectangle light diffuse. In XLE, rectangle lights are slightly different from the default rectangle lights in 3DS Max.&lt;/p&gt;
-
-&lt;style type="text/css"&gt;
-.tg  {border-collapse:collapse;border-spacing:0;}
-.tg td{font-family:Arial, sans-serif;font-size:14px;padding:10px 5px;border-style:solid;border-width:1px;overflow:hidden;word-break:normal;}
-.tg th{font-family:Arial, sans-serif;font-size:14px;font-weight:normal;padding:10px 5px;border-style:solid;border-width:1px;overflow:hidden;word-break:normal;}
-.tg .tg-yw4l{vertical-align:top}
-&lt;/style&gt;
-
-&lt;table class="tg"&gt;
-  &lt;tr&gt;
-    &lt;th class="tg-yw4l"&gt;XLE lights&lt;/th&gt;
-    &lt;th class="tg-yw4l"&gt;3DS Max lights (Quicksilver renderer)&lt;/th&gt;
-  &lt;/tr&gt;
-  &lt;tr&gt;
-    &lt;td class="tg-yw4l"&gt;&lt;img src="/assets/media/RectLightDiffuse/XLELightDiag.png"&gt;&lt;/td&gt;
-    &lt;td class="tg-yw4l"&gt;&lt;img src="/assets/media/RectLightDiffuse/MaxLightDiag.png"&gt;&lt;/td&gt;
-  &lt;/tr&gt;
-  &lt;tr&gt;
-    &lt;td class="tg-yw4l"&gt;&lt;img src="/assets/media/RectLightDiffuse/XLEDefault.png"&gt;&lt;/td&gt;
-    &lt;td class="tg-yw4l"&gt;&lt;img src="/assets/media/RectLightDiffuse/MaxComparison.png"&gt;&lt;/td&gt;
-  &lt;/tr&gt;
-&lt;/table&gt;
-&lt;/div&gt;
-
-  &lt;div class="more"&gt;
-    &lt;a href="/posts/rectlightdiffuse" class="btn btn-small"&gt;read more..&lt;/a&gt;
-  &lt;/div&gt;
-&lt;/div&gt;
 
 &lt;div class="pagination"&gt;
   &lt;ul&gt;
@@ -313,6 +314,15 @@ The one simple method involves "classes" and "interfaces."&lt;/p&gt;
     &lt;a href="/tags#Materials-ref"&gt;Materials &lt;span&gt;1&lt;/span&gt;&lt;/a&gt;
   &lt;/li&gt;
   &lt;li&gt;
+    &lt;a href="/tags#AssetPath-ref"&gt;AssetPath &lt;span&gt;1&lt;/span&gt;&lt;/a&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;a href="/tags#Gradle-ref"&gt;Gradle &lt;span&gt;1&lt;/span&gt;&lt;/a&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;a href="/tags#IBL-ref"&gt;IBL &lt;span&gt;1&lt;/span&gt;&lt;/a&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
     &lt;a href="/tags#blog-ref"&gt;blog &lt;span&gt;1&lt;/span&gt;&lt;/a&gt;
   &lt;/li&gt;
   &lt;li&gt;
@@ -355,6 +365,12 @@ The one simple method involves "classes" and "interfaces."&lt;/p&gt;
     &lt;li&gt;&lt;a href="/posts/arealightsandpbr"&gt;Area Lights with Physically Based Rendering&lt;/a&gt;&lt;/li&gt;
   &lt;h3 id="Materials-ref"&gt;Materials&lt;/h3&gt;
     &lt;li&gt;&lt;a href="/posts/arealightsandpbr"&gt;Area Lights with Physically Based Rendering&lt;/a&gt;&lt;/li&gt;
+  &lt;h3 id="AssetPath-ref"&gt;AssetPath&lt;/h3&gt;
+    &lt;li&gt;&lt;a href="/posts/assetpathscripts"&gt;Processing textures with the XLE scriptable asset path&lt;/a&gt;&lt;/li&gt;
+  &lt;h3 id="Gradle-ref"&gt;Gradle&lt;/h3&gt;
+    &lt;li&gt;&lt;a href="/posts/assetpathscripts"&gt;Processing textures with the XLE scriptable asset path&lt;/a&gt;&lt;/li&gt;
+  &lt;h3 id="IBL-ref"&gt;IBL&lt;/h3&gt;
+    &lt;li&gt;&lt;a href="/posts/assetpathscripts"&gt;Processing textures with the XLE scriptable asset path&lt;/a&gt;&lt;/li&gt;
   &lt;h3 id="blog-ref"&gt;blog&lt;/h3&gt;
     &lt;li&gt;&lt;a href="/posts/first"&gt;First post&lt;/a&gt;&lt;/li&gt;
   &lt;h3 id="D3D-ref"&gt;D3D&lt;/h3&gt;
