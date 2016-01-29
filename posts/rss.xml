@@ -4,7 +4,38 @@
     <title>XLE development blog</title>
     <description>XLE development blog</description>
     <link>http://xlgames-inc.github.io</link>
-    <pubDate>January 26, 2016</pubDate>
+    <pubDate>January 29, 2016</pubDate>
+    <item>
+      <title>Transmitted specular progress</title>
+      <link>http://xlgames-inc.github.io/posts/transmittedspecular2</link>
+      <pubDate>January 29, 2016</pubDate>
+      <description>&lt;p&gt;Just a quick update... I&amp;#39;ve been making some great progress with transmitted specular for IBL!&lt;/p&gt;
+
+&lt;p&gt;&lt;br/&gt;&lt;img src="/assets/media/TransSpec/TransSphereMat.png"&gt;&lt;/p&gt;
+
+&lt;p&gt;These screenshots will look a little strange (I mean that black borders &amp;amp; grainyness), because it&amp;#39;s a debugging rendering mode.&lt;/p&gt;
+
+&lt;p&gt;&lt;br/&gt;&lt;img src="/assets/media/TransSpec/TransSphereMat2.png"&gt;&lt;/p&gt;
+
+&lt;p&gt;I&amp;#39;ve got the split-term stuff going; and it looks like it should be practical. I&amp;#39;d prefer to avoid having yet another cubemap, so maybe there&amp;#39;s some way to just reuse the reflection filtered cubemap. Its seems reasonable to say that the filtering should be similar. We just need some way to calculate the amount of blurriness that is correct for transmissions.&lt;/p&gt;
+
+&lt;p&gt;&lt;br/&gt;&lt;img src="/assets/media/TransSpec/TransSphereMat3.png"&gt;&lt;/p&gt;
+
+&lt;p&gt;Speaking of that, I&amp;#39;ve been thinking the type of filtering that is applied to the specular map. More on that later.&lt;/p&gt;
+
+&lt;p&gt;Next week I&amp;#39;ll post some proper screenshots &amp;amp; a whole lot of details!&lt;/p&gt;
+
+&lt;p&gt;I made some interesting observations while doing this, I&amp;#39;ve got a bunch of new changes and improvements for IBL. Check out the &amp;quot;experimental&amp;quot; branch for now.&lt;/p&gt;
+
+&lt;p&gt;BTW, the node diagram for the GGX BSDF equation looks a little nicer now --&lt;/p&gt;
+
+&lt;p&gt;&lt;br/&gt;&lt;img src="/assets/media/TransSpec/BSDFNodes2.png"&gt;&lt;/p&gt;
+
+&lt;p&gt;(See the older version here:&lt;a href="transmissionnodegraph"&gt;Transmission Node Diagram&lt;/a&gt;)&lt;/p&gt;
+
+&lt;p&gt;As you can see in the diagram, the equations are causing a lot of light to get focused in around the edges. This seems to be exaggerated when roughness is very high. That might require a little more investigation next week.&lt;/p&gt;
+</description>
+    </item>
     <item>
       <title>Processing textures with the XLE scriptable asset path</title>
       <link>http://xlgames-inc.github.io/posts/assetpathscripts</link>

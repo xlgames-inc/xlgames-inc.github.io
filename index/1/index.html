@@ -75,6 +75,9 @@
     <h3>January</h3>
     <ul>
       <li>
+<span>January 29, 2016</span> » <a href="/posts/transmittedspecular2">Transmitted specular progress</a>
+</li>
+      <li>
 <span>January 26, 2016</span> » <a href="/posts/assetpathscripts">Processing textures with the XLE scriptable asset path</a>
 </li>
       <li>
@@ -121,14 +124,14 @@
         <div class="summary ellipsis">
 <ul class="tag_box inline">
   <li>
-    <a href="/categories#XLE-ref">XLE <span>9</span></a>
+    <a href="/categories#XLE-ref">XLE <span>10</span></a>
   </li>
   <li>
     <a href="/categories#blog-ref">blog <span>1</span></a>
   </li>
 </ul>
 
-  <h3>XLE (9)</h3>
+  <h3>XLE (10)</h3>
   <ul>
       <li><a href="/posts/arealightsandpbr">Area Lights with Physically Based Rendering</a></li>
       <li><a href="/posts/assetpathscripts">Processing textures with the XLE scriptable asset path</a></li>
@@ -137,6 +140,7 @@
       <li><a href="/posts/rectlightdiffuse">Rectangle Light diffuse vs 3DS Max</a></li>
       <li><a href="/posts/transmissionnodegraph">Transmission Node Diagram</a></li>
       <li><a href="/posts/transmittedspecular">Transmitted specular</a></li>
+      <li><a href="/posts/transmittedspecular2">Transmitted specular progress</a></li>
       <li><a href="/posts/whattodofirst">What to do first</a></li>
       <li><a href="/posts/workingonrectlights">Working some improvements to rectangle lights</a></li>
   </ul>
@@ -150,27 +154,28 @@
         <h3 class="title"><a href="/">Home</a><br/> <span class="date"></span></h3>
 
         <div class="summary ellipsis">
-<p>I've included a few Gradle scripts in the XLE distribution. This is mostly just a simple set of tools I use for my own testing. But you may find it useful for your own needs.</p>
+<p>Just a quick update... I've been making some great progress with transmitted specular for IBL!</p>
 
-<p>Of course this system isn't designed to be 100% robust and fool proof. Actually, it's just a few simple scripts. But it is scalable and flexible.</p>
+<p><br><img src="/assets/media/TransSpec/TransSphereMat.png"></p>
 
-<h2 id="toc_0">Gradle</h2>
+<p>These screenshots will look a little strange (I mean that black borders &amp; grainyness), because it's a debugging rendering mode.</p>
 
-<p>At heart, an <strong>"asset path"</strong> is some system that can identify changed assets, recognize processing working that needs to be performed with those assets, and schedule that work.</p>
+<p><br><img src="/assets/media/TransSpec/TransSphereMat2.png"></p>
 
-<p>For example, we might have an asset for a sky background texture. Various processing tools need to pre-filter this texture so it can be used for image based lighting. Whenever the texture changes (or when the processing tools change) we want to execute the processing steps and produce intermediate assets.</p>
+<p>I've got the split-term stuff going; and it looks like it should be practical. I'd prefer to avoid having yet another cubemap, so maybe there's some way to just reuse the reflection filtered cubemap. Its seems reasonable to say that the filtering should be similar. We just need some way to calculate the amount of blurriness that is correct for transmissions.</p>
 
-<p>XLE does some processing at runtime. But that is only practical for short processing steps. Expensive processing steps need some other solution.</p>
+<p><br><img src="/assets/media/TransSpec/TransSphereMat3.png"></p>
 
-<p>So we need some build system to manage assets and dependences. Are requirements are similar to build systems we use for code. But most code-oriented build systems don't work well for assets.</p>
+<p>Speaking of that, I've been thinking the type of filtering that is applied to the specular map. More on that later.</p>
 
-<p>I picked <em>Gradle</em> because of it's procedural nature. It allows us to specify input assets -- but also to give instructions to the build path on how to handle that object. For example, we need to tell the build path if a texture is a sky texture, a normals texture, or some other type... That kind of thing just falls out of <em>Gradle</em> very easily.</p>
+<p>Next week I'll post some proper screenshots &amp; a whole lot of details!</p>
 
-<h2 id="toc_1">Executing Gradle</h2>
+<p>I made some interesting observations while doing this, I've got a bunch of new changes and improvements for IBL. Check out the "experimental" branch for now.</p>
 
-<p>First, you need to install Gradle, from: <a href="http://gradle.org/gradle-download/">http://gradle.org/gradle-download/</a></p>
+<p>BTW, the node diagram for the GGX BSDF equation looks a little nicer now --</p>
 
-<p>In Tools/AssetPath, we have the "settings.gradle" root project file. Also, this folder contains some "groovy" source files that contain gradle task type implementations. So, there is a task type for processing sky textures -- which basically just involves executing a number of command line operations.</p>
+<p><br><img src="/assets/media/TransSpec/BSDFNodes2.png"></p>
+
 </div>
 
         <div class="more">
