@@ -106,6 +106,8 @@ Remember that &lt;strong&gt;&amp;quot;D&amp;quot;&lt;/strong&gt; represents how 
 &lt;p&gt;Here is an example of a filtered specular map:
 &lt;br/&gt;&lt;img src="/assets/media/ImprovedIBL/ueno0.png"&gt;&lt;img src="/assets/media/ImprovedIBL/ueno1.png"&gt;&lt;img src="/assets/media/ImprovedIBL/ueno2.png"&gt;&lt;img src="/assets/media/ImprovedIBL/ueno3.png"&gt;&lt;img src="/assets/media/ImprovedIBL/ueno4.png"&gt;&lt;/p&gt;
 
+&lt;p&gt;&lt;em&gt;Original image from sIBL archive: &lt;a href="http://www.hdrlabs.com/sibl/archive.html"&gt;http://www.hdrlabs.com/sibl/archive.html&lt;/a&gt;&lt;/em&gt;&lt;/p&gt;
+
 &lt;p&gt;Notice that bright point still appears bright as they are filtered down. They are retaining the GGX shape. Also, when there are bright points, the light energy from those points will get spread out in lower mipmaps. So the bright points become successively wider but darker.&lt;/p&gt;
 
 &lt;p&gt;Currently, we have a linear mapping from roughness -&amp;gt; mipmap. But as you can see, often we have more resolution that we actually need. So we could change this to a non-linear mapping.&lt;/p&gt;

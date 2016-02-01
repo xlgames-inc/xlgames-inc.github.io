@@ -156,6 +156,8 @@ Remember that <strong>&quot;D&quot;</strong> represents how the microfacet norma
 <p>Here is an example of a filtered specular map:
 <br/><img src="/assets/media/ImprovedIBL/ueno0.png"><img src="/assets/media/ImprovedIBL/ueno1.png"><img src="/assets/media/ImprovedIBL/ueno2.png"><img src="/assets/media/ImprovedIBL/ueno3.png"><img src="/assets/media/ImprovedIBL/ueno4.png"></p>
 
+<p><em>Original image from sIBL archive: <a href="http://www.hdrlabs.com/sibl/archive.html">http://www.hdrlabs.com/sibl/archive.html</a></em></p>
+
 <p>Notice that bright point still appears bright as they are filtered down. They are retaining the GGX shape. Also, when there are bright points, the light energy from those points will get spread out in lower mipmaps. So the bright points become successively wider but darker.</p>
 
 <p>Currently, we have a linear mapping from roughness -&gt; mipmap. But as you can see, often we have more resolution that we actually need. So we could change this to a non-linear mapping.</p>
