@@ -1,0 +1,398 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Improved IBL</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="author" content="XL Games">
+
+    <!-- Le HTML5 shim, for IE6-8 support of HTML elements -->
+    <!--[if lt IE 9]>
+      <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+
+    <!-- Le styles -->
+<link href='/assets/stylesheets/bootstrap.min-93b47f97c3444c4711853ed5140d82a1.css' type='text/css' rel='stylesheet' media='all'>
+<link href='/assets/stylesheets/style-1dcb1d39791f3457afa56d279fcf0945.css' type='text/css' rel='stylesheet' media='all'>
+<link href='/assets/stylesheets/google_prettify/sons-of-obsidian-5e05343fd0c18e0a05231023b643245c.css' type='text/css' rel='stylesheet' media='all'>
+    <!-- Le fav and touch icons -->
+  <!-- Update these with your own images
+    <link rel="shortcut icon" href="images/favicon.ico">
+    <link rel="apple-touch-icon" href="images/apple-touch-icon.png">
+    <link rel="apple-touch-icon" sizes="72x72" href="images/apple-touch-icon-72x72.png">
+    <link rel="apple-touch-icon" sizes="114x114" href="images/apple-touch-icon-114x114.png">
+  -->
+  </head>
+
+  <body>
+
+    <div class="navbar">
+      <div class="navbar-inner">
+        <div class="container-narrow">
+          <a class="brand" href="/">XLE development blog</a>
+          <ul class="nav">
+              
+                <li><a href="/tags">Tags</a></li>
+              
+              
+                <li><a href="/archive">Archive</a></li>
+              
+              
+                <li><a href="/about">About</a></li>
+              
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="container-narrow">
+
+      <div class="content">
+        
+<div class="page-header">
+  <h1>Improved IBL </h1>
+</div>
+
+<div class="row-fluid post-full">
+  <div class="span12">
+    <div class="date">
+      <span>February 01, 2016</strong>
+    </div>
+    <div class="content">
+      <p>I&#39;ve been working on improving the accuracy of the Imaged Based Lighting (IBL) solution for XLE. This is the technology that allows us to load in a background panorama map and use it for both diffuse and specular lighting.</p>
+
+<p>The best way to do this is by comparing our real-time result to other renderers. So, for example, I&#39;ve been experimenting with Substance Designer (more on that later). It has nVidia&#39;s &quot;IRay&quot; raytracer built-in -- so we can compare the non-real-time results from IRay with real-time XLE. I have other ways to do this, also -- for example, the shader in ToolsHelper/BRDFSlice.sh can generate textures directly comparable with Disney&#39;s BRDFExplorer tool.</p>
+
+<p>While doing this (and working on the specular transmission stuff), I&#39;ve found some interesting improvements to the IBL solution!</p>
+
+<h2 id="toc_0">Conclusion</h2>
+
+<p>This is a really long post; so I&#39;ll start with the conclusion. I&#39;ve made a number of improvements that make the IBL solution appear more realistic, and more similar to ray tracers.</p>
+
+<p><br/><img src="/assets/media/ImprovedIBL/Spheres.png">
+<br/><img src="/assets/media/ImprovedIBL/SpheresMetal.png"></p>
+
+<p>I found some errors in some source material I referenced and fixed some incorrect assumptions I made. Each change is small. But when added up, they make a big difference. The IBL specular is has a lot much punch, things are jumping off the screen better.</p>
+
+<p>Now, I&#39;ll go into detail about what&#39;s changed.</p>
+
+<h2 id="toc_1">IBL basis</h2>
+
+<p>I&#39;ve been using a split-term style IBL solution, as per Brian Karis&#39; Siggraph 2013 course (see <a href="http://blog.selfshadow.com/publications/s2013-shading-course/">http://blog.selfshadow.com/publications/s2013-shading-course/</a>). As far as I know, this is the same method used in Unreal (though I haven&#39;t checked that, there may have been some changes since 2013).</p>
+
+<p>This splits the IBL equation into two separate equations. In one equation, we calculate the reflected light from a uniform white environment. In a sense, this is calculating our reflective a given pixel is, with equal weighting to each direction. Our solution has to make some simplifications to the BRDF (to reduce the number of variables), but we use most of it.</p>
+
+<h2 id="toc_2">Microfacets!</h2>
+
+<p>We can think about this on a microfacet level. Remember our specular equation is an approximate simulation of the microfacet detail of a surface.</p>
+
+<p><br/><img src="/assets/media/ImprovedIBL/eyeontechfig2fibre.jpg"></p>
+
+<p>This is a microscopic photo by <em>Gang Xiong, Durham University</em>. It shows a smooth plastic surface.</p>
+
+<p>Each microscopic surface has a normal -- this is the microfacet normal.
+Remember that <strong>&quot;D&quot;</strong> represents how the microfacet normal are distributed, relative to the surface normal. For example, in very smooth surfaces, microfacet normals are more likely to be close to the surface normal. This is the most important part of the equation in terms of the actual shape of highlights.</p>
+
+<p>The <strong>&quot;G&quot;</strong> term is for microscopic scale shadowing between different microfacets. This is why <strong>G</strong> is close to 1 for most of the range and drops off to zero around the edges. It &quot;fights&quot; the <strong>F</strong> term, and prevents excessive halos around the edges of things.</p>
+
+<p>And <strong>&quot;F&quot;</strong> is for the fresnel effect, which determines how much incident light is actually reflected at a given angle. In the specular equation, we&#39;re calculating the fresnel effect on a microfacet level, not on the level of the surface normal.</p>
+
+<h3 id="toc_3">A little bit of history</h3>
+
+<p>Most of this stuff actually dates back to 1967 with <em>Torrance &amp; Sparrow</em>. It evolved up to around 1981 with <em>Cook &amp; Torrance</em> (yes, same Torrance). But then nothing much happened for awhile. Then <em>Walter, et al.,</em> rediscovered some old math in 2007 (and introduced the term, GGX). And we kind of discovered everything we were doing between 1981 and 2007 was a little bit wrong.</p>
+
+<p>More recently, <em>Brent Burley and Disney</em> found a novel way to visualize multi-parameter BRDFs in a 2D image. They used this to compare our equations to real world surfaces. And so now we have a clearer idea of what&#39;s really working and not working.</p>
+
+<p>Anyway, that&#39;s why specular highlights in PS4 games feel much &quot;brighter&quot; than previous generations. The shape of the highlight greatly affects the impression of brightness.</p>
+
+<p>There&#39;s a great picture here:
+<br/><img src="/assets/media/ImprovedIBL/ggx_vs_Phong.jpg"></p>
+
+<p>The &quot;GGX&quot; dot is not any brighter... But it appears to glow because of the shape of the falloff.</p>
+
+<h2 id="toc_4">Second split term part</h2>
+
+<p>Anyway, the second part of the split term equation is the environment texture itself. In XLE, this is a cubemap.</p>
+
+<p>Each microfacet will reflect a slightly different part of the image. And our specular equation (<strong>D</strong>, <strong>G</strong> &amp; <strong>F</strong>) effect the brightness of that particular reflection.</p>
+
+<p>However, in this approximation, we only know the average effect of all microfacets, and we can only afford to take a single sample of this cubemap. So, we want to pre-blur the cubemap to most closely approximate the results if we had sampled every microfacet separately.</p>
+
+<p>In XLE, we can use the cvar <em>&quot;cv.IBLRef = true&quot;</em> to enable a &quot;reference&quot; specular equation that samples many evenly distributed microfacets. We want to try to match that.</p>
+
+<h2 id="toc_5">Sampling microfacets</h2>
+
+<p>Since our reflection simulation is  based on the microfacet normal, in order to calculate the specular for a pixel, we want to know what microfacets there are in that pixel. But that&#39;s far too difficult. We can simplify it down a little bit. What we do know is the probability for the angle between the microfacet normal and the surface normal. This is the <strong>&quot;D&quot;</strong> term.</p>
+
+<p>For our pre-calculation steps, we sometimes need an accurate sample for a pixel. To do this, we can generate random microfacet normals, and use the <strong>D</strong> term to weight the effect of each microfacet normal. A little more on this later...</p>
+
+<h2 id="toc_6">Blurring convolution</h2>
+
+<p>What is the ideal convolution to use? Brian Karis suggests a simple convolution involving <em>N dot L</em>. Previously, I was using a method suggested by another project that weights the textures by the entire specular equation. So what is the best method to use?</p>
+
+<p>The blurring method is actually a little similar to the reference specular equation. For every direction in the cubemap, we imagine a parallel flat surface that is reflecting that point. For roughness=0, we should get a perfectly clear reflection. As the roughness value increases, our surface should become more and more blurry. The result is actually only current for surfaces that are parallel to what they are reflecting. On the edges, the reflection should stretch out -- but this phenomenon doesn&#39;t occur in our approximation. In practice, this is not a major issue.</p>
+
+<p>The roughness value affects the microfacet distribution and this is what leads to the blurriness. So, we can generate a random set of microfacets, weight them by <strong>&quot;D&quot;</strong> and then find the average of those normals. That should cause the blurriness to vary against roughness correctly.</p>
+
+<p>But is there better filtering than that? What is the ideal &quot;weight&quot; value for each microfacet normal?</p>
+
+<p>Our goals for filtering should be twofold:</p>
+
+<ol>
+<li>Try to replicate the &quot;GGX&quot; falloff shape. A bright pixel in the reflection should appear the same as a dynamically calculated specular highlight. The GGX falloff is also just nice, visually. So we want the falloff to match closely.</li>
+<li>Try to prevent sampling errors. This can occur when low probability samples are weighted too highly.</li>
+</ol>
+
+<p>I played around with this for awhile and eventually decided that there is a simple, intuitive answer to this equation.</p>
+
+<p>In our simple case where the surface is parallel to the reflection, when we sample the final blurred cubemap, we will be sampling in the direction of the normal. We&#39;re actually trying to calculate the effect of the microfacets on this reflection. So, why don&#39;t we just weight the microfacet normal by the ratio of the specular for the microfacet normal to the specular for the surface normal?</p>
+
+<p>Since the specular for the normal is constant over all samples, that factors out. And the final weighting is just the specular equation for that microfacet normal (what I mean is, we use the sampled microfacet normal as the &quot;half-vector&quot;, or <strong>M</strong>, in the full specular equation).</p>
+
+<p>This weighting gives us the GGX shape (because it is GGX). It also makes sense intuitively. So, in the end the best method was actually what I originally had. But now the code &amp; the reasons are a little clearer.</p>
+
+<h3 id="toc_7">Example</h3>
+
+<p>Here is an example of a filtered specular map:
+<br/><img src="/assets/media/ImprovedIBL/ueno0.png"><img src="/assets/media/ImprovedIBL/ueno1.png"><img src="/assets/media/ImprovedIBL/ueno2.png"><img src="/assets/media/ImprovedIBL/ueno3.png"><img src="/assets/media/ImprovedIBL/ueno4.png"></p>
+
+<p>Notice that bright point still appears bright as they are filtered down. They are retaining the GGX shape. Also, when there are bright points, the light energy from those points will get spread out in lower mipmaps. So the bright points become successively wider but darker.</p>
+
+<p>Currently, we have a linear mapping from roughness -&gt; mipmap. But as you can see, often we have more resolution that we actually need. So we could change this to a non-linear mapping.</p>
+
+<h3 id="toc_8">Sampling errors</h3>
+
+<p>At high roughness values, we can get some sampling errors. In HDR environment textures, some pixels can be hundreds or thousands of times brighter than the average pixel. As a result, these pixels overwhelm hundreds or thousands of other pixels. Our sampling pattern attempts to cluster more samples in more areas. If a pixel like this is picked up in an &quot;unimportant&quot; area, where are are few samples, they can lead to artifacts.</p>
+
+<p>The following mip chain was generated from an image where the point in a middle of the sun is so bright that it can&#39;t be represented as a 16-bit float. This causes errors, and you can see how the errors radiate outwards according to the sampling pattern.</p>
+
+<p><br/><img src="/assets/media/ImprovedIBL/spec0.png"><img src="/assets/media/ImprovedIBL/spec1.png"><img src="/assets/media/ImprovedIBL/spec2.png"><img src="/assets/media/ImprovedIBL/spec3.png"></p>
+
+<p><em>Original image CC-Zero from <a href="http://giantcowfilms.com/">http://giantcowfilms.com/</a></em>.</p>
+
+<p>This particular case can only be solved by a better float32 -&gt; float16 converter than clamps values against the valid range. But it&#39;s a good way to visualize how a few pixels can affect many other pixels.</p>
+
+<p>It may be possible to get improvements by sampling every input pixel for every output pixel. This might not be such a bad idea, so if I get a chance, I&#39;ll try it.</p>
+
+<p>There&#39;s also another possible sampling improvement related to the <strong>&quot;G&quot;</strong> term. Using the microfacet normal rather than the surface normal could help reduce the effect of samples around the extreme edge of the sampling pattern. See <em>&quot;M vs N in G&quot;</em> below for more details on that.</p>
+
+<h2 id="toc_9">Improved microfacet sampling</h2>
+
+<p>When we build the set of random microfacets, we don&#39;t necessarily have to distribute those microfacets evenly. We want some &quot;important&quot; microfacets to be more likely, and &quot;unimportant&quot; microfacets to be less likely.</p>
+
+<p>Previously, I was using the sampling pattern suggested by Karis in his course notes. However, it&#39;s possible that there is an error in that equation.</p>
+
+<p>I&#39;ve gone back to the original microfacet distribution function by Walter in &quot;Microfacet Models for Refraction through Rough Surfaces&quot; (the GGX paper). He built this pattern specifically for GGX, and he also designed it for both reflection and transmission. This means the view direction isn&#39;t considered in the distribution (which is great for us).</p>
+
+<p>Karis&#39; function for generating the microfacet direction actually agrees with this paper (though it is in an optimized form). However, there is a difference in the &quot;Probability Density Functions&quot; (or PDFs) for both:</p>
+
+<ol>
+<li>Karis&#39; PDF is <em>(D * NdotH) / (4.f * VdotH)</em></li>
+<li>Walter&#39;s PDF is <em>D * NdotH</em></li>
+</ol>
+
+<p>Here, Karis&#39; PDF seems immediately suspicious because the view direction is a factor in the PDF, but not a factor in the microfacet function itself. That seems odd. The factor of &quot;4&quot; is also and area of confusion, because it appears in some versions of the Cook-Torrance microfacet equations, but not others. It&#39;s not clear why Karis included it, but it may be because he is using a different form of the Cook-Torrance equation to XLE?</p>
+
+<p>When I switched to Walter&#39;s sampling equations, I found 2 immediate improvements:</p>
+
+<h3 id="toc_10">Floating point errors in microfacet function</h3>
+
+<p>Karis&#39; microfacet distribution function is not working perfectly, possibly because of floating point errors (or weird edge cases). I&#39;ve replaced his equation with another equation that is mathematically identically, but I get much better results.</p>
+
+<p>Sometimes the shader compiler&#39;s optimizations can change the mathematics to a point where is it visibly wrong. Could this be the case here?</p>
+
+<p>Old equation:
+<br/><img src="/assets/media/ImprovedIBL/MicroFacetSamplingBad.png"></p>
+
+<p>New equation
+<br/><img src="/assets/media/ImprovedIBL/MicroFacetSamplingGood.png"></p>
+
+<p>They should be producing the same results, but the old version appears to be producing incorrect results for inputs within a certain range. The inputs are &quot;dithered&quot; according to a 4x4 pattern in this example, which is why is appears regular.</p>
+
+<h3 id="toc_11">Edges are too dark</h3>
+
+<p>The differences in the PDF equation are actually making the edges too dark. This is related to the <em>VdotH</em> term. It makes sense to remove <em>VdotH</em> from the PDF for two reasons:</p>
+
+<ol>
+<li>The view direction has no impact on the microfacets generated</li>
+<li>We want to use this sampling in view independent equations</li>
+</ol>
+
+<p>Old version:
+<br/><img src="/assets/media/ImprovedIBL/MicrofacetEdgesOld.png"></p>
+
+<p>New version:
+<br/><img src="/assets/media/ImprovedIBL/MicrofacetEdgesNew.png"></p>
+
+<p>In the new version, the extreme edges are much brighter. The dark halo we get with the old version seems unnatural &amp; incorrect.</p>
+
+<h2 id="toc_12">NdotL</h2>
+
+<p>I&#39;ve added the <strong>NdotL</strong> term into IBL, as well. This was previously excluded but is required to match our dynamic specular equation.</p>
+
+<p>This is visually important -- without it, the edges become excessively bright, brighter than the thing they are reflecting. With <em>NdotL</em>, the brightness correctly matches the reflected object.</p>
+
+<p>In effect, we&#39;ve removed a <strong>VdotH</strong> term, and added a <strong>NdotL</strong>. Note that <strong>VdotH</strong> is the same as <strong>LdotH</strong> when the <strong>&quot;H&quot;</strong> is the half-vector between <strong>L</strong> and <strong>V</strong>... So this might be source for the mysterious <strong>VdotH</strong> term in Karis&#39; PDF! He may have assumed that this was part of the PDF, when in fact he was just compensating for a part of his specular equation. If that&#39;s the case, though, why isn&#39;t it explained in his course notes?</p>
+
+<h2 id="toc_13">Rebuilding the lookup table</h2>
+
+<p>Our split-term solution involves a texture lookup table &quot;glosslut.dds.&quot; This is built from all of the math on this page. Our previous version was very similar to Karis&#39; version. But let&#39;s rebuild it, and see what happens!</p>
+
+<p>Old version:
+<br/><img src="/assets/media/ImprovedIBL/OldR.png"><img src="/assets/media/ImprovedIBL/OldG.png"></p>
+
+<p>New version:
+<br/><img src="/assets/media/ImprovedIBL/NewR.png"><img src="/assets/media/ImprovedIBL/NewG.png"></p>
+
+<p>So, the changes are subtle, but important. The specular is general a little bit darker, except at the edges of objects where it has become significantly brighter.</p>
+
+<h3 id="toc_14">Comparisons</h3>
+
+<p>Old look up table:
+<br/><img src="/assets/media/ImprovedIBL/OldGlossLUT.png"></p>
+
+<p>New look up table:
+<br/><img src="/assets/media/ImprovedIBL/NewGlossLUT.png"></p>
+
+<p>Reference:
+<br/><img src="/assets/media/ImprovedIBL/ReferenceIBL.png"></p>
+
+<p>This is just changing the lookup-table. You can see how the reflection is slightly darker in the new version, except that the edges are much brighter. Also, new version matches our reference image much better.</p>
+
+<p>At high F0 values (and along the edges) the reflection appears to be the correct brightness to match the environment.</p>
+
+<h3 id="toc_15">Alpha remapping</h3>
+
+<p>One thing to note is that in XLE, the same alpha remapping is used for IBL that is used for dynamic specular maps. Karis suggests using different remapping for IBL, explaining that the normal remapping produces edges that are too dark. It seems like we&#39;ve discovered the true cause of the dark edges and the results seem to look fine for us with our normal remapping.</p>
+
+<p>Also, since we&#39;re using the exact same specular equation as we use for dynamic lighting, the two will also match well.</p>
+
+<h2 id="toc_16">Diffuse normalization</h2>
+
+<p>Previously, I had been assuming our texture pipeline had was premultiplying the <em>&quot;1/pi&quot;</em> diffuse normalization factor into the diffuse IBL texture. However, that turned out to be incorrect. I&#39;ve compensated for now by adding this term into the shader. However, I would be ideal if we could take care of this during the texture processing step.</p>
+
+<p>With this change (and the changes to specular brightness), the diffuse and specular are better matched. This is particularly important for surfaces that are partially metal and partially dielectric -- because the diffuse on the dielectric part must feel matched when compared to the specular on the metal part.</p>
+
+<h2 id="toc_17">Further research</h2>
+
+<p>Here are some more ideal for further improvements.</p>
+
+<h3 id="toc_18">H vs N in G calculation</h3>
+
+<p>There is an interesting problem related to the use of the normal in the &quot;G&quot; part of the specular equation. Different sources actually feed different dot products into this equation:</p>
+
+<ol>
+<li>Some use <strong>N dot L</strong> and <strong>N dot V</strong></li>
+<li>Others use <strong>H dot L</strong> and <strong>H dot V</strong> (where H is the half-vector or microfacet normal)</li>
+</ol>
+
+<p>For our dynamic specular lights, we are using a single value for <strong>N</strong> and <strong>H</strong>, so the difference should be very subtle. But when sampling multiple microfacets, we are using many different values for <strong>H</strong>, with a constant <strong>N</strong>.</p>
+
+<p>For example, when using the specular equation as a weight while filtering the cubemap, <strong>N dot L</strong> and <strong>N dot V</strong> are constant. So they will have no effect on the filtering.</p>
+
+<p>Remember that <strong>&quot;G&quot;</strong> is the shadowing term. It drops off to zero around the extreme edges. So by using <strong>H dot L</strong> and <strong>H dot V</strong>, we could help reduce the effect of extreme samples.</p>
+
+<p>Also, when building the split-term lookup table, <strong>N dot V</strong> is constant. So it has very little effect. It would be interesting experimenting with the other form in these cases.</p>
+
+<p>On the other hand, in the dynamic specular equation <strong>H dot L</strong> and <strong>H dot V</strong> should be equal and very rarely low numbers. So, in that case, it may not make sense to use the half-vector.</p>
+
+<h3 id="toc_19">Problems when NdotV is &lt; .15f</h3>
+
+<p>Rough objects current tend to have a few pixels around the edges that have no reflection. It&#39;s isn&#39;t really visible in the dielectric case. But with metals (where there is no diffuse) it shows up as black and looks very strange.</p>
+
+<p>The problem is related to how we&#39;re sampling the microfacet normals. As you can imagine, when normals are near perpendicular to view direction, sometimes the microfacet normal will end up pointing away from the view direction. When this happens, we can reject the sample (or calculate some value close to black). When the number of samples rejected is too high, we will end up with a result that is not accurate.</p>
+
+<p>This tends to only affect a few pixels, but it&#39;s enough to pop out. We need some better solution around these edge parts.</p>
+
+    </div>
+    <ul class="tag_box inline">
+      <li><i class="icon-folder-open"></i></li>
+      <li>
+        <a href="/categories#XLE-ref">XLE <span>11</span></a>
+      </li>
+    </ul>
+    <ul class="tag_box inline">
+      <li><i class="icon-tags"></i></li>
+      <li>
+        <a href="/tags#IBL-ref">IBL <span>2</span></a>
+      </li>
+      <li>
+        <a href="/tags#Lights-ref">Lights <span>3</span></a>
+      </li>
+      <li>
+        <a href="/tags#Specular-ref">Specular <span>3</span></a>
+      </li>
+      <li>
+        <a href="/tags#GGX-ref">GGX <span>3</span></a>
+      </li>
+    </ul>
+    <hr>
+    <div class="pagination">
+      <ul>
+          <li class="prev"><a href="/posts/transmittedspecular2" title="Transmitted specular progress">&larr; Previous</a></li>
+
+          <li><a href="/archive">Archive</a></li>
+
+          <li class="next disabled"><a>Next &rarr;</a>
+      </ul>
+    </div>
+    <hr>
+    <div id="disqus_thread"></div>
+<script>
+    var disqus_developer = 1;
+    var disqus_shortname = 'xledev'; // required: replace example with your forum shortname
+    /* * * DON'T EDIT BELOW THIS LINE * * */
+    (function() {
+        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+        dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<a href="http://disqus.com" class="dsq-brlink">blog comments powered by <span class="logo-disqus">Disqus</span></a>
+
+  </div>
+</div>
+
+
+      </div>
+
+      <hr>
+      <div class="footer">
+        <p>&copy; XL Games 2015
+          with help from <a href="http://ruhoh.com" target="_blank" title="The Definitive Technical Blogging Framework">ruhoh</a>
+          and <a href="http://twitter.github.com/bootstrap/" target="_blank">Twitter Bootstrap</a>
+        </p>
+      </div>
+
+    </div> <!-- /container -->
+
+    <!-- Google Prettify -->
+<script src="http://cdnjs.cloudflare.com/ajax/libs/prettify/188.0.0/prettify.js"></script>
+<script>
+  var pres = document.getElementsByTagName("pre");
+  for (var i=0; i < pres.length; ++i) {
+    pres[i].className = "prettyprint linenums";
+  }
+  prettyPrint();
+</script>
+<!-- end Google Prettify -->
+    <script type="text/javascript">
+
+  var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', 'UA-71034032-1']);
+  _gaq.push(['_trackPageview']);
+  
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+
+</script>
+
+
+    
+  </body>
+</html>

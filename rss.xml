@@ -4,7 +4,7 @@
     <title>XLE development blog</title>
     <description>XLE development blog</description>
     <link>http://xlgames-inc.github.io</link>
-    <pubDate>January 29, 2016</pubDate>
+    <pubDate>February 01, 2016</pubDate>
     <item>
       <title>About</title>
       <link>http://xlgames-inc.github.io/about</link>
@@ -22,6 +22,10 @@
       <link>http://xlgames-inc.github.io/archive</link>
       <description>
   &lt;h2&gt;2016&lt;/h2&gt;
+    &lt;h3&gt;February&lt;/h3&gt;
+    &lt;ul&gt;
+      &lt;li&gt;&lt;span&gt;February 01, 2016&lt;/span&gt; &amp;raquo; &lt;a href="/posts/improvedibl"&gt;Improved IBL&lt;/a&gt;&lt;/li&gt;
+    &lt;/ul&gt;
     &lt;h3&gt;January&lt;/h3&gt;
     &lt;ul&gt;
       &lt;li&gt;&lt;span&gt;January 29, 2016&lt;/span&gt; &amp;raquo; &lt;a href="/posts/transmittedspecular2"&gt;Transmitted specular progress&lt;/a&gt;&lt;/li&gt;
@@ -48,18 +52,19 @@
       <description>
 &lt;ul class="tag_box inline"&gt;
   &lt;li&gt;
-    &lt;a href="/categories#XLE-ref"&gt;XLE &lt;span&gt;10&lt;/span&gt;&lt;/a&gt;
+    &lt;a href="/categories#XLE-ref"&gt;XLE &lt;span&gt;11&lt;/span&gt;&lt;/a&gt;
   &lt;/li&gt;
   &lt;li&gt;
     &lt;a href="/categories#blog-ref"&gt;blog &lt;span&gt;1&lt;/span&gt;&lt;/a&gt;
   &lt;/li&gt;
 &lt;/ul&gt;
 
-  &lt;h3&gt;XLE (10)&lt;/h3&gt;
+  &lt;h3&gt;XLE (11)&lt;/h3&gt;
   &lt;ul&gt;
       &lt;li&gt;&lt;a href="/posts/arealightsandpbr"&gt;Area Lights with Physically Based Rendering&lt;/a&gt;&lt;/li&gt;
       &lt;li&gt;&lt;a href="/posts/assetpathscripts"&gt;Processing textures with the XLE scriptable asset path&lt;/a&gt;&lt;/li&gt;
       &lt;li&gt;&lt;a href="/posts/functionlinkedshaders"&gt;Dynamic Function Linking Graph for Shaders&lt;/a&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;a href="/posts/improvedibl"&gt;Improved IBL&lt;/a&gt;&lt;/li&gt;
       &lt;li&gt;&lt;a href="/posts/materialtool"&gt;Material and Node Diagram Tool&lt;/a&gt;&lt;/li&gt;
       &lt;li&gt;&lt;a href="/posts/rectlightdiffuse"&gt;Rectangle Light diffuse vs 3DS Max&lt;/a&gt;&lt;/li&gt;
       &lt;li&gt;&lt;a href="/posts/transmissionnodegraph"&gt;Transmission Node Diagram&lt;/a&gt;&lt;/li&gt;
@@ -85,6 +90,10 @@
 &lt;p&gt;Dev team contact: &lt;a href="mailto:xle@xlgames.com"&gt;xle@xlgames.com&lt;/a&gt; (in English or Korean)&lt;/p&gt;
 
   &lt;h2&gt;2016&lt;/h2&gt;
+    &lt;h3&gt;February&lt;/h3&gt;
+    &lt;ul&gt;
+      &lt;li&gt;&lt;span&gt;February 01, 2016&lt;/span&gt; &amp;raquo; &lt;a href="/posts/improvedibl"&gt;Improved IBL&lt;/a&gt;&lt;/li&gt;
+    &lt;/ul&gt;
     &lt;h3&gt;January&lt;/h3&gt;
     &lt;ul&gt;
       &lt;li&gt;&lt;span&gt;January 29, 2016&lt;/span&gt; &amp;raquo; &lt;a href="/posts/transmittedspecular2"&gt;Transmitted specular progress&lt;/a&gt;&lt;/li&gt;
@@ -108,6 +117,37 @@
 
 &lt;hr /&gt;
 
+&lt;div class="post"&gt;
+  &lt;h3 class="title"&gt;&lt;a href="/posts/improvedibl"&gt;Improved IBL&lt;/a&gt;&lt;br /&gt; &lt;span class="date"&gt;February 01, 2016&lt;/span&gt;&lt;/h3&gt;
+
+  &lt;div class="summary ellipsis"&gt;
+&lt;p&gt;I've been working on improving the accuracy of the Imaged Based Lighting (IBL) solution for XLE. This is the technology that allows us to load in a background panorama map and use it for both diffuse and specular lighting.&lt;/p&gt;
+
+&lt;p&gt;The best way to do this is by comparing our real-time result to other renderers. So, for example, I've been experimenting with Substance Designer (more on that later). It has nVidia's "IRay" raytracer built-in -- so we can compare the non-real-time results from IRay with real-time XLE. I have other ways to do this, also -- for example, the shader in ToolsHelper/BRDFSlice.sh can generate textures directly comparable with Disney's BRDFExplorer tool.&lt;/p&gt;
+
+&lt;p&gt;While doing this (and working on the specular transmission stuff), I've found some interesting improvements to the IBL solution!&lt;/p&gt;
+
+&lt;h2 id="toc_0"&gt;Conclusion&lt;/h2&gt;
+
+&lt;p&gt;This is a really long post; so I'll start with the conclusion. I've made a number of improvements that make the IBL solution appear more realistic, and more similar to ray tracers.&lt;/p&gt;
+
+&lt;p&gt;&lt;br&gt;&lt;img src="/assets/media/ImprovedIBL/Spheres.png"&gt;
+&lt;br&gt;&lt;img src="/assets/media/ImprovedIBL/SpheresMetal.png"&gt;&lt;/p&gt;
+
+&lt;p&gt;I found some errors in some source material I referenced and fixed some incorrect assumptions I made. Each change is small. But when added up, they make a big difference. The IBL specular is has a lot much punch, things are jumping off the screen better.&lt;/p&gt;
+
+&lt;p&gt;Now, I'll go into detail about what's changed.&lt;/p&gt;
+
+&lt;h2 id="toc_1"&gt;IBL basis&lt;/h2&gt;
+
+&lt;p&gt;I've been using a split-term style IBL solution, as per Brian Karis' Siggraph 2013 course (see &lt;a href="http://blog.selfshadow.com/publications/s2013-shading-course/"&gt;http://blog.selfshadow.com/publications/s2013-shading-course/&lt;/a&gt;). As far as I know, this is the same method used in Unreal (though I haven't checked that, there may have been some changes since 2013).&lt;/p&gt;
+
+&lt;/div&gt;
+
+  &lt;div class="more"&gt;
+    &lt;a href="/posts/improvedibl" class="btn btn-small"&gt;read more..&lt;/a&gt;
+  &lt;/div&gt;
+&lt;/div&gt;
 &lt;div class="post"&gt;
   &lt;h3 class="title"&gt;&lt;a href="/posts/transmittedspecular2"&gt;Transmitted specular progress&lt;/a&gt;&lt;br /&gt; &lt;span class="date"&gt;January 29, 2016&lt;/span&gt;&lt;/h3&gt;
 
@@ -225,39 +265,6 @@ For example, the "D" term of the BTDF is a node on the diagram. And we can visua
     &lt;a href="/posts/transmissionnodegraph" class="btn btn-small"&gt;read more..&lt;/a&gt;
   &lt;/div&gt;
 &lt;/div&gt;
-&lt;div class="post"&gt;
-  &lt;h3 class="title"&gt;&lt;a href="/posts/materialtool"&gt;Material and Node Diagram Tool&lt;/a&gt;&lt;br /&gt; &lt;span class="date"&gt;January 21, 2016&lt;/span&gt;&lt;/h3&gt;
-
-  &lt;div class="summary ellipsis"&gt;
-&lt;p&gt;The master branch has just been updated! It now includes a major new tool, called the &lt;em&gt;MaterialTool&lt;/em&gt;. This is a dedicated app for building materials and applying them to objects, and includes some cool new features...&lt;/p&gt;
-
-&lt;p&gt;In XLE, most material information can be authored in standard graphics packages (like 3DS Max, Maya, Substance Painter, etc). In particular, the most critical material values (&lt;strong&gt;color&lt;/strong&gt;, &lt;strong&gt;roughness&lt;/strong&gt;, &lt;strong&gt;specular&lt;/strong&gt; &amp;amp; &lt;strong&gt;metal&lt;/strong&gt;) can come directly from standard packages.&lt;/p&gt;
-
-&lt;p&gt;But in cases we want to add custom information to models, or even develop custom shaders for complex materials. This is were the &lt;em&gt;MaterialTool&lt;/em&gt; comes in. There is some functionality in common with the &lt;em&gt;ModelViewer&lt;/em&gt; and &lt;em&gt;LevelEditor&lt;/em&gt; tools -- but the &lt;em&gt;MaterialTool&lt;/em&gt; provides a convenient focused tool for this kind of work.&lt;/p&gt;
-
-&lt;hr&gt;
-
-&lt;h2 id="toc_0"&gt;Basic functionality&lt;/h2&gt;
-
-&lt;p&gt;&lt;br&gt;&lt;img src="/assets/media/MaterialTool/BasicWindow.png"&gt;&lt;/p&gt;
-
-&lt;p&gt;Our core functionality allows us to preview a model (much like the &lt;em&gt;ModelViewer&lt;/em&gt;, with various rendering modes), click on materials and then change their properties (such as opacity, translucency modes, and various shader flags).&lt;/p&gt;
-
-&lt;p&gt;This works within the Sony ATF framework, and so we have all of the handy features from the &lt;em&gt;LevelEditor&lt;/em&gt;, such as:&lt;/p&gt;
-
-&lt;ul&gt;
-&lt;li&gt;detachable, arrangeable windows&lt;/li&gt;
-&lt;li&gt;
-&lt;em&gt;IronPython&lt;/em&gt; scripting and cvar access&lt;/li&gt;
-&lt;li&gt;interface skinning, keyboard rebinding, etc...&lt;/li&gt;
-&lt;li&gt;and, of course, it's all very extensible C# code, convenient for adding custom features&lt;/li&gt;
-&lt;/ul&gt;
-&lt;/div&gt;
-
-  &lt;div class="more"&gt;
-    &lt;a href="/posts/materialtool" class="btn btn-small"&gt;read more..&lt;/a&gt;
-  &lt;/div&gt;
-&lt;/div&gt;
 
 &lt;div class="pagination"&gt;
   &lt;ul&gt;
@@ -318,7 +325,7 @@ For example, the "D" term of the BTDF is a node on the diagram. And we can visua
     &lt;a href="/tags#Gradle-ref"&gt;Gradle &lt;span&gt;1&lt;/span&gt;&lt;/a&gt;
   &lt;/li&gt;
   &lt;li&gt;
-    &lt;a href="/tags#IBL-ref"&gt;IBL &lt;span&gt;1&lt;/span&gt;&lt;/a&gt;
+    &lt;a href="/tags#IBL-ref"&gt;IBL &lt;span&gt;2&lt;/span&gt;&lt;/a&gt;
   &lt;/li&gt;
   &lt;li&gt;
     &lt;a href="/tags#blog-ref"&gt;blog &lt;span&gt;1&lt;/span&gt;&lt;/a&gt;
@@ -328,6 +335,15 @@ For example, the "D" term of the BTDF is a node on the diagram. And we can visua
   &lt;/li&gt;
   &lt;li&gt;
     &lt;a href="/tags#ShaderCompile-ref"&gt;ShaderCompile &lt;span&gt;1&lt;/span&gt;&lt;/a&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;a href="/tags#Lights-ref"&gt;Lights &lt;span&gt;3&lt;/span&gt;&lt;/a&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;a href="/tags#Specular-ref"&gt;Specular &lt;span&gt;3&lt;/span&gt;&lt;/a&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;a href="/tags#GGX-ref"&gt;GGX &lt;span&gt;3&lt;/span&gt;&lt;/a&gt;
   &lt;/li&gt;
   &lt;li&gt;
     &lt;a href="/tags#MaterialTool-ref"&gt;MaterialTool &lt;span&gt;2&lt;/span&gt;&lt;/a&gt;
@@ -340,15 +356,6 @@ For example, the "D" term of the BTDF is a node on the diagram. And we can visua
   &lt;/li&gt;
   &lt;li&gt;
     &lt;a href="/tags#RectangleLights-ref"&gt;RectangleLights &lt;span&gt;2&lt;/span&gt;&lt;/a&gt;
-  &lt;/li&gt;
-  &lt;li&gt;
-    &lt;a href="/tags#Lights-ref"&gt;Lights &lt;span&gt;2&lt;/span&gt;&lt;/a&gt;
-  &lt;/li&gt;
-  &lt;li&gt;
-    &lt;a href="/tags#Specular-ref"&gt;Specular &lt;span&gt;2&lt;/span&gt;&lt;/a&gt;
-  &lt;/li&gt;
-  &lt;li&gt;
-    &lt;a href="/tags#GGX-ref"&gt;GGX &lt;span&gt;2&lt;/span&gt;&lt;/a&gt;
   &lt;/li&gt;
 &lt;/ul&gt;
 
@@ -370,12 +377,25 @@ For example, the "D" term of the BTDF is a node on the diagram. And we can visua
     &lt;li&gt;&lt;a href="/posts/assetpathscripts"&gt;Processing textures with the XLE scriptable asset path&lt;/a&gt;&lt;/li&gt;
   &lt;h3 id="IBL-ref"&gt;IBL&lt;/h3&gt;
     &lt;li&gt;&lt;a href="/posts/assetpathscripts"&gt;Processing textures with the XLE scriptable asset path&lt;/a&gt;&lt;/li&gt;
+    &lt;li&gt;&lt;a href="/posts/improvedibl"&gt;Improved IBL&lt;/a&gt;&lt;/li&gt;
   &lt;h3 id="blog-ref"&gt;blog&lt;/h3&gt;
     &lt;li&gt;&lt;a href="/posts/first"&gt;First post&lt;/a&gt;&lt;/li&gt;
   &lt;h3 id="D3D-ref"&gt;D3D&lt;/h3&gt;
     &lt;li&gt;&lt;a href="/posts/functionlinkedshaders"&gt;Dynamic Function Linking Graph for Shaders&lt;/a&gt;&lt;/li&gt;
   &lt;h3 id="ShaderCompile-ref"&gt;ShaderCompile&lt;/h3&gt;
     &lt;li&gt;&lt;a href="/posts/functionlinkedshaders"&gt;Dynamic Function Linking Graph for Shaders&lt;/a&gt;&lt;/li&gt;
+  &lt;h3 id="Lights-ref"&gt;Lights&lt;/h3&gt;
+    &lt;li&gt;&lt;a href="/posts/improvedibl"&gt;Improved IBL&lt;/a&gt;&lt;/li&gt;
+    &lt;li&gt;&lt;a href="/posts/transmittedspecular"&gt;Transmitted specular&lt;/a&gt;&lt;/li&gt;
+    &lt;li&gt;&lt;a href="/posts/transmittedspecular2"&gt;Transmitted specular progress&lt;/a&gt;&lt;/li&gt;
+  &lt;h3 id="Specular-ref"&gt;Specular&lt;/h3&gt;
+    &lt;li&gt;&lt;a href="/posts/improvedibl"&gt;Improved IBL&lt;/a&gt;&lt;/li&gt;
+    &lt;li&gt;&lt;a href="/posts/transmittedspecular"&gt;Transmitted specular&lt;/a&gt;&lt;/li&gt;
+    &lt;li&gt;&lt;a href="/posts/transmittedspecular2"&gt;Transmitted specular progress&lt;/a&gt;&lt;/li&gt;
+  &lt;h3 id="GGX-ref"&gt;GGX&lt;/h3&gt;
+    &lt;li&gt;&lt;a href="/posts/improvedibl"&gt;Improved IBL&lt;/a&gt;&lt;/li&gt;
+    &lt;li&gt;&lt;a href="/posts/transmittedspecular"&gt;Transmitted specular&lt;/a&gt;&lt;/li&gt;
+    &lt;li&gt;&lt;a href="/posts/transmittedspecular2"&gt;Transmitted specular progress&lt;/a&gt;&lt;/li&gt;
   &lt;h3 id="MaterialTool-ref"&gt;MaterialTool&lt;/h3&gt;
     &lt;li&gt;&lt;a href="/posts/materialtool"&gt;Material and Node Diagram Tool&lt;/a&gt;&lt;/li&gt;
     &lt;li&gt;&lt;a href="/posts/transmissionnodegraph"&gt;Transmission Node Diagram&lt;/a&gt;&lt;/li&gt;
@@ -388,15 +408,6 @@ For example, the "D" term of the BTDF is a node on the diagram. And we can visua
   &lt;h3 id="RectangleLights-ref"&gt;RectangleLights&lt;/h3&gt;
     &lt;li&gt;&lt;a href="/posts/rectlightdiffuse"&gt;Rectangle Light diffuse vs 3DS Max&lt;/a&gt;&lt;/li&gt;
     &lt;li&gt;&lt;a href="/posts/workingonrectlights"&gt;Working some improvements to rectangle lights&lt;/a&gt;&lt;/li&gt;
-  &lt;h3 id="Lights-ref"&gt;Lights&lt;/h3&gt;
-    &lt;li&gt;&lt;a href="/posts/transmittedspecular"&gt;Transmitted specular&lt;/a&gt;&lt;/li&gt;
-    &lt;li&gt;&lt;a href="/posts/transmittedspecular2"&gt;Transmitted specular progress&lt;/a&gt;&lt;/li&gt;
-  &lt;h3 id="Specular-ref"&gt;Specular&lt;/h3&gt;
-    &lt;li&gt;&lt;a href="/posts/transmittedspecular"&gt;Transmitted specular&lt;/a&gt;&lt;/li&gt;
-    &lt;li&gt;&lt;a href="/posts/transmittedspecular2"&gt;Transmitted specular progress&lt;/a&gt;&lt;/li&gt;
-  &lt;h3 id="GGX-ref"&gt;GGX&lt;/h3&gt;
-    &lt;li&gt;&lt;a href="/posts/transmittedspecular"&gt;Transmitted specular&lt;/a&gt;&lt;/li&gt;
-    &lt;li&gt;&lt;a href="/posts/transmittedspecular2"&gt;Transmitted specular progress&lt;/a&gt;&lt;/li&gt;
  
 </description>
     </item>

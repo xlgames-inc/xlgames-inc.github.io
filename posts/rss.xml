@@ -4,7 +4,257 @@
     <title>XLE development blog</title>
     <description>XLE development blog</description>
     <link>http://xlgames-inc.github.io</link>
-    <pubDate>January 29, 2016</pubDate>
+    <pubDate>February 01, 2016</pubDate>
+    <item>
+      <title>Improved IBL</title>
+      <link>http://xlgames-inc.github.io/posts/improvedibl</link>
+      <pubDate>February 01, 2016</pubDate>
+      <description>&lt;p&gt;I&amp;#39;ve been working on improving the accuracy of the Imaged Based Lighting (IBL) solution for XLE. This is the technology that allows us to load in a background panorama map and use it for both diffuse and specular lighting.&lt;/p&gt;
+
+&lt;p&gt;The best way to do this is by comparing our real-time result to other renderers. So, for example, I&amp;#39;ve been experimenting with Substance Designer (more on that later). It has nVidia&amp;#39;s &amp;quot;IRay&amp;quot; raytracer built-in -- so we can compare the non-real-time results from IRay with real-time XLE. I have other ways to do this, also -- for example, the shader in ToolsHelper/BRDFSlice.sh can generate textures directly comparable with Disney&amp;#39;s BRDFExplorer tool.&lt;/p&gt;
+
+&lt;p&gt;While doing this (and working on the specular transmission stuff), I&amp;#39;ve found some interesting improvements to the IBL solution!&lt;/p&gt;
+
+&lt;h2 id="toc_0"&gt;Conclusion&lt;/h2&gt;
+
+&lt;p&gt;This is a really long post; so I&amp;#39;ll start with the conclusion. I&amp;#39;ve made a number of improvements that make the IBL solution appear more realistic, and more similar to ray tracers.&lt;/p&gt;
+
+&lt;p&gt;&lt;br/&gt;&lt;img src="/assets/media/ImprovedIBL/Spheres.png"&gt;
+&lt;br/&gt;&lt;img src="/assets/media/ImprovedIBL/SpheresMetal.png"&gt;&lt;/p&gt;
+
+&lt;p&gt;I found some errors in some source material I referenced and fixed some incorrect assumptions I made. Each change is small. But when added up, they make a big difference. The IBL specular is has a lot much punch, things are jumping off the screen better.&lt;/p&gt;
+
+&lt;p&gt;Now, I&amp;#39;ll go into detail about what&amp;#39;s changed.&lt;/p&gt;
+
+&lt;h2 id="toc_1"&gt;IBL basis&lt;/h2&gt;
+
+&lt;p&gt;I&amp;#39;ve been using a split-term style IBL solution, as per Brian Karis&amp;#39; Siggraph 2013 course (see &lt;a href="http://blog.selfshadow.com/publications/s2013-shading-course/"&gt;http://blog.selfshadow.com/publications/s2013-shading-course/&lt;/a&gt;). As far as I know, this is the same method used in Unreal (though I haven&amp;#39;t checked that, there may have been some changes since 2013).&lt;/p&gt;
+
+&lt;p&gt;This splits the IBL equation into two separate equations. In one equation, we calculate the reflected light from a uniform white environment. In a sense, this is calculating our reflective a given pixel is, with equal weighting to each direction. Our solution has to make some simplifications to the BRDF (to reduce the number of variables), but we use most of it.&lt;/p&gt;
+
+&lt;h2 id="toc_2"&gt;Microfacets!&lt;/h2&gt;
+
+&lt;p&gt;We can think about this on a microfacet level. Remember our specular equation is an approximate simulation of the microfacet detail of a surface.&lt;/p&gt;
+
+&lt;p&gt;&lt;br/&gt;&lt;img src="/assets/media/ImprovedIBL/eyeontechfig2fibre.jpg"&gt;&lt;/p&gt;
+
+&lt;p&gt;This is a microscopic photo by &lt;em&gt;Gang Xiong, Durham University&lt;/em&gt;. It shows a smooth plastic surface.&lt;/p&gt;
+
+&lt;p&gt;Each microscopic surface has a normal -- this is the microfacet normal.
+Remember that &lt;strong&gt;&amp;quot;D&amp;quot;&lt;/strong&gt; represents how the microfacet normal are distributed, relative to the surface normal. For example, in very smooth surfaces, microfacet normals are more likely to be close to the surface normal. This is the most important part of the equation in terms of the actual shape of highlights.&lt;/p&gt;
+
+&lt;p&gt;The &lt;strong&gt;&amp;quot;G&amp;quot;&lt;/strong&gt; term is for microscopic scale shadowing between different microfacets. This is why &lt;strong&gt;G&lt;/strong&gt; is close to 1 for most of the range and drops off to zero around the edges. It &amp;quot;fights&amp;quot; the &lt;strong&gt;F&lt;/strong&gt; term, and prevents excessive halos around the edges of things.&lt;/p&gt;
+
+&lt;p&gt;And &lt;strong&gt;&amp;quot;F&amp;quot;&lt;/strong&gt; is for the fresnel effect, which determines how much incident light is actually reflected at a given angle. In the specular equation, we&amp;#39;re calculating the fresnel effect on a microfacet level, not on the level of the surface normal.&lt;/p&gt;
+
+&lt;h3 id="toc_3"&gt;A little bit of history&lt;/h3&gt;
+
+&lt;p&gt;Most of this stuff actually dates back to 1967 with &lt;em&gt;Torrance &amp;amp; Sparrow&lt;/em&gt;. It evolved up to around 1981 with &lt;em&gt;Cook &amp;amp; Torrance&lt;/em&gt; (yes, same Torrance). But then nothing much happened for awhile. Then &lt;em&gt;Walter, et al.,&lt;/em&gt; rediscovered some old math in 2007 (and introduced the term, GGX). And we kind of discovered everything we were doing between 1981 and 2007 was a little bit wrong.&lt;/p&gt;
+
+&lt;p&gt;More recently, &lt;em&gt;Brent Burley and Disney&lt;/em&gt; found a novel way to visualize multi-parameter BRDFs in a 2D image. They used this to compare our equations to real world surfaces. And so now we have a clearer idea of what&amp;#39;s really working and not working.&lt;/p&gt;
+
+&lt;p&gt;Anyway, that&amp;#39;s why specular highlights in PS4 games feel much &amp;quot;brighter&amp;quot; than previous generations. The shape of the highlight greatly affects the impression of brightness.&lt;/p&gt;
+
+&lt;p&gt;There&amp;#39;s a great picture here:
+&lt;br/&gt;&lt;img src="/assets/media/ImprovedIBL/ggx_vs_Phong.jpg"&gt;&lt;/p&gt;
+
+&lt;p&gt;The &amp;quot;GGX&amp;quot; dot is not any brighter... But it appears to glow because of the shape of the falloff.&lt;/p&gt;
+
+&lt;h2 id="toc_4"&gt;Second split term part&lt;/h2&gt;
+
+&lt;p&gt;Anyway, the second part of the split term equation is the environment texture itself. In XLE, this is a cubemap.&lt;/p&gt;
+
+&lt;p&gt;Each microfacet will reflect a slightly different part of the image. And our specular equation (&lt;strong&gt;D&lt;/strong&gt;, &lt;strong&gt;G&lt;/strong&gt; &amp;amp; &lt;strong&gt;F&lt;/strong&gt;) effect the brightness of that particular reflection.&lt;/p&gt;
+
+&lt;p&gt;However, in this approximation, we only know the average effect of all microfacets, and we can only afford to take a single sample of this cubemap. So, we want to pre-blur the cubemap to most closely approximate the results if we had sampled every microfacet separately.&lt;/p&gt;
+
+&lt;p&gt;In XLE, we can use the cvar &lt;em&gt;&amp;quot;cv.IBLRef = true&amp;quot;&lt;/em&gt; to enable a &amp;quot;reference&amp;quot; specular equation that samples many evenly distributed microfacets. We want to try to match that.&lt;/p&gt;
+
+&lt;h2 id="toc_5"&gt;Sampling microfacets&lt;/h2&gt;
+
+&lt;p&gt;Since our reflection simulation is  based on the microfacet normal, in order to calculate the specular for a pixel, we want to know what microfacets there are in that pixel. But that&amp;#39;s far too difficult. We can simplify it down a little bit. What we do know is the probability for the angle between the microfacet normal and the surface normal. This is the &lt;strong&gt;&amp;quot;D&amp;quot;&lt;/strong&gt; term.&lt;/p&gt;
+
+&lt;p&gt;For our pre-calculation steps, we sometimes need an accurate sample for a pixel. To do this, we can generate random microfacet normals, and use the &lt;strong&gt;D&lt;/strong&gt; term to weight the effect of each microfacet normal. A little more on this later...&lt;/p&gt;
+
+&lt;h2 id="toc_6"&gt;Blurring convolution&lt;/h2&gt;
+
+&lt;p&gt;What is the ideal convolution to use? Brian Karis suggests a simple convolution involving &lt;em&gt;N dot L&lt;/em&gt;. Previously, I was using a method suggested by another project that weights the textures by the entire specular equation. So what is the best method to use?&lt;/p&gt;
+
+&lt;p&gt;The blurring method is actually a little similar to the reference specular equation. For every direction in the cubemap, we imagine a parallel flat surface that is reflecting that point. For roughness=0, we should get a perfectly clear reflection. As the roughness value increases, our surface should become more and more blurry. The result is actually only current for surfaces that are parallel to what they are reflecting. On the edges, the reflection should stretch out -- but this phenomenon doesn&amp;#39;t occur in our approximation. In practice, this is not a major issue.&lt;/p&gt;
+
+&lt;p&gt;The roughness value affects the microfacet distribution and this is what leads to the blurriness. So, we can generate a random set of microfacets, weight them by &lt;strong&gt;&amp;quot;D&amp;quot;&lt;/strong&gt; and then find the average of those normals. That should cause the blurriness to vary against roughness correctly.&lt;/p&gt;
+
+&lt;p&gt;But is there better filtering than that? What is the ideal &amp;quot;weight&amp;quot; value for each microfacet normal?&lt;/p&gt;
+
+&lt;p&gt;Our goals for filtering should be twofold:&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;Try to replicate the &amp;quot;GGX&amp;quot; falloff shape. A bright pixel in the reflection should appear the same as a dynamically calculated specular highlight. The GGX falloff is also just nice, visually. So we want the falloff to match closely.&lt;/li&gt;
+&lt;li&gt;Try to prevent sampling errors. This can occur when low probability samples are weighted too highly.&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;I played around with this for awhile and eventually decided that there is a simple, intuitive answer to this equation.&lt;/p&gt;
+
+&lt;p&gt;In our simple case where the surface is parallel to the reflection, when we sample the final blurred cubemap, we will be sampling in the direction of the normal. We&amp;#39;re actually trying to calculate the effect of the microfacets on this reflection. So, why don&amp;#39;t we just weight the microfacet normal by the ratio of the specular for the microfacet normal to the specular for the surface normal?&lt;/p&gt;
+
+&lt;p&gt;Since the specular for the normal is constant over all samples, that factors out. And the final weighting is just the specular equation for that microfacet normal (what I mean is, we use the sampled microfacet normal as the &amp;quot;half-vector&amp;quot;, or &lt;strong&gt;M&lt;/strong&gt;, in the full specular equation).&lt;/p&gt;
+
+&lt;p&gt;This weighting gives us the GGX shape (because it is GGX). It also makes sense intuitively. So, in the end the best method was actually what I originally had. But now the code &amp;amp; the reasons are a little clearer.&lt;/p&gt;
+
+&lt;h3 id="toc_7"&gt;Example&lt;/h3&gt;
+
+&lt;p&gt;Here is an example of a filtered specular map:
+&lt;br/&gt;&lt;img src="/assets/media/ImprovedIBL/ueno0.png"&gt;&lt;img src="/assets/media/ImprovedIBL/ueno1.png"&gt;&lt;img src="/assets/media/ImprovedIBL/ueno2.png"&gt;&lt;img src="/assets/media/ImprovedIBL/ueno3.png"&gt;&lt;img src="/assets/media/ImprovedIBL/ueno4.png"&gt;&lt;/p&gt;
+
+&lt;p&gt;Notice that bright point still appears bright as they are filtered down. They are retaining the GGX shape. Also, when there are bright points, the light energy from those points will get spread out in lower mipmaps. So the bright points become successively wider but darker.&lt;/p&gt;
+
+&lt;p&gt;Currently, we have a linear mapping from roughness -&amp;gt; mipmap. But as you can see, often we have more resolution that we actually need. So we could change this to a non-linear mapping.&lt;/p&gt;
+
+&lt;h3 id="toc_8"&gt;Sampling errors&lt;/h3&gt;
+
+&lt;p&gt;At high roughness values, we can get some sampling errors. In HDR environment textures, some pixels can be hundreds or thousands of times brighter than the average pixel. As a result, these pixels overwhelm hundreds or thousands of other pixels. Our sampling pattern attempts to cluster more samples in more areas. If a pixel like this is picked up in an &amp;quot;unimportant&amp;quot; area, where are are few samples, they can lead to artifacts.&lt;/p&gt;
+
+&lt;p&gt;The following mip chain was generated from an image where the point in a middle of the sun is so bright that it can&amp;#39;t be represented as a 16-bit float. This causes errors, and you can see how the errors radiate outwards according to the sampling pattern.&lt;/p&gt;
+
+&lt;p&gt;&lt;br/&gt;&lt;img src="/assets/media/ImprovedIBL/spec0.png"&gt;&lt;img src="/assets/media/ImprovedIBL/spec1.png"&gt;&lt;img src="/assets/media/ImprovedIBL/spec2.png"&gt;&lt;img src="/assets/media/ImprovedIBL/spec3.png"&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;em&gt;Original image CC-Zero from &lt;a href="http://giantcowfilms.com/"&gt;http://giantcowfilms.com/&lt;/a&gt;&lt;/em&gt;.&lt;/p&gt;
+
+&lt;p&gt;This particular case can only be solved by a better float32 -&amp;gt; float16 converter than clamps values against the valid range. But it&amp;#39;s a good way to visualize how a few pixels can affect many other pixels.&lt;/p&gt;
+
+&lt;p&gt;It may be possible to get improvements by sampling every input pixel for every output pixel. This might not be such a bad idea, so if I get a chance, I&amp;#39;ll try it.&lt;/p&gt;
+
+&lt;p&gt;There&amp;#39;s also another possible sampling improvement related to the &lt;strong&gt;&amp;quot;G&amp;quot;&lt;/strong&gt; term. Using the microfacet normal rather than the surface normal could help reduce the effect of samples around the extreme edge of the sampling pattern. See &lt;em&gt;&amp;quot;M vs N in G&amp;quot;&lt;/em&gt; below for more details on that.&lt;/p&gt;
+
+&lt;h2 id="toc_9"&gt;Improved microfacet sampling&lt;/h2&gt;
+
+&lt;p&gt;When we build the set of random microfacets, we don&amp;#39;t necessarily have to distribute those microfacets evenly. We want some &amp;quot;important&amp;quot; microfacets to be more likely, and &amp;quot;unimportant&amp;quot; microfacets to be less likely.&lt;/p&gt;
+
+&lt;p&gt;Previously, I was using the sampling pattern suggested by Karis in his course notes. However, it&amp;#39;s possible that there is an error in that equation.&lt;/p&gt;
+
+&lt;p&gt;I&amp;#39;ve gone back to the original microfacet distribution function by Walter in &amp;quot;Microfacet Models for Refraction through Rough Surfaces&amp;quot; (the GGX paper). He built this pattern specifically for GGX, and he also designed it for both reflection and transmission. This means the view direction isn&amp;#39;t considered in the distribution (which is great for us).&lt;/p&gt;
+
+&lt;p&gt;Karis&amp;#39; function for generating the microfacet direction actually agrees with this paper (though it is in an optimized form). However, there is a difference in the &amp;quot;Probability Density Functions&amp;quot; (or PDFs) for both:&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;Karis&amp;#39; PDF is &lt;em&gt;(D * NdotH) / (4.f * VdotH)&lt;/em&gt;&lt;/li&gt;
+&lt;li&gt;Walter&amp;#39;s PDF is &lt;em&gt;D * NdotH&lt;/em&gt;&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;Here, Karis&amp;#39; PDF seems immediately suspicious because the view direction is a factor in the PDF, but not a factor in the microfacet function itself. That seems odd. The factor of &amp;quot;4&amp;quot; is also and area of confusion, because it appears in some versions of the Cook-Torrance microfacet equations, but not others. It&amp;#39;s not clear why Karis included it, but it may be because he is using a different form of the Cook-Torrance equation to XLE?&lt;/p&gt;
+
+&lt;p&gt;When I switched to Walter&amp;#39;s sampling equations, I found 2 immediate improvements:&lt;/p&gt;
+
+&lt;h3 id="toc_10"&gt;Floating point errors in microfacet function&lt;/h3&gt;
+
+&lt;p&gt;Karis&amp;#39; microfacet distribution function is not working perfectly, possibly because of floating point errors (or weird edge cases). I&amp;#39;ve replaced his equation with another equation that is mathematically identically, but I get much better results.&lt;/p&gt;
+
+&lt;p&gt;Sometimes the shader compiler&amp;#39;s optimizations can change the mathematics to a point where is it visibly wrong. Could this be the case here?&lt;/p&gt;
+
+&lt;p&gt;Old equation:
+&lt;br/&gt;&lt;img src="/assets/media/ImprovedIBL/MicroFacetSamplingBad.png"&gt;&lt;/p&gt;
+
+&lt;p&gt;New equation
+&lt;br/&gt;&lt;img src="/assets/media/ImprovedIBL/MicroFacetSamplingGood.png"&gt;&lt;/p&gt;
+
+&lt;p&gt;They should be producing the same results, but the old version appears to be producing incorrect results for inputs within a certain range. The inputs are &amp;quot;dithered&amp;quot; according to a 4x4 pattern in this example, which is why is appears regular.&lt;/p&gt;
+
+&lt;h3 id="toc_11"&gt;Edges are too dark&lt;/h3&gt;
+
+&lt;p&gt;The differences in the PDF equation are actually making the edges too dark. This is related to the &lt;em&gt;VdotH&lt;/em&gt; term. It makes sense to remove &lt;em&gt;VdotH&lt;/em&gt; from the PDF for two reasons:&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;The view direction has no impact on the microfacets generated&lt;/li&gt;
+&lt;li&gt;We want to use this sampling in view independent equations&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;Old version:
+&lt;br/&gt;&lt;img src="/assets/media/ImprovedIBL/MicrofacetEdgesOld.png"&gt;&lt;/p&gt;
+
+&lt;p&gt;New version:
+&lt;br/&gt;&lt;img src="/assets/media/ImprovedIBL/MicrofacetEdgesNew.png"&gt;&lt;/p&gt;
+
+&lt;p&gt;In the new version, the extreme edges are much brighter. The dark halo we get with the old version seems unnatural &amp;amp; incorrect.&lt;/p&gt;
+
+&lt;h2 id="toc_12"&gt;NdotL&lt;/h2&gt;
+
+&lt;p&gt;I&amp;#39;ve added the &lt;strong&gt;NdotL&lt;/strong&gt; term into IBL, as well. This was previously excluded but is required to match our dynamic specular equation.&lt;/p&gt;
+
+&lt;p&gt;This is visually important -- without it, the edges become excessively bright, brighter than the thing they are reflecting. With &lt;em&gt;NdotL&lt;/em&gt;, the brightness correctly matches the reflected object.&lt;/p&gt;
+
+&lt;p&gt;In effect, we&amp;#39;ve removed a &lt;strong&gt;VdotH&lt;/strong&gt; term, and added a &lt;strong&gt;NdotL&lt;/strong&gt;. Note that &lt;strong&gt;VdotH&lt;/strong&gt; is the same as &lt;strong&gt;LdotH&lt;/strong&gt; when the &lt;strong&gt;&amp;quot;H&amp;quot;&lt;/strong&gt; is the half-vector between &lt;strong&gt;L&lt;/strong&gt; and &lt;strong&gt;V&lt;/strong&gt;... So this might be source for the mysterious &lt;strong&gt;VdotH&lt;/strong&gt; term in Karis&amp;#39; PDF! He may have assumed that this was part of the PDF, when in fact he was just compensating for a part of his specular equation. If that&amp;#39;s the case, though, why isn&amp;#39;t it explained in his course notes?&lt;/p&gt;
+
+&lt;h2 id="toc_13"&gt;Rebuilding the lookup table&lt;/h2&gt;
+
+&lt;p&gt;Our split-term solution involves a texture lookup table &amp;quot;glosslut.dds.&amp;quot; This is built from all of the math on this page. Our previous version was very similar to Karis&amp;#39; version. But let&amp;#39;s rebuild it, and see what happens!&lt;/p&gt;
+
+&lt;p&gt;Old version:
+&lt;br/&gt;&lt;img src="/assets/media/ImprovedIBL/OldR.png"&gt;&lt;img src="/assets/media/ImprovedIBL/OldG.png"&gt;&lt;/p&gt;
+
+&lt;p&gt;New version:
+&lt;br/&gt;&lt;img src="/assets/media/ImprovedIBL/NewR.png"&gt;&lt;img src="/assets/media/ImprovedIBL/NewG.png"&gt;&lt;/p&gt;
+
+&lt;p&gt;So, the changes are subtle, but important. The specular is general a little bit darker, except at the edges of objects where it has become significantly brighter.&lt;/p&gt;
+
+&lt;h3 id="toc_14"&gt;Comparisons&lt;/h3&gt;
+
+&lt;p&gt;Old look up table:
+&lt;br/&gt;&lt;img src="/assets/media/ImprovedIBL/OldGlossLUT.png"&gt;&lt;/p&gt;
+
+&lt;p&gt;New look up table:
+&lt;br/&gt;&lt;img src="/assets/media/ImprovedIBL/NewGlossLUT.png"&gt;&lt;/p&gt;
+
+&lt;p&gt;Reference:
+&lt;br/&gt;&lt;img src="/assets/media/ImprovedIBL/ReferenceIBL.png"&gt;&lt;/p&gt;
+
+&lt;p&gt;This is just changing the lookup-table. You can see how the reflection is slightly darker in the new version, except that the edges are much brighter. Also, new version matches our reference image much better.&lt;/p&gt;
+
+&lt;p&gt;At high F0 values (and along the edges) the reflection appears to be the correct brightness to match the environment.&lt;/p&gt;
+
+&lt;h3 id="toc_15"&gt;Alpha remapping&lt;/h3&gt;
+
+&lt;p&gt;One thing to note is that in XLE, the same alpha remapping is used for IBL that is used for dynamic specular maps. Karis suggests using different remapping for IBL, explaining that the normal remapping produces edges that are too dark. It seems like we&amp;#39;ve discovered the true cause of the dark edges and the results seem to look fine for us with our normal remapping.&lt;/p&gt;
+
+&lt;p&gt;Also, since we&amp;#39;re using the exact same specular equation as we use for dynamic lighting, the two will also match well.&lt;/p&gt;
+
+&lt;h2 id="toc_16"&gt;Diffuse normalization&lt;/h2&gt;
+
+&lt;p&gt;Previously, I had been assuming our texture pipeline had was premultiplying the &lt;em&gt;&amp;quot;1/pi&amp;quot;&lt;/em&gt; diffuse normalization factor into the diffuse IBL texture. However, that turned out to be incorrect. I&amp;#39;ve compensated for now by adding this term into the shader. However, I would be ideal if we could take care of this during the texture processing step.&lt;/p&gt;
+
+&lt;p&gt;With this change (and the changes to specular brightness), the diffuse and specular are better matched. This is particularly important for surfaces that are partially metal and partially dielectric -- because the diffuse on the dielectric part must feel matched when compared to the specular on the metal part.&lt;/p&gt;
+
+&lt;h2 id="toc_17"&gt;Further research&lt;/h2&gt;
+
+&lt;p&gt;Here are some more ideal for further improvements.&lt;/p&gt;
+
+&lt;h3 id="toc_18"&gt;H vs N in G calculation&lt;/h3&gt;
+
+&lt;p&gt;There is an interesting problem related to the use of the normal in the &amp;quot;G&amp;quot; part of the specular equation. Different sources actually feed different dot products into this equation:&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;Some use &lt;strong&gt;N dot L&lt;/strong&gt; and &lt;strong&gt;N dot V&lt;/strong&gt;&lt;/li&gt;
+&lt;li&gt;Others use &lt;strong&gt;H dot L&lt;/strong&gt; and &lt;strong&gt;H dot V&lt;/strong&gt; (where H is the half-vector or microfacet normal)&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;For our dynamic specular lights, we are using a single value for &lt;strong&gt;N&lt;/strong&gt; and &lt;strong&gt;H&lt;/strong&gt;, so the difference should be very subtle. But when sampling multiple microfacets, we are using many different values for &lt;strong&gt;H&lt;/strong&gt;, with a constant &lt;strong&gt;N&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;p&gt;For example, when using the specular equation as a weight while filtering the cubemap, &lt;strong&gt;N dot L&lt;/strong&gt; and &lt;strong&gt;N dot V&lt;/strong&gt; are constant. So they will have no effect on the filtering.&lt;/p&gt;
+
+&lt;p&gt;Remember that &lt;strong&gt;&amp;quot;G&amp;quot;&lt;/strong&gt; is the shadowing term. It drops off to zero around the extreme edges. So by using &lt;strong&gt;H dot L&lt;/strong&gt; and &lt;strong&gt;H dot V&lt;/strong&gt;, we could help reduce the effect of extreme samples.&lt;/p&gt;
+
+&lt;p&gt;Also, when building the split-term lookup table, &lt;strong&gt;N dot V&lt;/strong&gt; is constant. So it has very little effect. It would be interesting experimenting with the other form in these cases.&lt;/p&gt;
+
+&lt;p&gt;On the other hand, in the dynamic specular equation &lt;strong&gt;H dot L&lt;/strong&gt; and &lt;strong&gt;H dot V&lt;/strong&gt; should be equal and very rarely low numbers. So, in that case, it may not make sense to use the half-vector.&lt;/p&gt;
+
+&lt;h3 id="toc_19"&gt;Problems when NdotV is &amp;lt; .15f&lt;/h3&gt;
+
+&lt;p&gt;Rough objects current tend to have a few pixels around the edges that have no reflection. It&amp;#39;s isn&amp;#39;t really visible in the dielectric case. But with metals (where there is no diffuse) it shows up as black and looks very strange.&lt;/p&gt;
+
+&lt;p&gt;The problem is related to how we&amp;#39;re sampling the microfacet normals. As you can imagine, when normals are near perpendicular to view direction, sometimes the microfacet normal will end up pointing away from the view direction. When this happens, we can reject the sample (or calculate some value close to black). When the number of samples rejected is too high, we will end up with a result that is not accurate.&lt;/p&gt;
+
+&lt;p&gt;This tends to only affect a few pixels, but it&amp;#39;s enough to pop out. We need some better solution around these edge parts.&lt;/p&gt;
+</description>
+    </item>
     <item>
       <title>Transmitted specular progress</title>
       <link>http://xlgames-inc.github.io/posts/transmittedspecular2</link>
