@@ -4,7 +4,7 @@
     <title>XLE development blog</title>
     <description>XLE development blog</description>
     <link>http://xlgames-inc.github.io</link>
-    <pubDate>February 01, 2016</pubDate>
+    <pubDate>February 02, 2016</pubDate>
     <item>
       <title>About</title>
       <link>http://xlgames-inc.github.io/about</link>
@@ -132,15 +132,15 @@
 &lt;p&gt;This is a really long post; so I'll start with the conclusion. I've made a number of improvements that make the IBL solution appear more realistic, and more similar to ray tracers.&lt;/p&gt;
 
 &lt;p&gt;&lt;br&gt;&lt;img src="/assets/media/ImprovedIBL/Spheres.png"&gt;
-&lt;br&gt;&lt;img src="/assets/media/ImprovedIBL/SpheresMetal.png"&gt;&lt;/p&gt;
+&lt;br&gt;&lt;img src="/assets/media/ImprovedIBL/SpheresMetal.png"&gt;
+&lt;br&gt;&lt;img src="/assets/media/ImprovedIBL/Jamie.png"&gt;
+&lt;em&gt;"Jamie Gnome" model from here: &lt;a href="http://www.turbosquid.com/3d-models/free-obj-mode-jamie-hyneman-gnome/789391"&gt;http://www.turbosquid.com/3d-models/free-obj-mode-jamie-hyneman-gnome/789391&lt;/a&gt;&lt;/em&gt;&lt;/p&gt;
 
 &lt;p&gt;I found some errors in some source material I referenced and fixed some incorrect assumptions I made. Each change is small. But when added up, they make a big difference. The IBL specular is has a lot much punch, things are jumping off the screen better.&lt;/p&gt;
 
 &lt;p&gt;Now, I'll go into detail about what's changed.&lt;/p&gt;
 
 &lt;h2 id="toc_1"&gt;IBL basis&lt;/h2&gt;
-
-&lt;p&gt;I've been using a split-term style IBL solution, as per Brian Karis' Siggraph 2013 course (see &lt;a href="http://blog.selfshadow.com/publications/s2013-shading-course/"&gt;http://blog.selfshadow.com/publications/s2013-shading-course/&lt;/a&gt;). As far as I know, this is the same method used in Unreal (though I haven't checked that, there may have been some changes since 2013).&lt;/p&gt;
 
 &lt;/div&gt;
 

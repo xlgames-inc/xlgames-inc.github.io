@@ -4,7 +4,7 @@
     <title>XLE development blog</title>
     <description>XLE development blog</description>
     <link>http://xlgames-inc.github.io</link>
-    <pubDate>February 01, 2016</pubDate>
+    <pubDate>February 02, 2016</pubDate>
     <item>
       <title>Improved IBL</title>
       <link>http://xlgames-inc.github.io/posts/improvedibl</link>
@@ -20,7 +20,9 @@
 &lt;p&gt;This is a really long post; so I&amp;#39;ll start with the conclusion. I&amp;#39;ve made a number of improvements that make the IBL solution appear more realistic, and more similar to ray tracers.&lt;/p&gt;
 
 &lt;p&gt;&lt;br/&gt;&lt;img src="/assets/media/ImprovedIBL/Spheres.png"&gt;
-&lt;br/&gt;&lt;img src="/assets/media/ImprovedIBL/SpheresMetal.png"&gt;&lt;/p&gt;
+&lt;br/&gt;&lt;img src="/assets/media/ImprovedIBL/SpheresMetal.png"&gt;
+&lt;br/&gt;&lt;img src="/assets/media/ImprovedIBL/Jamie.png"&gt;
+&lt;em&gt;&amp;quot;Jamie Gnome&amp;quot; model from here: &lt;a href="http://www.turbosquid.com/3d-models/free-obj-mode-jamie-hyneman-gnome/789391"&gt;http://www.turbosquid.com/3d-models/free-obj-mode-jamie-hyneman-gnome/789391&lt;/a&gt;&lt;/em&gt;&lt;/p&gt;
 
 &lt;p&gt;I found some errors in some source material I referenced and fixed some incorrect assumptions I made. Each change is small. But when added up, they make a big difference. The IBL specular is has a lot much punch, things are jumping off the screen better.&lt;/p&gt;
 
