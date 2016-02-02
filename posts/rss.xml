@@ -106,7 +106,7 @@ Remember that &lt;strong&gt;&amp;quot;D&amp;quot;&lt;/strong&gt; represents how 
 &lt;h3 id="toc_7"&gt;Example&lt;/h3&gt;
 
 &lt;p&gt;Here is an example of a filtered specular map:
-&lt;br/&gt;&lt;img src="/assets/media/ImprovedIBL/ueno0.png"&gt;&lt;img src="/assets/media/ImprovedIBL/ueno1.png"&gt;&lt;img src="/assets/media/ImprovedIBL/ueno2.png"&gt;&lt;img src="/assets/media/ImprovedIBL/ueno3.png"&gt;&lt;img src="/assets/media/ImprovedIBL/ueno4.png"&gt;&lt;/p&gt;
+&lt;br/&gt;&lt;img src="/assets/media/ImprovedIBL/Ueno0.png"&gt;&lt;img src="/assets/media/ImprovedIBL/Ueno1.png"&gt;&lt;img src="/assets/media/ImprovedIBL/Ueno2.png"&gt;&lt;img src="/assets/media/ImprovedIBL/Ueno3.png"&gt;&lt;img src="/assets/media/ImprovedIBL/Ueno4.png"&gt;&lt;/p&gt;
 
 &lt;p&gt;&lt;em&gt;Original image from sIBL archive: &lt;a href="http://www.hdrlabs.com/sibl/archive.html"&gt;http://www.hdrlabs.com/sibl/archive.html&lt;/a&gt;&lt;/em&gt;&lt;/p&gt;
 
@@ -120,7 +120,7 @@ Remember that &lt;strong&gt;&amp;quot;D&amp;quot;&lt;/strong&gt; represents how 
 
 &lt;p&gt;The following mip chain was generated from an image where the point in a middle of the sun is so bright that it can&amp;#39;t be represented as a 16-bit float. This causes errors, and you can see how the errors radiate outwards according to the sampling pattern.&lt;/p&gt;
 
-&lt;p&gt;&lt;br/&gt;&lt;img src="/assets/media/ImprovedIBL/spec0.png"&gt;&lt;img src="/assets/media/ImprovedIBL/spec1.png"&gt;&lt;img src="/assets/media/ImprovedIBL/spec2.png"&gt;&lt;img src="/assets/media/ImprovedIBL/spec3.png"&gt;&lt;/p&gt;
+&lt;p&gt;&lt;br/&gt;&lt;img src="/assets/media/ImprovedIBL/Spec0.png"&gt;&lt;img src="/assets/media/ImprovedIBL/Spec1.png"&gt;&lt;img src="/assets/media/ImprovedIBL/Spec2.png"&gt;&lt;img src="/assets/media/ImprovedIBL/Spec3.png"&gt;&lt;/p&gt;
 
 &lt;p&gt;&lt;em&gt;Original image CC-Zero from &lt;a href="http://giantcowfilms.com/"&gt;http://giantcowfilms.com/&lt;/a&gt;&lt;/em&gt;.&lt;/p&gt;
 
