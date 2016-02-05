@@ -127,7 +127,7 @@
 <p>The core equation is the derivative of the angle of half-vector with respect to the angle of outgoing vector. Remember that the half-vector is a direction somewhere between the incident ray and the outgoing ray. In Walter&#39; equations, the incident ray is constant. So, we can think about this equation as measuring how much the outgoing ray moves as we shift the half-vector. If it moves a lot, we know the incident light is being scattered in a wide angle due to microfacet detail.</p>
 
 <p>There&#39;s another interesting approach to this same equation in Jos Stam&#39;s &quot;An Illumination Model for a Skin Layer
-Bounded by Rough Surfaces&quot; from 2001. He mentions that he initially overlooked the importance of a term like this; and so developed another similar approximation.</p>
+Bounded by Rough Surfaces&quot; from 2001. He mentions that he initially overlooked the importance of a term like this and found that the results looked like they were missing something. So developed his own approximation to this term.</p>
 
 <p>There is a problem with this term, however, because the sampling that Walter is doing is not the same as what we want to do for real-time. In our sampling of this equation, we want the outgoing ray to be constant, and the incident ray will move -- this is the opposite of Walter&#39;s sampling.</p>
 
