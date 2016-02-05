@@ -1,0 +1,297 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Transmitted specular</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="author" content="XL Games">
+
+    <!-- Le HTML5 shim, for IE6-8 support of HTML elements -->
+    <!--[if lt IE 9]>
+      <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+
+    <!-- Le styles -->
+<link href='/assets/stylesheets/bootstrap.min-93b47f97c3444c4711853ed5140d82a1.css' type='text/css' rel='stylesheet' media='all'>
+<link href='/assets/stylesheets/style-1dcb1d39791f3457afa56d279fcf0945.css' type='text/css' rel='stylesheet' media='all'>
+<link href='/assets/stylesheets/google_prettify/sons-of-obsidian-5e05343fd0c18e0a05231023b643245c.css' type='text/css' rel='stylesheet' media='all'>
+    <!-- Le fav and touch icons -->
+  <!-- Update these with your own images
+    <link rel="shortcut icon" href="images/favicon.ico">
+    <link rel="apple-touch-icon" href="images/apple-touch-icon.png">
+    <link rel="apple-touch-icon" sizes="72x72" href="images/apple-touch-icon-72x72.png">
+    <link rel="apple-touch-icon" sizes="114x114" href="images/apple-touch-icon-114x114.png">
+  -->
+  </head>
+
+  <body>
+
+    <div class="navbar">
+      <div class="navbar-inner">
+        <div class="container-narrow">
+          <a class="brand" href="/">XLE development blog</a>
+          <ul class="nav">
+              
+                <li><a href="/tags">Tags</a></li>
+              
+              
+                <li><a href="/archive">Archive</a></li>
+              
+              
+                <li><a href="/about">About</a></li>
+              
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="container-narrow">
+
+      <div class="content">
+        
+<div class="page-header">
+  <h1>Transmitted specular </h1>
+</div>
+
+<div class="row-fluid post-full">
+  <div class="span12">
+    <div class="date">
+      <span>February 05, 2016</strong>
+    </div>
+    <div class="content">
+      <p>I&#39;ve been playing with the transmitted specular implementation for IBL, and working on getting the right balance and visual impression for glass.</p>
+
+<p><br/><img src="/assets/media/TransSpec/GlassSphere.png">
+<br/><em>Background textures from <a href="http://www.hdrlabs.com/sibl/archive.html">http://www.hdrlabs.com/sibl/archive.html</a></em></p>
+
+<p>It&#39;s curious to think about how terms have changed over the last few years. &quot;Specular transmission&quot; is the term I&#39;ve been using to talk about what we might have previously called &quot;refraction mapping&quot;, and &quot;specular IBL&quot; is the new term for &quot;reflection mapping.&quot; The new terms show how real-time methods are now encompassing ideas previously only used in ray tracers.</p>
+
+<h2 id="toc_0">Basic method</h2>
+
+<p>I&#39;ve using the basic method from the GGX paper, <em>&quot;Microfacet Models for Refraction through Rough Surfaces&quot;</em> from Walter, et al. This matches our reflection implementation, of course, because the math for our reflection method is also based on that paper.</p>
+
+<p>I&#39;ve been able to adapt the math to the split-term concept used for reflected specular IBL. It works just the same way; we have one lookup-table that tell us the brightness of the refraction, and a cubemap that is pre-blurred according to the shape of our lighting equation.</p>
+
+<p>See the page on <a href="improvedibl">Improved IBL</a> for more information that that split-term stuff.</p>
+
+<p>The basic principles are simple. But followed blindly, the results do not quite feel right. It turns out that specular transmission is more complicated than specular reflections. I&#39;ll talk about some of the complications involved in the implementation...</p>
+
+<h2 id="toc_1">Relationship between &quot;specular&quot; and index of refraction</h2>
+
+<p>It&#39;s important to remember that there is a relationship between the &quot;specular&quot; material parameter and the index of refraction.</p>
+
+<p>Remember that the specular parameter is used to determine <strong>&quot;F0&quot;</strong> -- which is the brightness of specular reflections in the center of a sphere. This phenomenon of reflections being brighter around the edges of a sphere is driven by the &quot;fresnel&quot; effect.</p>
+
+<p>The fresnel effect determines how light is reflected off a material, and how much gets absorbed into (or transmitted through) the material. Remember that is the ratios of the indices of refractions on either side of the boundary that determine the quantity of reflection and absorption.</p>
+
+<p>So, there is a 1:1 relationship between F0, &quot;specular&quot; and the index of refraction. These 3 values all represent the same physical property.</p>
+
+<p>The index of refraction important to us because it also determines the direction of refraction. And it&#39;s important that this agrees with the fresnel effect calculated for specular reflection, because the refraction looks strange if it doesn&#39;t merge into the reflection correctly.</p>
+
+<p>So, this means that the &quot;specular&quot; material parameter effects both the apparent brightness of the refracted image, and the quantity of distortion applied to it.</p>
+
+<h2 id="toc_2">3 parameter lookup-table</h2>
+
+<p>Our &quot;brightness&quot; lookup table now requires 3 parameters (one more than the reflection case):</p>
+
+<ol>
+<li>N dot V</li>
+<li>&quot;roughness&quot;</li>
+<li>index of refraction ratio</li>
+</ol>
+
+<p>Also, the lookup-table can contain values greater than 1 (because refraction can focus light).</p>
+
+<p>Generally it should be ok if specular transmission is less accurate than specular reflections, so I&#39;ve settled on using a 64x64x32 Float16 texture. This is actually the same total size as the reflection lookup-table.</p>
+
+<p>It should be noted, however, that subtle effects in the brightness of the refraction seem to have a big impact on  visual believability. It&#39;s important to get exactly the right</p>
+
+<h2 id="toc_3">Fixed index of refraction?</h2>
+
+<p>We can potentially optimize the solution by using a fixed index of refraction for all transmitting surfaces. An ideal number might be around 1.5 (which is glass). The fresnel effect for the transmission should match the reflection case, but apart from that, the quantity of distortion applied to the image doesn&#39;t seem very important to visual believability. So it might be sensible to use a single fixed index of refraction for all materials, just to simplify the shader math.</p>
+
+<h2 id="toc_4">GGX transmission focusing term</h2>
+
+<p>Most of the equations in the GGX paper can be brought across as is. However, there is one term that causes many problems.</p>
+
+<p><br/><img src="/assets/media/TransSpec/FocusingEqn.png"></p>
+
+<p>This term is responsible for dealing with the focusing of light. Where the refracted image appears shrunk, more light has been focused together, and so the result is brighter. Likewise a magnified image is darker.</p>
+
+<p>Walter describes the derivation of this term, and explains that is an approximation of the following equation:</p>
+
+<p><br/><img src="/assets/media/TransSpec/JacobianEqn.png"></p>
+
+<p>Where the straight brackets represent the determinant of a Jacobian partial derivatives matrix. The omega values are angles of the outgoing ray and the half vector.</p>
+
+<p>The core equation is the derivative of the angle of half-vector with respect to the angle of outgoing vector. Remember that the half-vector is a direction somewhere between the incident ray and the outgoing ray. In Walter&#39; equations, the incident ray is constant. So, we can think about this equation as measuring how much the outgoing ray moves as we shift the half-vector. If it moves a lot, we know the incident light is being scattered in a wide angle due to microfacet detail.</p>
+
+<p>There&#39;s another interesting approach to this same equation in Jos Stam&#39;s &quot;An Illumination Model for a Skin Layer
+Bounded by Rough Surfaces&quot; from 2001. He mentions that he initially overlooked the importance of a term like this; and so developed another similar approximation.</p>
+
+<p>There is a problem with this term, however, because the sampling that Walter is doing is not the same as what we want to do for real-time. In our sampling of this equation, we want the outgoing ray to be constant, and the incident ray will move -- this is the opposite of Walter&#39;s sampling.</p>
+
+<p>So, we need to rebuild this focusing term for our needs. We could use the same approach as Walter, and just flip the terms around... But I&#39;ve been playing with some other approaches.</p>
+
+<h2 id="toc_5">New focusing term equation</h2>
+
+<p>I&#39;ve been experimenting with an algebraic solution to the derivative equation. Our algebraic solution isn&#39;t necessarily going to be perfectly accurate, but the end result appears visually acceptable.</p>
+
+<p>A simple algebraic solution involves comparing <strong>&quot;O dot H&quot;</strong> to <strong>&quot;I dot H&quot;</strong> (ie, these are the cosines of the angles between these directions and the half-vector). These 2 dot products are related, and we can come up with a simple equation for their relationship. We can take the derivative of the angles use this as an approximation.</p>
+
+<p>Since <strong>O</strong> is constant, a change to <strong>&quot;O dot H&quot;</strong> represents a movement in the half-vector. So this equation tells us how much <strong>I</strong> changes relative to <strong>H</strong> whenever <strong>H</strong> changes.</p>
+
+<p>However, that&#39;s not perfect. We really want to know the change in the angle between <strong>I</strong> and some fixed direction. The simplest solution is just to use <strong>O</strong> as that fixed direction.</p>
+
+<p>So, we can adjust our equations to find the relationship between <strong>&quot;O dot H&quot;</strong> to <strong>&quot;I dot O&quot;</strong>. We can then find the derivative of that equation (with respect to the angles involved). This should give us an idea of how <strong>I</strong> changes when <strong>H</strong> changes.</p>
+
+<h2 id="toc_6">Derivative equation</h2>
+
+<p>Unfortunately our derivative equation is very complicated. It contains many terms, and many trigonometric operations.</p>
+
+<p>In plain text form, it&#39;s:</p>
+
+<p><strong>(a sin(2 x)-(sin(2 x) (a^2 cos(2 x)+1))/(sqrt(2) sqrt(cos^2(x) (a^2 cos(2 x)-a^2+2))))/sqrt(1-(sqrt(cos^2(x) (a^2 cos^2(x)-a^2+1))-a cos^2(x)+a)^2)</strong></p>
+
+<p>... Ok, it&#39;s a crazy-looking equation.</p>
+
+<p>However, we&#39;re going to be mostly just using it for pre-calculating tables, so that shouldn&#39;t be a problem.</p>
+
+<p>This equation is showing the right kinds of effects we expect it to -- we get a brightening around focused areas, and a diminishing around magnified areas.</p>
+
+<p>I&#39;ve found that I&#39;ve needed to multiply the results by &quot;4&quot; to get correctly balance. That part isn&#39;t clear to me yet.</p>
+
+<p>Also, Walter explains how he is using the determinant of a Jacobian matrix of partial derivatives. However, our derivative equation has just the one parameter. I haven&#39;t quite wrapped my head around how that fits in yet.</p>
+
+<p>That said, the results are visually satisfying. Even those there are these uncertainties, I would say that the results are good enough for our needs.</p>
+
+<h2 id="toc_7">Simplified equation</h2>
+
+<p>We can simplify the monster of a derivative equation. By hand, I found that the following equation seems like a good approximation:</p>
+
+<p><br/><img src="/assets/media/TransSpec/SimpleEqn.png"></p>
+
+<p>Where <strong>a</strong> the ratio of the indices of refraction.
+This shows all of the same behaviours as the complex equation. For our purposes, the differences are negligible.</p>
+
+<h2 id="toc_8">Transmission blurriness</h2>
+
+<p>For blurring the refracted image, we could simply build a new cubemap with new filtering intended for the transmission case. Indeed, this is possible. However, given the similarities between the filtering for transmission and the filtering for reflection (ie, they are both dominated by the <em>&quot;D&quot;</em> Trowbridge-Reitz distribution factor), it would be better if we could share the same texture.</p>
+
+<p>An ideal solution would compare the blurring kernel for a given sample to some generically blurred texture, and pick around the right brightness from there. It&#39;s almost like we need some metric that can tell us how much of this GGX-filtered blurring to apply.</p>
+
+<p>I&#39;ve been thinking of this metric as <strong>&quot;GGX-iness&quot;</strong>. Well, maybe it needs a better name. But the principle should be clear -- how broad should the filtering be.</p>
+
+<p>In the reflection case, we&#39;ve been assuming that the quantity of blurring only varies with roughness. This might be a reasonable approximation in that case (the biggest issue is that the blurring can&#39;t be directionally biased).</p>
+
+<p>But in the refraction case, it&#39;s not as accurate. The quantity of distortion to the image varies with the viewing angle. As a result, the quantity of blurring should also vary.</p>
+
+<p>So, our <em>GGX-iness = roughness</em> equation needs to get more complex.</p>
+
+<h2 id="toc_9">Focusing term!</h2>
+
+<p>As it turns out, the focusing term is the answer here, as well. Remember that the focusing term tells us the quantity of angular distortion. That&#39;s exactly what we need to modify the GGX-iness equation.</p>
+
+<p>I&#39;ve implemented a simple equation below for this calculation:
+<br/><img src="/assets/media/TransSpec/GGXinessEqn.png"></p>
+
+<p>This is just based on my visual impression of what looks right (not any physical basis). It may seem strange to come this far using so much math with strong physical bases, and then finish it of with a empirical hack... But I guess sometimes the simple solutions are the best...!</p>
+
+<p><br/><img src="/assets/media/TransSpec/GlassSphere2.png"></p>
+
+<p>Importantly, on the very edges the image become very blurred. This is more obvious on cubes. Its helps the refraction blend into the reflection better, and generally just gives a more believable result.</p>
+
+<h2 id="toc_10">New Years Day in Korea</h2>
+
+<p>It&#39;s the start of the Lunar New Year holiday in Korea. So, 여러분, 새해 복 많이 받으세요!
+Have a good weekend!</p>
+
+    </div>
+    <ul class="tag_box inline">
+      <li><i class="icon-folder-open"></i></li>
+      <li>
+        <a href="/categories#XLE-ref">XLE <span>12</span></a>
+      </li>
+    </ul>
+    <ul class="tag_box inline">
+      <li><i class="icon-tags"></i></li>
+      <li>
+        <a href="/tags#Specular-ref">Specular <span>4</span></a>
+      </li>
+      <li>
+        <a href="/tags#GGX-ref">GGX <span>4</span></a>
+      </li>
+      <li>
+        <a href="/tags#IBL-ref">IBL <span>3</span></a>
+      </li>
+    </ul>
+    <hr>
+    <div class="pagination">
+      <ul>
+          <li class="prev"><a href="/posts/improvedibl" title="Improved IBL">&larr; Previous</a></li>
+
+          <li><a href="/archive">Archive</a></li>
+
+          <li class="next disabled"><a>Next &rarr;</a>
+      </ul>
+    </div>
+    <hr>
+    <div id="disqus_thread"></div>
+<script>
+    var disqus_developer = 1;
+    var disqus_shortname = 'xledev'; // required: replace example with your forum shortname
+    /* * * DON'T EDIT BELOW THIS LINE * * */
+    (function() {
+        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+        dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<a href="http://disqus.com" class="dsq-brlink">blog comments powered by <span class="logo-disqus">Disqus</span></a>
+
+  </div>
+</div>
+
+
+      </div>
+
+      <hr>
+      <div class="footer">
+        <p>&copy; XL Games 2015
+          with help from <a href="http://ruhoh.com" target="_blank" title="The Definitive Technical Blogging Framework">ruhoh</a>
+          and <a href="http://twitter.github.com/bootstrap/" target="_blank">Twitter Bootstrap</a>
+        </p>
+      </div>
+
+    </div> <!-- /container -->
+
+    <!-- Google Prettify -->
+<script src="http://cdnjs.cloudflare.com/ajax/libs/prettify/188.0.0/prettify.js"></script>
+<script>
+  var pres = document.getElementsByTagName("pre");
+  for (var i=0; i < pres.length; ++i) {
+    pres[i].className = "prettyprint linenums";
+  }
+  prettyPrint();
+</script>
+<!-- end Google Prettify -->
+    <script type="text/javascript">
+
+  var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', 'UA-71034032-1']);
+  _gaq.push(['_trackPageview']);
+  
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+
+</script>
+
+
+    
+  </body>
+</html>

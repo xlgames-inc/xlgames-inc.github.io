@@ -4,7 +4,159 @@
     <title>XLE development blog</title>
     <description>XLE development blog</description>
     <link>http://xlgames-inc.github.io</link>
-    <pubDate>February 02, 2016</pubDate>
+    <pubDate>February 05, 2016</pubDate>
+    <item>
+      <title>Transmitted specular</title>
+      <link>http://xlgames-inc.github.io/posts/transmittedspecular3</link>
+      <pubDate>February 05, 2016</pubDate>
+      <description>&lt;p&gt;I&amp;#39;ve been playing with the transmitted specular implementation for IBL, and working on getting the right balance and visual impression for glass.&lt;/p&gt;
+
+&lt;p&gt;&lt;br/&gt;&lt;img src="/assets/media/TransSpec/GlassSphere.png"&gt;
+&lt;br/&gt;&lt;em&gt;Background textures from &lt;a href="http://www.hdrlabs.com/sibl/archive.html"&gt;http://www.hdrlabs.com/sibl/archive.html&lt;/a&gt;&lt;/em&gt;&lt;/p&gt;
+
+&lt;p&gt;It&amp;#39;s curious to think about how terms have changed over the last few years. &amp;quot;Specular transmission&amp;quot; is the term I&amp;#39;ve been using to talk about what we might have previously called &amp;quot;refraction mapping&amp;quot;, and &amp;quot;specular IBL&amp;quot; is the new term for &amp;quot;reflection mapping.&amp;quot; The new terms show how real-time methods are now encompassing ideas previously only used in ray tracers.&lt;/p&gt;
+
+&lt;h2 id="toc_0"&gt;Basic method&lt;/h2&gt;
+
+&lt;p&gt;I&amp;#39;ve using the basic method from the GGX paper, &lt;em&gt;&amp;quot;Microfacet Models for Refraction through Rough Surfaces&amp;quot;&lt;/em&gt; from Walter, et al. This matches our reflection implementation, of course, because the math for our reflection method is also based on that paper.&lt;/p&gt;
+
+&lt;p&gt;I&amp;#39;ve been able to adapt the math to the split-term concept used for reflected specular IBL. It works just the same way; we have one lookup-table that tell us the brightness of the refraction, and a cubemap that is pre-blurred according to the shape of our lighting equation.&lt;/p&gt;
+
+&lt;p&gt;See the page on &lt;a href="improvedibl"&gt;Improved IBL&lt;/a&gt; for more information that that split-term stuff.&lt;/p&gt;
+
+&lt;p&gt;The basic principles are simple. But followed blindly, the results do not quite feel right. It turns out that specular transmission is more complicated than specular reflections. I&amp;#39;ll talk about some of the complications involved in the implementation...&lt;/p&gt;
+
+&lt;h2 id="toc_1"&gt;Relationship between &amp;quot;specular&amp;quot; and index of refraction&lt;/h2&gt;
+
+&lt;p&gt;It&amp;#39;s important to remember that there is a relationship between the &amp;quot;specular&amp;quot; material parameter and the index of refraction.&lt;/p&gt;
+
+&lt;p&gt;Remember that the specular parameter is used to determine &lt;strong&gt;&amp;quot;F0&amp;quot;&lt;/strong&gt; -- which is the brightness of specular reflections in the center of a sphere. This phenomenon of reflections being brighter around the edges of a sphere is driven by the &amp;quot;fresnel&amp;quot; effect.&lt;/p&gt;
+
+&lt;p&gt;The fresnel effect determines how light is reflected off a material, and how much gets absorbed into (or transmitted through) the material. Remember that is the ratios of the indices of refractions on either side of the boundary that determine the quantity of reflection and absorption.&lt;/p&gt;
+
+&lt;p&gt;So, there is a 1:1 relationship between F0, &amp;quot;specular&amp;quot; and the index of refraction. These 3 values all represent the same physical property.&lt;/p&gt;
+
+&lt;p&gt;The index of refraction important to us because it also determines the direction of refraction. And it&amp;#39;s important that this agrees with the fresnel effect calculated for specular reflection, because the refraction looks strange if it doesn&amp;#39;t merge into the reflection correctly.&lt;/p&gt;
+
+&lt;p&gt;So, this means that the &amp;quot;specular&amp;quot; material parameter effects both the apparent brightness of the refracted image, and the quantity of distortion applied to it.&lt;/p&gt;
+
+&lt;h2 id="toc_2"&gt;3 parameter lookup-table&lt;/h2&gt;
+
+&lt;p&gt;Our &amp;quot;brightness&amp;quot; lookup table now requires 3 parameters (one more than the reflection case):&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;N dot V&lt;/li&gt;
+&lt;li&gt;&amp;quot;roughness&amp;quot;&lt;/li&gt;
+&lt;li&gt;index of refraction ratio&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;Also, the lookup-table can contain values greater than 1 (because refraction can focus light).&lt;/p&gt;
+
+&lt;p&gt;Generally it should be ok if specular transmission is less accurate than specular reflections, so I&amp;#39;ve settled on using a 64x64x32 Float16 texture. This is actually the same total size as the reflection lookup-table.&lt;/p&gt;
+
+&lt;p&gt;It should be noted, however, that subtle effects in the brightness of the refraction seem to have a big impact on  visual believability. It&amp;#39;s important to get exactly the right&lt;/p&gt;
+
+&lt;h2 id="toc_3"&gt;Fixed index of refraction?&lt;/h2&gt;
+
+&lt;p&gt;We can potentially optimize the solution by using a fixed index of refraction for all transmitting surfaces. An ideal number might be around 1.5 (which is glass). The fresnel effect for the transmission should match the reflection case, but apart from that, the quantity of distortion applied to the image doesn&amp;#39;t seem very important to visual believability. So it might be sensible to use a single fixed index of refraction for all materials, just to simplify the shader math.&lt;/p&gt;
+
+&lt;h2 id="toc_4"&gt;GGX transmission focusing term&lt;/h2&gt;
+
+&lt;p&gt;Most of the equations in the GGX paper can be brought across as is. However, there is one term that causes many problems.&lt;/p&gt;
+
+&lt;p&gt;&lt;br/&gt;&lt;img src="/assets/media/TransSpec/FocusingEqn.png"&gt;&lt;/p&gt;
+
+&lt;p&gt;This term is responsible for dealing with the focusing of light. Where the refracted image appears shrunk, more light has been focused together, and so the result is brighter. Likewise a magnified image is darker.&lt;/p&gt;
+
+&lt;p&gt;Walter describes the derivation of this term, and explains that is an approximation of the following equation:&lt;/p&gt;
+
+&lt;p&gt;&lt;br/&gt;&lt;img src="/assets/media/TransSpec/JacobianEqn.png"&gt;&lt;/p&gt;
+
+&lt;p&gt;Where the straight brackets represent the determinant of a Jacobian partial derivatives matrix. The omega values are angles of the outgoing ray and the half vector.&lt;/p&gt;
+
+&lt;p&gt;The core equation is the derivative of the angle of half-vector with respect to the angle of outgoing vector. Remember that the half-vector is a direction somewhere between the incident ray and the outgoing ray. In Walter&amp;#39; equations, the incident ray is constant. So, we can think about this equation as measuring how much the outgoing ray moves as we shift the half-vector. If it moves a lot, we know the incident light is being scattered in a wide angle due to microfacet detail.&lt;/p&gt;
+
+&lt;p&gt;There&amp;#39;s another interesting approach to this same equation in Jos Stam&amp;#39;s &amp;quot;An Illumination Model for a Skin Layer
+Bounded by Rough Surfaces&amp;quot; from 2001. He mentions that he initially overlooked the importance of a term like this; and so developed another similar approximation.&lt;/p&gt;
+
+&lt;p&gt;There is a problem with this term, however, because the sampling that Walter is doing is not the same as what we want to do for real-time. In our sampling of this equation, we want the outgoing ray to be constant, and the incident ray will move -- this is the opposite of Walter&amp;#39;s sampling.&lt;/p&gt;
+
+&lt;p&gt;So, we need to rebuild this focusing term for our needs. We could use the same approach as Walter, and just flip the terms around... But I&amp;#39;ve been playing with some other approaches.&lt;/p&gt;
+
+&lt;h2 id="toc_5"&gt;New focusing term equation&lt;/h2&gt;
+
+&lt;p&gt;I&amp;#39;ve been experimenting with an algebraic solution to the derivative equation. Our algebraic solution isn&amp;#39;t necessarily going to be perfectly accurate, but the end result appears visually acceptable.&lt;/p&gt;
+
+&lt;p&gt;A simple algebraic solution involves comparing &lt;strong&gt;&amp;quot;O dot H&amp;quot;&lt;/strong&gt; to &lt;strong&gt;&amp;quot;I dot H&amp;quot;&lt;/strong&gt; (ie, these are the cosines of the angles between these directions and the half-vector). These 2 dot products are related, and we can come up with a simple equation for their relationship. We can take the derivative of the angles use this as an approximation.&lt;/p&gt;
+
+&lt;p&gt;Since &lt;strong&gt;O&lt;/strong&gt; is constant, a change to &lt;strong&gt;&amp;quot;O dot H&amp;quot;&lt;/strong&gt; represents a movement in the half-vector. So this equation tells us how much &lt;strong&gt;I&lt;/strong&gt; changes relative to &lt;strong&gt;H&lt;/strong&gt; whenever &lt;strong&gt;H&lt;/strong&gt; changes.&lt;/p&gt;
+
+&lt;p&gt;However, that&amp;#39;s not perfect. We really want to know the change in the angle between &lt;strong&gt;I&lt;/strong&gt; and some fixed direction. The simplest solution is just to use &lt;strong&gt;O&lt;/strong&gt; as that fixed direction.&lt;/p&gt;
+
+&lt;p&gt;So, we can adjust our equations to find the relationship between &lt;strong&gt;&amp;quot;O dot H&amp;quot;&lt;/strong&gt; to &lt;strong&gt;&amp;quot;I dot O&amp;quot;&lt;/strong&gt;. We can then find the derivative of that equation (with respect to the angles involved). This should give us an idea of how &lt;strong&gt;I&lt;/strong&gt; changes when &lt;strong&gt;H&lt;/strong&gt; changes.&lt;/p&gt;
+
+&lt;h2 id="toc_6"&gt;Derivative equation&lt;/h2&gt;
+
+&lt;p&gt;Unfortunately our derivative equation is very complicated. It contains many terms, and many trigonometric operations.&lt;/p&gt;
+
+&lt;p&gt;In plain text form, it&amp;#39;s:&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;(a sin(2 x)-(sin(2 x) (a^2 cos(2 x)+1))/(sqrt(2) sqrt(cos^2(x) (a^2 cos(2 x)-a^2+2))))/sqrt(1-(sqrt(cos^2(x) (a^2 cos^2(x)-a^2+1))-a cos^2(x)+a)^2)&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;... Ok, it&amp;#39;s a crazy-looking equation.&lt;/p&gt;
+
+&lt;p&gt;However, we&amp;#39;re going to be mostly just using it for pre-calculating tables, so that shouldn&amp;#39;t be a problem.&lt;/p&gt;
+
+&lt;p&gt;This equation is showing the right kinds of effects we expect it to -- we get a brightening around focused areas, and a diminishing around magnified areas.&lt;/p&gt;
+
+&lt;p&gt;I&amp;#39;ve found that I&amp;#39;ve needed to multiply the results by &amp;quot;4&amp;quot; to get correctly balance. That part isn&amp;#39;t clear to me yet.&lt;/p&gt;
+
+&lt;p&gt;Also, Walter explains how he is using the determinant of a Jacobian matrix of partial derivatives. However, our derivative equation has just the one parameter. I haven&amp;#39;t quite wrapped my head around how that fits in yet.&lt;/p&gt;
+
+&lt;p&gt;That said, the results are visually satisfying. Even those there are these uncertainties, I would say that the results are good enough for our needs.&lt;/p&gt;
+
+&lt;h2 id="toc_7"&gt;Simplified equation&lt;/h2&gt;
+
+&lt;p&gt;We can simplify the monster of a derivative equation. By hand, I found that the following equation seems like a good approximation:&lt;/p&gt;
+
+&lt;p&gt;&lt;br/&gt;&lt;img src="/assets/media/TransSpec/SimpleEqn.png"&gt;&lt;/p&gt;
+
+&lt;p&gt;Where &lt;strong&gt;a&lt;/strong&gt; the ratio of the indices of refraction.
+This shows all of the same behaviours as the complex equation. For our purposes, the differences are negligible.&lt;/p&gt;
+
+&lt;h2 id="toc_8"&gt;Transmission blurriness&lt;/h2&gt;
+
+&lt;p&gt;For blurring the refracted image, we could simply build a new cubemap with new filtering intended for the transmission case. Indeed, this is possible. However, given the similarities between the filtering for transmission and the filtering for reflection (ie, they are both dominated by the &lt;em&gt;&amp;quot;D&amp;quot;&lt;/em&gt; Trowbridge-Reitz distribution factor), it would be better if we could share the same texture.&lt;/p&gt;
+
+&lt;p&gt;An ideal solution would compare the blurring kernel for a given sample to some generically blurred texture, and pick around the right brightness from there. It&amp;#39;s almost like we need some metric that can tell us how much of this GGX-filtered blurring to apply.&lt;/p&gt;
+
+&lt;p&gt;I&amp;#39;ve been thinking of this metric as &lt;strong&gt;&amp;quot;GGX-iness&amp;quot;&lt;/strong&gt;. Well, maybe it needs a better name. But the principle should be clear -- how broad should the filtering be.&lt;/p&gt;
+
+&lt;p&gt;In the reflection case, we&amp;#39;ve been assuming that the quantity of blurring only varies with roughness. This might be a reasonable approximation in that case (the biggest issue is that the blurring can&amp;#39;t be directionally biased).&lt;/p&gt;
+
+&lt;p&gt;But in the refraction case, it&amp;#39;s not as accurate. The quantity of distortion to the image varies with the viewing angle. As a result, the quantity of blurring should also vary.&lt;/p&gt;
+
+&lt;p&gt;So, our &lt;em&gt;GGX-iness = roughness&lt;/em&gt; equation needs to get more complex.&lt;/p&gt;
+
+&lt;h2 id="toc_9"&gt;Focusing term!&lt;/h2&gt;
+
+&lt;p&gt;As it turns out, the focusing term is the answer here, as well. Remember that the focusing term tells us the quantity of angular distortion. That&amp;#39;s exactly what we need to modify the GGX-iness equation.&lt;/p&gt;
+
+&lt;p&gt;I&amp;#39;ve implemented a simple equation below for this calculation:
+&lt;br/&gt;&lt;img src="/assets/media/TransSpec/GGXinessEqn.png"&gt;&lt;/p&gt;
+
+&lt;p&gt;This is just based on my visual impression of what looks right (not any physical basis). It may seem strange to come this far using so much math with strong physical bases, and then finish it of with a empirical hack... But I guess sometimes the simple solutions are the best...!&lt;/p&gt;
+
+&lt;p&gt;&lt;br/&gt;&lt;img src="/assets/media/TransSpec/GlassSphere2.png"&gt;&lt;/p&gt;
+
+&lt;p&gt;Importantly, on the very edges the image become very blurred. This is more obvious on cubes. Its helps the refraction blend into the reflection better, and generally just gives a more believable result.&lt;/p&gt;
+
+&lt;h2 id="toc_10"&gt;New Years Day in Korea&lt;/h2&gt;
+
+&lt;p&gt;It&amp;#39;s the start of the Lunar New Year holiday in Korea. So, &#xC5EC;&#xB7EC;&#xBD84;, &#xC0C8;&#xD574; &#xBCF5; &#xB9CE;&#xC774; &#xBC1B;&#xC73C;&#xC138;&#xC694;!
+Have a good weekend!&lt;/p&gt;
+</description>
+    </item>
     <item>
       <title>Improved IBL</title>
       <link>http://xlgames-inc.github.io/posts/improvedibl</link>

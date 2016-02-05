@@ -75,6 +75,9 @@
     <h3>February</h3>
     <ul>
       <li>
+<span>February 05, 2016</span> » <a href="/posts/transmittedspecular3">Transmitted specular</a>
+</li>
+      <li>
 <span>February 01, 2016</span> » <a href="/posts/improvedibl">Improved IBL</a>
 </li>
     </ul>
@@ -130,14 +133,14 @@
         <div class="summary ellipsis">
 <ul class="tag_box inline">
   <li>
-    <a href="/categories#XLE-ref">XLE <span>11</span></a>
+    <a href="/categories#XLE-ref">XLE <span>12</span></a>
   </li>
   <li>
     <a href="/categories#blog-ref">blog <span>1</span></a>
   </li>
 </ul>
 
-  <h3>XLE (11)</h3>
+  <h3>XLE (12)</h3>
   <ul>
       <li><a href="/posts/arealightsandpbr">Area Lights with Physically Based Rendering</a></li>
       <li><a href="/posts/assetpathscripts">Processing textures with the XLE scriptable asset path</a></li>
@@ -148,6 +151,7 @@
       <li><a href="/posts/transmissionnodegraph">Transmission Node Diagram</a></li>
       <li><a href="/posts/transmittedspecular">Transmitted specular</a></li>
       <li><a href="/posts/transmittedspecular2">Transmitted specular progress</a></li>
+      <li><a href="/posts/transmittedspecular3">Transmitted specular</a></li>
       <li><a href="/posts/whattodofirst">What to do first</a></li>
       <li><a href="/posts/workingonrectlights">Working some improvements to rectangle lights</a></li>
   </ul>
@@ -161,26 +165,26 @@
         <h3 class="title"><a href="/">Home</a><br/> <span class="date"></span></h3>
 
         <div class="summary ellipsis">
-<p>I've been working on improving the accuracy of the Imaged Based Lighting (IBL) solution for XLE. This is the technology that allows us to load in a background panorama map and use it for both diffuse and specular lighting.</p>
+<p>I've been playing with the transmitted specular implementation for IBL, and working on getting the right balance and visual impression for glass.</p>
 
-<p>The best way to do this is by comparing our real-time result to other renderers. So, for example, I've been experimenting with Substance Designer (more on that later). It has nVidia's "IRay" raytracer built-in -- so we can compare the non-real-time results from IRay with real-time XLE. I have other ways to do this, also -- for example, the shader in ToolsHelper/BRDFSlice.sh can generate textures directly comparable with Disney's BRDFExplorer tool.</p>
+<p><br><img src="/assets/media/TransSpec/GlassSphere.png">
+<br><em>Background textures from <a href="http://www.hdrlabs.com/sibl/archive.html">http://www.hdrlabs.com/sibl/archive.html</a></em></p>
 
-<p>While doing this (and working on the specular transmission stuff), I've found some interesting improvements to the IBL solution!</p>
+<p>It's curious to think about how terms have changed over the last few years. "Specular transmission" is the term I've been using to talk about what we might have previously called "refraction mapping", and "specular IBL" is the new term for "reflection mapping." The new terms show how real-time methods are now encompassing ideas previously only used in ray tracers.</p>
 
-<h2 id="toc_0">Conclusion</h2>
+<h2 id="toc_0">Basic method</h2>
 
-<p>This is a really long post; so I'll start with the conclusion. I've made a number of improvements that make the IBL solution appear more realistic, and more similar to ray tracers.</p>
+<p>I've using the basic method from the GGX paper, <em>"Microfacet Models for Refraction through Rough Surfaces"</em> from Walter, et al. This matches our reflection implementation, of course, because the math for our reflection method is also based on that paper.</p>
 
-<p><br><img src="/assets/media/ImprovedIBL/Spheres.png">
-<br><img src="/assets/media/ImprovedIBL/SpheresMetal.png">
-<br><img src="/assets/media/ImprovedIBL/Jamie.png">
-<em>"Jamie Gnome" model from here: <a href="http://www.turbosquid.com/3d-models/free-obj-mode-jamie-hyneman-gnome/789391">http://www.turbosquid.com/3d-models/free-obj-mode-jamie-hyneman-gnome/789391</a></em></p>
+<p>I've been able to adapt the math to the split-term concept used for reflected specular IBL. It works just the same way; we have one lookup-table that tell us the brightness of the refraction, and a cubemap that is pre-blurred according to the shape of our lighting equation.</p>
 
-<p>I found some errors in some source material I referenced and fixed some incorrect assumptions I made. Each change is small. But when added up, they make a big difference. The IBL specular is has a lot much punch, things are jumping off the screen better.</p>
+<p>See the page on <a href="improvedibl">Improved IBL</a> for more information that that split-term stuff.</p>
 
-<p>Now, I'll go into detail about what's changed.</p>
+<p>The basic principles are simple. But followed blindly, the results do not quite feel right. It turns out that specular transmission is more complicated than specular reflections. I'll talk about some of the complications involved in the implementation...</p>
 
-<h2 id="toc_1">IBL basis</h2>
+<h2 id="toc_1">Relationship between "specular" and index of refraction</h2>
+
+<p>It's important to remember that there is a relationship between the "specular" material parameter and the index of refraction.</p>
 
 </div>
 
