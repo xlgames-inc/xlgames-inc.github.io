@@ -51,6 +51,42 @@
         <div class="row-fluid">
   <div class="span12">
       <div class="posts">
+        <h3 class="title"><a href="/posts/workingonrectlights">Working some improvements to rectangle lights</a><br/> <span class="date">December 09, 2015</span></h3>
+
+        <div class="summary ellipsis">
+<p><strong>Post updated on 2015-12-10</strong></p>
+
+<p>This is just some notes about some ideas I've been playing with lately. I've been thinking about some improvements to the specular highlights for rectangle lights!</p>
+
+<p>The current implementation is based on the method by <em>Michal Drobot</em> in <strong>GPU Pro 5</strong>. I'm not going to repeat the description here (I'll only give a few details) -- but I recommend buying the book and having a look! It's quite a good method, and interesting read. Drobot describes a very practical method for diffuse and specular for rectangle and disc lights.</p>
+
+<p>However, at extreme angles, the specular reflection of rectangle lights can sometimes show some distortion.</p>
+
+<p>Here is a comparison:
+<style type="text/css">
+.tg  {border-collapse:collapse;border-spacing:0;}
+.tg td{font-family:Arial, sans-serif;font-size:14px;padding:10px 5px;border-style:solid;border-width:1px;overflow:hidden;word-break:normal;}
+.tg th{font-family:Arial, sans-serif;font-size:14px;font-weight:normal;padding:10px 5px;border-style:solid;border-width:1px;overflow:hidden;word-break:normal;}
+.tg .tg-yw4l{vertical-align:top}
+</style>
+</p>
+<table class="tg">
+  <tr>
+    <th class="tg-yw4l">Original Method</th>
+    <th class="tg-yw4l">New Method</th>
+  </tr>
+  <tr>
+    <td class="tg-yw4l"><img src="/assets/media/RectLightImprovements/BasicRectLight.png"></td>
+    <td class="tg-yw4l"><img src="/assets/media/RectLightImprovements/ImprovedRectLight.png"></td>
+  </tr>
+</table>
+</div>
+
+        <div class="more">
+          <a href="/posts/workingonrectlights" class="btn btn-small">read more..</a>
+        </div>
+      </div>
+      <div class="posts">
         <h3 class="title"><a href="/posts/whattodofirst">What to do first</a><br/> <span class="date">December 04, 2015</span></h3>
 
         <div class="summary ellipsis">

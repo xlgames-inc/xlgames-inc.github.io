@@ -4,7 +4,79 @@
     <title>XLE development blog</title>
     <description>XLE development blog</description>
     <link>http://xlgames-inc.github.io</link>
-    <pubDate>February 05, 2016</pubDate>
+    <pubDate>March 14, 2016</pubDate>
+    <item>
+      <title>Latest Tool Features</title>
+      <link>http://xlgames-inc.github.io/posts/newtoolfeatures</link>
+      <pubDate>March 14, 2016</pubDate>
+      <description>&lt;p&gt;Here&amp;#39;s a rundown of some of the latest improvements to the tools. These are just a few additions and improvements made over about a week&amp;#39;s time.&lt;/p&gt;
+
+&lt;h2 id="toc_0"&gt;Search and Replace for placements&lt;/h2&gt;
+
+&lt;p&gt;Find placements using complex queries:
+&lt;br/&gt;&lt;img src="/assets/media/NewToolFeatures/SearchAndReplace.png"&gt;&lt;/p&gt;
+
+&lt;p&gt;Once found, they can be selected from the results menu (or run a replace operation).&lt;/p&gt;
+
+&lt;p&gt;Sometimes it&amp;#39;s useful to search for placements that use a specific model:
+&lt;br/&gt;&lt;img src="/assets/media/NewToolFeatures/SearchShortcut.png"&gt;&lt;/p&gt;
+
+&lt;h2 id="toc_1"&gt;Grouping support for placements&lt;/h2&gt;
+
+&lt;p&gt;&lt;br/&gt;&lt;img src="/assets/media/NewToolFeatures/Grouping.png"&gt;&lt;/p&gt;
+
+&lt;p&gt;Group together objects to make them easier to use. Support for hierarchical groups. Use the &#x201C;Any Object (ignore groups)&#x201D; filter to ignore groups when selecting.&lt;/p&gt;
+
+&lt;h2 id="toc_2"&gt;Randomize transforms&lt;/h2&gt;
+
+&lt;p&gt;&lt;br/&gt;&lt;img src="/assets/media/NewToolFeatures/RandomizeTransforms.png"&gt;
+&lt;br/&gt;&lt;img src="/assets/media/NewToolFeatures/RandomTransMenu.png"&gt;&lt;/p&gt;
+
+&lt;p&gt;Give objects random scale and rotation values. Can be applied to many objects at the same time.&lt;/p&gt;
+
+&lt;h2 id="toc_3"&gt;Prefab support&lt;/h2&gt;
+
+&lt;p&gt;&lt;br/&gt;&lt;img src="/assets/media/NewToolFeatures/CreatePrefabMenu.png"&gt;
+&lt;br/&gt;&lt;img src="/assets/media/NewToolFeatures/PrefabResource.png"&gt;&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt; Select a group of objects&lt;/li&gt;
+&lt;li&gt; Save them to a separate &#x201C;.prefab&#x201D; file&lt;/li&gt;
+&lt;li&gt; That prefab file can now be dragged into the world in multiple places&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;For example, a house + a tree + a fence can be combined to make home.prefab. We can then add home.prefab in multiple places in the world.&lt;/p&gt;
+
+&lt;p&gt;This is pretty cool because we can edit each instance of home.prefab separately... The system will load changes to the prefab file, but also remembers what has changed in each instance!&lt;/p&gt;
+
+&lt;h2 id="toc_4"&gt;Terrain editing optimization and fixes&lt;/h2&gt;
+
+&lt;p&gt;In the terrain code, there&#x2019;s a system called &#x201C;short-circuit&#x201D;. This applies to terrain changes to the streaming assets.
+This has been optimised. I also fixed an old problem where new streamed assets weren&amp;#39;t being &#x201C;short-circuited&#x201D; with the latest changes (which fixes issues when some terrain tiles show the wrong height values).&lt;/p&gt;
+
+&lt;h2 id="toc_5"&gt;Terrain fine tune&lt;/h2&gt;
+
+&lt;p&gt;&lt;br/&gt;&lt;img src="/assets/media/NewToolFeatures/TerrainFineTune.png"&gt;&lt;/p&gt;
+
+&lt;p&gt;Click to place a circle on the terrain. Now you can drag up and down, and the terrain will follow the cursor.&lt;/p&gt;
+
+&lt;p&gt;This can be used to fine-tune small areas of the terrain (such as moving a single height value up and down).&lt;/p&gt;
+
+&lt;h2 id="toc_6"&gt;Quick access to manipulator properties&lt;/h2&gt;
+
+&lt;p&gt;&lt;br/&gt;&lt;img src="/assets/media/NewToolFeatures/SelectNamedCoverageMaterial.png"&gt;&lt;/p&gt;
+
+&lt;p&gt;There is now control that floats over the bottom right corner of the screen. This is manipulator specific, and can be used to change frequently used settings. For the Paint Coverage manipulator, it can be used to select the material to paint with.&lt;/p&gt;
+
+&lt;p&gt;Also, the base texture materials can be given arbitrary names. This is just for convenience, so you can label a grass texture &amp;quot;grass&amp;quot; (for example).&lt;/p&gt;
+
+&lt;h2 id="toc_7"&gt;Hidden placements&lt;/h2&gt;
+
+&lt;p&gt;&lt;br/&gt;&lt;img src="/assets/media/NewToolFeatures/HiddenPlacements.png"&gt;&lt;/p&gt;
+
+&lt;p&gt;Hidden placements now appear like a transparent shadow.&lt;/p&gt;
+</description>
+    </item>
     <item>
       <title>Transmitted specular</title>
       <link>http://xlgames-inc.github.io/posts/transmittedspecular3</link>

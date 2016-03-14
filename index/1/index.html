@@ -70,8 +70,14 @@
       <div class="_root">
         <h3 class="title"><a href="/archive">Archive</a><br/> <span class="date"></span></h3>
 
-        <div class="summary">
+        <div class="summary ellipsis">
   <h2>2016</h2>
+    <h3>March</h3>
+    <ul>
+      <li>
+<span>March 14, 2016</span> » <a href="/posts/newtoolfeatures">Latest Tool Features</a>
+</li>
+    </ul>
     <h3>February</h3>
     <ul>
       <li>
@@ -100,28 +106,7 @@
 </li>
     </ul>
   <h2>2015</h2>
-    <h3>December</h3>
-    <ul>
-      <li>
-<span>December 16, 2015</span> » <a href="/posts/functionlinkedshaders">Dynamic Function Linking Graph for Shaders</a>
-</li>
-      <li>
-<span>December 11, 2015</span> » <a href="/posts/rectlightdiffuse">Rectangle Light diffuse vs 3DS Max</a>
-</li>
-      <li>
-<span>December 09, 2015</span> » <a href="/posts/workingonrectlights">Working some improvements to rectangle lights</a>
-</li>
-      <li>
-<span>December 04, 2015</span> » <a href="/posts/whattodofirst">What to do first</a>
-</li>
-      <li>
-<span>December 02, 2015</span> » <a href="/posts/arealightsandpbr">Area Lights with Physically Based Rendering</a>
-</li>
-      <li>
-<span>December 01, 2015</span> » <a href="/posts/first">First post</a>
-</li>
-    </ul>
-</div>
+    </div>
 
         <div class="more">
           <a href="/archive" class="btn btn-small">read more..</a>
@@ -133,20 +118,21 @@
         <div class="summary ellipsis">
 <ul class="tag_box inline">
   <li>
-    <a href="/categories#XLE-ref">XLE <span>12</span></a>
+    <a href="/categories#XLE-ref">XLE <span>13</span></a>
   </li>
   <li>
     <a href="/categories#blog-ref">blog <span>1</span></a>
   </li>
 </ul>
 
-  <h3>XLE (12)</h3>
+  <h3>XLE (13)</h3>
   <ul>
       <li><a href="/posts/arealightsandpbr">Area Lights with Physically Based Rendering</a></li>
       <li><a href="/posts/assetpathscripts">Processing textures with the XLE scriptable asset path</a></li>
       <li><a href="/posts/functionlinkedshaders">Dynamic Function Linking Graph for Shaders</a></li>
       <li><a href="/posts/improvedibl">Improved IBL</a></li>
       <li><a href="/posts/materialtool">Material and Node Diagram Tool</a></li>
+      <li><a href="/posts/newtoolfeatures">Latest Tool Features</a></li>
       <li><a href="/posts/rectlightdiffuse">Rectangle Light diffuse vs 3DS Max</a></li>
       <li><a href="/posts/transmissionnodegraph">Transmission Node Diagram</a></li>
       <li><a href="/posts/transmittedspecular">Transmitted specular</a></li>
@@ -165,27 +151,28 @@
         <h3 class="title"><a href="/">Home</a><br/> <span class="date"></span></h3>
 
         <div class="summary ellipsis">
-<p>I've been playing with the transmitted specular implementation for IBL, and working on getting the right balance and visual impression for glass.</p>
+<p>Here's a rundown of some of the latest improvements to the tools. These are just a few additions and improvements made over about a week's time.</p>
 
-<p><br><img src="/assets/media/TransSpec/GlassSphere.png">
-<br><em>Background textures from <a href="http://www.hdrlabs.com/sibl/archive.html">http://www.hdrlabs.com/sibl/archive.html</a></em></p>
+<h2 id="toc_0">Search and Replace for placements</h2>
 
-<p>It's curious to think about how terms have changed over the last few years. "Specular transmission" is the term I've been using to talk about what we might have previously called "refraction mapping", and "specular IBL" is the new term for "reflection mapping." The new terms show how real-time methods are now encompassing ideas previously only used in ray tracers.</p>
+<p>Find placements using complex queries:
+<br><img src="/assets/media/NewToolFeatures/SearchAndReplace.png"></p>
 
-<h2 id="toc_0">Basic method</h2>
+<p>Once found, they can be selected from the results menu (or run a replace operation).</p>
 
-<p>I've using the basic method from the GGX paper, <em>"Microfacet Models for Refraction through Rough Surfaces"</em> from Walter, et al. This matches our reflection implementation, of course, because the math for our reflection method is also based on that paper.</p>
+<p>Sometimes it's useful to search for placements that use a specific model:
+<br><img src="/assets/media/NewToolFeatures/SearchShortcut.png"></p>
 
-<p>I've been able to adapt the math to the split-term concept used for reflected specular IBL. It works just the same way; we have one lookup-table that tell us the brightness of the refraction, and a cubemap that is pre-blurred according to the shape of our lighting equation.</p>
+<h2 id="toc_1">Grouping support for placements</h2>
 
-<p>See the page on <a href="improvedibl">Improved IBL</a> for more information that that split-term stuff.</p>
+<p><br><img src="/assets/media/NewToolFeatures/Grouping.png"></p>
 
-<p>The basic principles are simple. But followed blindly, the results do not quite feel right. It turns out that specular transmission is more complicated than specular reflections. I'll talk about some of the complications involved in the implementation...</p>
+<p>Group together objects to make them easier to use. Support for hierarchical groups. Use the “Any Object (ignore groups)” filter to ignore groups when selecting.</p>
 
-<h2 id="toc_1">Relationship between "specular" and index of refraction</h2>
+<h2 id="toc_2">Randomize transforms</h2>
 
-<p>It's important to remember that there is a relationship between the "specular" material parameter and the index of refraction.</p>
-
+<p><br><img src="/assets/media/NewToolFeatures/RandomizeTransforms.png">
+<br><img src="/assets/media/NewToolFeatures/RandomTransMenu.png"></p>
 </div>
 
         <div class="more">

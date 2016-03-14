@@ -62,6 +62,10 @@
 <p>Dev team contact: <a href="mailto:xle@xlgames.com">xle@xlgames.com</a> (in English or Korean)</p>
 
   <h2>2016</h2>
+    <h3>March</h3>
+    <ul>
+      <li><span>March 14, 2016</span> &raquo; <a href="/posts/newtoolfeatures">Latest Tool Features</a></li>
+    </ul>
     <h3>February</h3>
     <ul>
       <li><span>February 05, 2016</span> &raquo; <a href="/posts/transmittedspecular3">Transmitted specular</a></li>
@@ -90,6 +94,38 @@
 
 <hr />
 
+<div class="post">
+  <h3 class="title"><a href="/posts/newtoolfeatures">Latest Tool Features</a><br /> <span class="date">March 14, 2016</span></h3>
+
+  <div class="summary ellipsis">
+<p>Here's a rundown of some of the latest improvements to the tools. These are just a few additions and improvements made over about a week's time.</p>
+
+<h2 id="toc_0">Search and Replace for placements</h2>
+
+<p>Find placements using complex queries:
+<br><img src="/assets/media/NewToolFeatures/SearchAndReplace.png"></p>
+
+<p>Once found, they can be selected from the results menu (or run a replace operation).</p>
+
+<p>Sometimes it's useful to search for placements that use a specific model:
+<br><img src="/assets/media/NewToolFeatures/SearchShortcut.png"></p>
+
+<h2 id="toc_1">Grouping support for placements</h2>
+
+<p><br><img src="/assets/media/NewToolFeatures/Grouping.png"></p>
+
+<p>Group together objects to make them easier to use. Support for hierarchical groups. Use the “Any Object (ignore groups)” filter to ignore groups when selecting.</p>
+
+<h2 id="toc_2">Randomize transforms</h2>
+
+<p><br><img src="/assets/media/NewToolFeatures/RandomizeTransforms.png">
+<br><img src="/assets/media/NewToolFeatures/RandomTransMenu.png"></p>
+</div>
+
+  <div class="more">
+    <a href="/posts/newtoolfeatures" class="btn btn-small">read more..</a>
+  </div>
+</div>
 <div class="post">
   <h3 class="title"><a href="/posts/transmittedspecular3">Transmitted specular</a><br /> <span class="date">February 05, 2016</span></h3>
 
@@ -213,37 +249,6 @@
 
   <div class="more">
     <a href="/posts/assetpathscripts" class="btn btn-small">read more..</a>
-  </div>
-</div>
-<div class="post">
-  <h3 class="title"><a href="/posts/transmittedspecular">Transmitted specular</a><br /> <span class="date">January 25, 2016</span></h3>
-
-  <div class="summary ellipsis">
-<p>I've modified the lighting equations to allow for transmitted (as well as reflected) specular for dynamic lightings. Transmitted specular means the light is on the opposite side of the object, but light is coming through the object towards the viewer.</p>
-
-<p>This is important for thin materials (such as leaves)</p>
-
-<h3 id="toc_0">No transmitted specular:</h3>
-
-<p><br><img src="/assets/media/TransSpec/LeavesNoTransSpec.png"></p>
-
-<h3 id="toc_1">With transmitted specular:</h3>
-
-<p><br><img src="/assets/media/TransSpec/LeavesTransSpec.png"></p>
-
-<p>Here the amount of transmission is maybe slightly too high -- but it shows the effect well.
-This works particularly well with shadowed directional lights and geometry using order independent transparency. The above screenshot is exactly that situation. The tree leaves are rendered with stochastic transparency (which works particularly well for this model). So we get a nice halo effect around the edges of the tree.</p>
-
-<p>And, if you look closely, you can see that the tree shadowing is blocking the transmitted specular, giving a volumetric look.</p>
-
-<p>This model is built in a way to create a lot of noise in the normals. As you can see here:
-<br><img src="/assets/media/TransSpec/LeavesNormals.png"></p>
-
-<p>Normals point in every direction, and there is a lot of local variation.</p>
-</div>
-
-  <div class="more">
-    <a href="/posts/transmittedspecular" class="btn btn-small">read more..</a>
   </div>
 </div>
 
