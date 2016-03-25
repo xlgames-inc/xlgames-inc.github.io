@@ -2,7 +2,7 @@
 <html lang="en">
   <head>
     <meta charset="utf-8">
-    <title>Transmitted specular progress</title>
+    <title>Environment Sample Streamlining</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="author" content="XL Games">
 
@@ -50,40 +50,56 @@
       <div class="content">
         
 <div class="page-header">
-  <h1>Transmitted specular progress </h1>
+  <h1>Environment Sample Streamlining </h1>
 </div>
 
 <div class="row-fluid post-full">
   <div class="span12">
     <div class="date">
-      <span>January 29, 2016</strong>
+      <span>March 25, 2016</strong>
     </div>
     <div class="content">
-      <p>Just a quick update... I&#39;ve been making some great progress with transmitted specular for IBL!</p>
+      <p>Along with the tools improvements, I&#39;ve added a few features to make the &quot;Environment&quot; sample a little easier to use.</p>
 
-<p><br/><img src="/assets/media/TransSpec/TransSphereMat.png"></p>
+<h2 id="toc_0">Exporting to the Environment sample</h2>
 
-<p>These screenshots will look a little strange (I mean that black borders &amp; grainyness), because it&#39;s a debugging rendering mode.</p>
+<ol>
+<li>Start a new world</li>
+<li>Find the &quot;palette&quot; window and drag these objects into the main viewport:
 
-<p><br/><img src="/assets/media/TransSpec/TransSphereMat2.png"></p>
+<ul>
+<li>CharacterSpawn</li>
+<li>AmbientSettings</li>
+<li>DirLight
+<br/><img src="/assets/media/EnvSample/StarterObjects.png"></li>
+</ul></li>
+<li>You may want to position the character spawn and directional light using the move manipulator</li>
+<li>Do an &quot;Export to game&quot;:
 
-<p>I&#39;ve got the split-term stuff going; and it looks like it should be practical. I&#39;d prefer to avoid having yet another cubemap, so maybe there&#39;s some way to just reuse the reflection filtered cubemap. Its seems reasonable to say that the filtering should be similar. We just need some way to calculate the amount of blurriness that is correct for transmissions.</p>
+<ul>
+<li>in the level editor, the world is stored as large XML tree. But this isn&#39;t loaded into the environment sample. Instead we have a number of small configuration files.
+<br/><img src="/assets/media/EnvSample/Export.png"></li>
+</ul></li>
+<li>Now do export to environment sample:
+<br/><img src="/assets/media/EnvSample/ExecuteEnvSample.png"></li>
+</ol>
 
-<p><br/><img src="/assets/media/TransSpec/TransSphereMat3.png"></p>
+<p>This should execute the sample, and you will have a simple character running around.</p>
 
-<p>Speaking of that, I&#39;ve been thinking the type of filtering that is applied to the specular map. More on that later.</p>
+<h2 id="toc_1">Environment sample</h2>
 
-<p>Next week I&#39;ll post some proper screenshots &amp; a whole lot of details!</p>
+<p>The Environment sample is only the most basic of client apps for XLE. But it shows a few important concepts:</p>
 
-<p>I made some interesting observations while doing this, I&#39;ve got a bunch of new changes and improvements for IBL. Check out the &quot;experimental&quot; branch for now.</p>
+<ol>
+<li>use of ISceneParser to construct a scene of objects</li>
+<li>rendering models with animated data</li>
+</ol>
 
-<p>BTW, the node diagram for the GGX BSDF equation looks a little nicer now --</p>
+<p>High level scene management and an game objects framework are not features of XLE. XLE is intended to be integrated with other solutions that provide this functionality. So, if you are familiar with OpenSceneGraph or some other favourite game framework -- then this can be used together with the core XLE rendering and asset management functionality.</p>
 
-<p><br/><img src="/assets/media/TransSpec/BSDFNodes2.png"></p>
+<h2 id="toc_2">Reloading changes</h2>
 
-<p>(See the older version here:<a href="transmissionnodegraph">Transmission Node Diagram</a>)</p>
-
-<p>As you can see in the diagram, the equations are causing a lot of light to get focused in around the edges. This seems to be exaggerated when roughness is very high. That might require a little more investigation next week.</p>
+<p>Note that that Environment sample will reload assets as they change. So if you keep the window open, you can just do another &quot;Export To Game,&quot; and the sample will load any changes. This is great for rapid development, because you can keep the Level Editor and the sample open at the same time and they work well together.</p>
 
     </div>
     <ul class="tag_box inline">
@@ -95,26 +111,20 @@
     <ul class="tag_box inline">
       <li><i class="icon-tags"></i></li>
       <li>
-        <a href="/tags#AreaLights-ref">AreaLights <span>5</span></a>
+        <a href="/tags#Tools-ref">Tools <span>4</span></a>
       </li>
       <li>
-        <a href="/tags#Lights-ref">Lights <span>3</span></a>
-      </li>
-      <li>
-        <a href="/tags#Specular-ref">Specular <span>4</span></a>
-      </li>
-      <li>
-        <a href="/tags#GGX-ref">GGX <span>4</span></a>
+        <a href="/tags#Samples-ref">Samples <span>1</span></a>
       </li>
     </ul>
     <hr>
     <div class="pagination">
       <ul>
-          <li class="prev"><a href="/posts/assetpathscripts" title="Processing textures with the XLE scriptable asset path">&larr; Previous</a></li>
+          <li class="prev"><a href="/posts/newtoolfeatures" title="Latest Tool Features">&larr; Previous</a></li>
 
           <li><a href="/archive">Archive</a></li>
 
-          <li class="next"><a href="/posts/improvedibl" title="Improved IBL">Next &rarr;</a></li>
+          <li class="next disabled"><a>Next &rarr;</a>
       </ul>
     </div>
     <hr>

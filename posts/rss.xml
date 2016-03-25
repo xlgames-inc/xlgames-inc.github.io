@@ -4,7 +4,54 @@
     <title>XLE development blog</title>
     <description>XLE development blog</description>
     <link>http://xlgames-inc.github.io</link>
-    <pubDate>March 14, 2016</pubDate>
+    <pubDate>March 25, 2016</pubDate>
+    <item>
+      <title>Environment Sample Streamlining</title>
+      <link>http://xlgames-inc.github.io/posts/environmentsample</link>
+      <pubDate>March 25, 2016</pubDate>
+      <description>&lt;p&gt;Along with the tools improvements, I&amp;#39;ve added a few features to make the &amp;quot;Environment&amp;quot; sample a little easier to use.&lt;/p&gt;
+
+&lt;h2 id="toc_0"&gt;Exporting to the Environment sample&lt;/h2&gt;
+
+&lt;ol&gt;
+&lt;li&gt;Start a new world&lt;/li&gt;
+&lt;li&gt;Find the &amp;quot;palette&amp;quot; window and drag these objects into the main viewport:
+
+&lt;ul&gt;
+&lt;li&gt;CharacterSpawn&lt;/li&gt;
+&lt;li&gt;AmbientSettings&lt;/li&gt;
+&lt;li&gt;DirLight
+&lt;br/&gt;&lt;img src="/assets/media/EnvSample/StarterObjects.png"&gt;&lt;/li&gt;
+&lt;/ul&gt;&lt;/li&gt;
+&lt;li&gt;You may want to position the character spawn and directional light using the move manipulator&lt;/li&gt;
+&lt;li&gt;Do an &amp;quot;Export to game&amp;quot;:
+
+&lt;ul&gt;
+&lt;li&gt;in the level editor, the world is stored as large XML tree. But this isn&amp;#39;t loaded into the environment sample. Instead we have a number of small configuration files.
+&lt;br/&gt;&lt;img src="/assets/media/EnvSample/Export.png"&gt;&lt;/li&gt;
+&lt;/ul&gt;&lt;/li&gt;
+&lt;li&gt;Now do export to environment sample:
+&lt;br/&gt;&lt;img src="/assets/media/EnvSample/ExecuteEnvSample.png"&gt;&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;This should execute the sample, and you will have a simple character running around.&lt;/p&gt;
+
+&lt;h2 id="toc_1"&gt;Environment sample&lt;/h2&gt;
+
+&lt;p&gt;The Environment sample is only the most basic of client apps for XLE. But it shows a few important concepts:&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;use of ISceneParser to construct a scene of objects&lt;/li&gt;
+&lt;li&gt;rendering models with animated data&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;High level scene management and an game objects framework are not features of XLE. XLE is intended to be integrated with other solutions that provide this functionality. So, if you are familiar with OpenSceneGraph or some other favourite game framework -- then this can be used together with the core XLE rendering and asset management functionality.&lt;/p&gt;
+
+&lt;h2 id="toc_2"&gt;Reloading changes&lt;/h2&gt;
+
+&lt;p&gt;Note that that Environment sample will reload assets as they change. So if you keep the window open, you can just do another &amp;quot;Export To Game,&amp;quot; and the sample will load any changes. This is great for rapid development, because you can keep the Level Editor and the sample open at the same time and they work well together.&lt;/p&gt;
+</description>
+    </item>
     <item>
       <title>Latest Tool Features</title>
       <link>http://xlgames-inc.github.io/posts/newtoolfeatures</link>
