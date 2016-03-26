@@ -4,7 +4,7 @@
     <title>XLE development blog</title>
     <description>XLE development blog</description>
     <link>http://xlgames-inc.github.io</link>
-    <pubDate>March 25, 2016</pubDate>
+    <pubDate>March 26, 2016</pubDate>
     <item>
       <title>About</title>
       <link>http://xlgames-inc.github.io/about</link>
@@ -24,6 +24,7 @@
   &lt;h2&gt;2016&lt;/h2&gt;
     &lt;h3&gt;March&lt;/h3&gt;
     &lt;ul&gt;
+      &lt;li&gt;&lt;span&gt;March 26, 2016&lt;/span&gt; &amp;raquo; &lt;a href="/posts/release0040"&gt;Release v0.04.0&lt;/a&gt;&lt;/li&gt;
       &lt;li&gt;&lt;span&gt;March 25, 2016&lt;/span&gt; &amp;raquo; &lt;a href="/posts/environmentsample"&gt;Environment Sample Streamlining&lt;/a&gt;&lt;/li&gt;
       &lt;li&gt;&lt;span&gt;March 14, 2016&lt;/span&gt; &amp;raquo; &lt;a href="/posts/newtoolfeatures"&gt;Latest Tool Features&lt;/a&gt;&lt;/li&gt;
     &lt;/ul&gt;
@@ -58,14 +59,14 @@
       <description>
 &lt;ul class="tag_box inline"&gt;
   &lt;li&gt;
-    &lt;a href="/categories#XLE-ref"&gt;XLE &lt;span&gt;14&lt;/span&gt;&lt;/a&gt;
+    &lt;a href="/categories#XLE-ref"&gt;XLE &lt;span&gt;15&lt;/span&gt;&lt;/a&gt;
   &lt;/li&gt;
   &lt;li&gt;
     &lt;a href="/categories#blog-ref"&gt;blog &lt;span&gt;1&lt;/span&gt;&lt;/a&gt;
   &lt;/li&gt;
 &lt;/ul&gt;
 
-  &lt;h3&gt;XLE (14)&lt;/h3&gt;
+  &lt;h3&gt;XLE (15)&lt;/h3&gt;
   &lt;ul&gt;
       &lt;li&gt;&lt;a href="/posts/arealightsandpbr"&gt;Area Lights with Physically Based Rendering&lt;/a&gt;&lt;/li&gt;
       &lt;li&gt;&lt;a href="/posts/assetpathscripts"&gt;Processing textures with the XLE scriptable asset path&lt;/a&gt;&lt;/li&gt;
@@ -75,6 +76,7 @@
       &lt;li&gt;&lt;a href="/posts/materialtool"&gt;Material and Node Diagram Tool&lt;/a&gt;&lt;/li&gt;
       &lt;li&gt;&lt;a href="/posts/newtoolfeatures"&gt;Latest Tool Features&lt;/a&gt;&lt;/li&gt;
       &lt;li&gt;&lt;a href="/posts/rectlightdiffuse"&gt;Rectangle Light diffuse vs 3DS Max&lt;/a&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;a href="/posts/release0040"&gt;Release v0.04.0&lt;/a&gt;&lt;/li&gt;
       &lt;li&gt;&lt;a href="/posts/transmissionnodegraph"&gt;Transmission Node Diagram&lt;/a&gt;&lt;/li&gt;
       &lt;li&gt;&lt;a href="/posts/transmittedspecular"&gt;Transmitted specular&lt;/a&gt;&lt;/li&gt;
       &lt;li&gt;&lt;a href="/posts/transmittedspecular2"&gt;Transmitted specular progress&lt;/a&gt;&lt;/li&gt;
@@ -101,6 +103,7 @@
   &lt;h2&gt;2016&lt;/h2&gt;
     &lt;h3&gt;March&lt;/h3&gt;
     &lt;ul&gt;
+      &lt;li&gt;&lt;span&gt;March 26, 2016&lt;/span&gt; &amp;raquo; &lt;a href="/posts/release0040"&gt;Release v0.04.0&lt;/a&gt;&lt;/li&gt;
       &lt;li&gt;&lt;span&gt;March 25, 2016&lt;/span&gt; &amp;raquo; &lt;a href="/posts/environmentsample"&gt;Environment Sample Streamlining&lt;/a&gt;&lt;/li&gt;
       &lt;li&gt;&lt;span&gt;March 14, 2016&lt;/span&gt; &amp;raquo; &lt;a href="/posts/newtoolfeatures"&gt;Latest Tool Features&lt;/a&gt;&lt;/li&gt;
     &lt;/ul&gt;
@@ -133,6 +136,37 @@
 &lt;hr /&gt;
 
 &lt;div class="post"&gt;
+  &lt;h3 class="title"&gt;&lt;a href="/posts/release0040"&gt;Release v0.04.0&lt;/a&gt;&lt;br /&gt; &lt;span class="date"&gt;March 26, 2016&lt;/span&gt;&lt;/h3&gt;
+
+  &lt;div class="summary"&gt;
+&lt;p&gt;I've attached a compiled version of the XLE tools to the Github repo.&lt;/p&gt;
+
+&lt;p&gt;This is still an early build -- and hasn't be extensively tested on different hardware. So some features may not work on configurations. If you run in problems, or if you find it interesting, I recommended downloading the source and compiling for yourself.&lt;/p&gt;
+
+&lt;h2 id="toc_0"&gt;Download&lt;/h2&gt;
+
+&lt;p&gt;XLE v0.04.0:
+&lt;a href="https://github.com/xlgames-inc/XLE/releases/download/v0.04.0/XLE0.04.0.zip"&gt;XLE v0.04.0 Windows x64&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;For older versions of Windows, you will need to install the .Net runtime.&lt;/p&gt;
+
+&lt;h2 id="toc_1"&gt;Documentation&lt;/h2&gt;
+
+&lt;p&gt;I've included a couple of "Getting Started" docs:&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;&lt;a href="/assets/media/v0.04.0/XLE%20Getting%20Started%20Exporting.pdf"&gt;Getting Started Exporting&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="/assets/media/v0.04.0/XLE%20Getting%20Started%20with%20Terrain.pdf"&gt;Getting Started with Terrain&lt;/a&gt;&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;These will help get you through the first few steps.&lt;/p&gt;
+&lt;/div&gt;
+
+  &lt;div class="more"&gt;
+    &lt;a href="/posts/release0040" class="btn btn-small"&gt;read more..&lt;/a&gt;
+  &lt;/div&gt;
+&lt;/div&gt;
+&lt;div class="post"&gt;
   &lt;h3 class="title"&gt;&lt;a href="/posts/environmentsample"&gt;Environment Sample Streamlining&lt;/a&gt;&lt;br /&gt; &lt;span class="date"&gt;March 25, 2016&lt;/span&gt;&lt;/h3&gt;
 
   &lt;div class="summary ellipsis"&gt;
@@ -153,6 +187,7 @@
 &lt;/ul&gt;
 &lt;/li&gt;
 &lt;li&gt;You may want to position the character spawn and directional light using the move manipulator&lt;/li&gt;
+&lt;li&gt;Save your world to some location (with "File/Save As"). The next step will create an export relative to this location.&lt;/li&gt;
 &lt;li&gt;Do an "Export to game":
 
 &lt;ul&gt;
@@ -161,7 +196,7 @@
 &lt;/li&gt;
 &lt;/ul&gt;
 &lt;/li&gt;
-&lt;li&gt;Now do export to environment sample:
+&lt;li&gt;Now execute the environment sample:
 &lt;br&gt;&lt;img src="/assets/media/EnvSample/ExecuteEnvSample.png"&gt;
 &lt;/li&gt;
 &lt;/ol&gt;
@@ -265,44 +300,13 @@
     &lt;a href="/posts/improvedibl" class="btn btn-small"&gt;read more..&lt;/a&gt;
   &lt;/div&gt;
 &lt;/div&gt;
-&lt;div class="post"&gt;
-  &lt;h3 class="title"&gt;&lt;a href="/posts/transmittedspecular2"&gt;Transmitted specular progress&lt;/a&gt;&lt;br /&gt; &lt;span class="date"&gt;January 29, 2016&lt;/span&gt;&lt;/h3&gt;
-
-  &lt;div class="summary ellipsis"&gt;
-&lt;p&gt;Just a quick update... I've been making some great progress with transmitted specular for IBL!&lt;/p&gt;
-
-&lt;p&gt;&lt;br&gt;&lt;img src="/assets/media/TransSpec/TransSphereMat.png"&gt;&lt;/p&gt;
-
-&lt;p&gt;These screenshots will look a little strange (I mean that black borders &amp;amp; grainyness), because it's a debugging rendering mode.&lt;/p&gt;
-
-&lt;p&gt;&lt;br&gt;&lt;img src="/assets/media/TransSpec/TransSphereMat2.png"&gt;&lt;/p&gt;
-
-&lt;p&gt;I've got the split-term stuff going; and it looks like it should be practical. I'd prefer to avoid having yet another cubemap, so maybe there's some way to just reuse the reflection filtered cubemap. Its seems reasonable to say that the filtering should be similar. We just need some way to calculate the amount of blurriness that is correct for transmissions.&lt;/p&gt;
-
-&lt;p&gt;&lt;br&gt;&lt;img src="/assets/media/TransSpec/TransSphereMat3.png"&gt;&lt;/p&gt;
-
-&lt;p&gt;Speaking of that, I've been thinking the type of filtering that is applied to the specular map. More on that later.&lt;/p&gt;
-
-&lt;p&gt;Next week I'll post some proper screenshots &amp;amp; a whole lot of details!&lt;/p&gt;
-
-&lt;p&gt;I made some interesting observations while doing this, I've got a bunch of new changes and improvements for IBL. Check out the "experimental" branch for now.&lt;/p&gt;
-
-&lt;p&gt;BTW, the node diagram for the GGX BSDF equation looks a little nicer now --&lt;/p&gt;
-
-&lt;p&gt;&lt;br&gt;&lt;img src="/assets/media/TransSpec/BSDFNodes2.png"&gt;&lt;/p&gt;
-
-&lt;/div&gt;
-
-  &lt;div class="more"&gt;
-    &lt;a href="/posts/transmittedspecular2" class="btn btn-small"&gt;read more..&lt;/a&gt;
-  &lt;/div&gt;
-&lt;/div&gt;
 
 &lt;div class="pagination"&gt;
   &lt;ul&gt;
       &lt;li class="active"&gt;&lt;a href="/posts/index/1"&gt;1&lt;/a&gt;&lt;/li&gt;
       &lt;li&gt;&lt;a href="/posts/index/2"&gt;2&lt;/a&gt;&lt;/li&gt;
       &lt;li&gt;&lt;a href="/posts/index/3"&gt;3&lt;/a&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;a href="/posts/index/4"&gt;4&lt;/a&gt;&lt;/li&gt;
   &lt;/ul&gt;
 &lt;/div&gt;
 </description>
@@ -392,6 +396,9 @@
   &lt;li&gt;
     &lt;a href="/tags#RectangleLights-ref"&gt;RectangleLights &lt;span&gt;2&lt;/span&gt;&lt;/a&gt;
   &lt;/li&gt;
+  &lt;li&gt;
+    &lt;a href="/tags#Releases-ref"&gt;Releases &lt;span&gt;1&lt;/span&gt;&lt;/a&gt;
+  &lt;/li&gt;
 &lt;/ul&gt;
 
   &lt;h3 id="PBR-ref"&gt;PBR&lt;/h3&gt;
@@ -450,6 +457,8 @@
   &lt;h3 id="RectangleLights-ref"&gt;RectangleLights&lt;/h3&gt;
     &lt;li&gt;&lt;a href="/posts/rectlightdiffuse"&gt;Rectangle Light diffuse vs 3DS Max&lt;/a&gt;&lt;/li&gt;
     &lt;li&gt;&lt;a href="/posts/workingonrectlights"&gt;Working some improvements to rectangle lights&lt;/a&gt;&lt;/li&gt;
+  &lt;h3 id="Releases-ref"&gt;Releases&lt;/h3&gt;
+    &lt;li&gt;&lt;a href="/posts/release0040"&gt;Release v0.04.0&lt;/a&gt;&lt;/li&gt;
  
 </description>
     </item>

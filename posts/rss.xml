@@ -4,7 +4,34 @@
     <title>XLE development blog</title>
     <description>XLE development blog</description>
     <link>http://xlgames-inc.github.io</link>
-    <pubDate>March 25, 2016</pubDate>
+    <pubDate>March 26, 2016</pubDate>
+    <item>
+      <title>Release v0.04.0</title>
+      <link>http://xlgames-inc.github.io/posts/release0040</link>
+      <pubDate>March 26, 2016</pubDate>
+      <description>&lt;p&gt;I&amp;#39;ve attached a compiled version of the XLE tools to the Github repo.&lt;/p&gt;
+
+&lt;p&gt;This is still an early build -- and hasn&amp;#39;t be extensively tested on different hardware. So some features may not work on configurations. If you run in problems, or if you find it interesting, I recommended downloading the source and compiling for yourself.&lt;/p&gt;
+
+&lt;h2 id="toc_0"&gt;Download&lt;/h2&gt;
+
+&lt;p&gt;XLE v0.04.0:
+&lt;a href="https://github.com/xlgames-inc/XLE/releases/download/v0.04.0/XLE0.04.0.zip"&gt;XLE v0.04.0 Windows x64&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;For older versions of Windows, you will need to install the .Net runtime.&lt;/p&gt;
+
+&lt;h2 id="toc_1"&gt;Documentation&lt;/h2&gt;
+
+&lt;p&gt;I&amp;#39;ve included a couple of &amp;quot;Getting Started&amp;quot; docs:&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;&lt;a href="/assets/media/v0.04.0/XLE%20Getting%20Started%20Exporting.pdf"&gt;Getting Started Exporting&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="/assets/media/v0.04.0/XLE%20Getting%20Started%20with%20Terrain.pdf"&gt;Getting Started with Terrain&lt;/a&gt;&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;These will help get you through the first few steps.&lt;/p&gt;
+</description>
+    </item>
     <item>
       <title>Environment Sample Streamlining</title>
       <link>http://xlgames-inc.github.io/posts/environmentsample</link>
@@ -24,17 +51,18 @@
 &lt;br/&gt;&lt;img src="/assets/media/EnvSample/StarterObjects.png"&gt;&lt;/li&gt;
 &lt;/ul&gt;&lt;/li&gt;
 &lt;li&gt;You may want to position the character spawn and directional light using the move manipulator&lt;/li&gt;
+&lt;li&gt;Save your world to some location (with &amp;quot;File/Save As&amp;quot;). The next step will create an export relative to this location.&lt;/li&gt;
 &lt;li&gt;Do an &amp;quot;Export to game&amp;quot;:
 
 &lt;ul&gt;
 &lt;li&gt;in the level editor, the world is stored as large XML tree. But this isn&amp;#39;t loaded into the environment sample. Instead we have a number of small configuration files.
 &lt;br/&gt;&lt;img src="/assets/media/EnvSample/Export.png"&gt;&lt;/li&gt;
 &lt;/ul&gt;&lt;/li&gt;
-&lt;li&gt;Now do export to environment sample:
+&lt;li&gt;Now execute the environment sample:
 &lt;br/&gt;&lt;img src="/assets/media/EnvSample/ExecuteEnvSample.png"&gt;&lt;/li&gt;
 &lt;/ol&gt;
 
-&lt;p&gt;This should execute the sample, and you will have a simple character running around.&lt;/p&gt;
+&lt;p&gt;This should pop up a separate process with the environment sample, and you will have a simple character running around.&lt;/p&gt;
 
 &lt;h2 id="toc_1"&gt;Environment sample&lt;/h2&gt;
 

@@ -51,6 +51,37 @@
         <div class="row-fluid">
   <div class="span12">
       <div class="posts">
+        <h3 class="title"><a href="/posts/release0040">Release v0.04.0</a><br/> <span class="date">March 26, 2016</span></h3>
+
+        <div class="summary">
+<p>I've attached a compiled version of the XLE tools to the Github repo.</p>
+
+<p>This is still an early build -- and hasn't be extensively tested on different hardware. So some features may not work on configurations. If you run in problems, or if you find it interesting, I recommended downloading the source and compiling for yourself.</p>
+
+<h2 id="toc_0">Download</h2>
+
+<p>XLE v0.04.0:
+<a href="https://github.com/xlgames-inc/XLE/releases/download/v0.04.0/XLE0.04.0.zip">XLE v0.04.0 Windows x64</a></p>
+
+<p>For older versions of Windows, you will need to install the .Net runtime.</p>
+
+<h2 id="toc_1">Documentation</h2>
+
+<p>I've included a couple of "Getting Started" docs:</p>
+
+<ol>
+<li><a href="/assets/media/v0.04.0/XLE%20Getting%20Started%20Exporting.pdf">Getting Started Exporting</a></li>
+<li><a href="/assets/media/v0.04.0/XLE%20Getting%20Started%20with%20Terrain.pdf">Getting Started with Terrain</a></li>
+</ol>
+
+<p>These will help get you through the first few steps.</p>
+</div>
+
+        <div class="more">
+          <a href="/posts/release0040" class="btn btn-small">read more..</a>
+        </div>
+      </div>
+      <div class="posts">
         <h3 class="title"><a href="/posts/environmentsample">Environment Sample Streamlining</a><br/> <span class="date">March 25, 2016</span></h3>
 
         <div class="summary ellipsis">
@@ -71,6 +102,7 @@
 </ul>
 </li>
 <li>You may want to position the character spawn and directional light using the move manipulator</li>
+<li>Save your world to some location (with "File/Save As"). The next step will create an export relative to this location.</li>
 <li>Do an "Export to game":
 
 <ul>
@@ -79,7 +111,7 @@
 </li>
 </ul>
 </li>
-<li>Now do export to environment sample:
+<li>Now execute the environment sample:
 <br><img src="/assets/media/EnvSample/ExecuteEnvSample.png">
 </li>
 </ol>
@@ -183,44 +215,13 @@
           <a href="/posts/improvedibl" class="btn btn-small">read more..</a>
         </div>
       </div>
-      <div class="posts">
-        <h3 class="title"><a href="/posts/transmittedspecular2">Transmitted specular progress</a><br/> <span class="date">January 29, 2016</span></h3>
-
-        <div class="summary ellipsis">
-<p>Just a quick update... I've been making some great progress with transmitted specular for IBL!</p>
-
-<p><br><img src="/assets/media/TransSpec/TransSphereMat.png"></p>
-
-<p>These screenshots will look a little strange (I mean that black borders &amp; grainyness), because it's a debugging rendering mode.</p>
-
-<p><br><img src="/assets/media/TransSpec/TransSphereMat2.png"></p>
-
-<p>I've got the split-term stuff going; and it looks like it should be practical. I'd prefer to avoid having yet another cubemap, so maybe there's some way to just reuse the reflection filtered cubemap. Its seems reasonable to say that the filtering should be similar. We just need some way to calculate the amount of blurriness that is correct for transmissions.</p>
-
-<p><br><img src="/assets/media/TransSpec/TransSphereMat3.png"></p>
-
-<p>Speaking of that, I've been thinking the type of filtering that is applied to the specular map. More on that later.</p>
-
-<p>Next week I'll post some proper screenshots &amp; a whole lot of details!</p>
-
-<p>I made some interesting observations while doing this, I've got a bunch of new changes and improvements for IBL. Check out the "experimental" branch for now.</p>
-
-<p>BTW, the node diagram for the GGX BSDF equation looks a little nicer now --</p>
-
-<p><br><img src="/assets/media/TransSpec/BSDFNodes2.png"></p>
-
-</div>
-
-        <div class="more">
-          <a href="/posts/transmittedspecular2" class="btn btn-small">read more..</a>
-        </div>
-      </div>
     
     <div class="pagination">
       <ul>
           <li class="active"><a href="/posts/index/1">1</a></li>
           <li><a href="/posts/index/2">2</a></li>
           <li><a href="/posts/index/3">3</a></li>
+          <li><a href="/posts/index/4">4</a></li>
       </ul>
     </div>
   </div>
