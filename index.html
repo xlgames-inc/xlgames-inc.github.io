@@ -64,6 +64,7 @@
   <h2>2016</h2>
     <h3>March</h3>
     <ul>
+      <li><span>March 30, 2016</span> &raquo; <a href="/posts/envshots">Environment Rendering Screenshots</a></li>
       <li><span>March 26, 2016</span> &raquo; <a href="/posts/release0040">Release v0.04.0</a></li>
       <li><span>March 25, 2016</span> &raquo; <a href="/posts/environmentsample">Environment Sample Streamlining</a></li>
       <li><span>March 14, 2016</span> &raquo; <a href="/posts/newtoolfeatures">Latest Tool Features</a></li>
@@ -97,9 +98,41 @@
 <hr />
 
 <div class="post">
-  <h3 class="title"><a href="/posts/release0040">Release v0.04.0</a><br /> <span class="date">March 26, 2016</span></h3>
+  <h3 class="title"><a href="/posts/envshots">Environment Rendering Screenshots</a><br /> <span class="date">March 30, 2016</span></h3>
 
   <div class="summary ellipsis">
+<p>Here are a few screenshots of environment rendering in XLE. I don't have a lot of art I can take screenshots of, so I can't show a very polished scene... But you can see some of the rendering features.</p>
+
+<p>Look for:</p>
+
+<ul>
+<li>shallow water surface animation</li>
+<li>order independent blending for foliage</li>
+<li>volumetric fog (&amp; related effects)</li>
+<li>dynamic imposters for distant trees</li>
+<li>high res terrain geometry</li>
+<li>terrain decoration spawn</li>
+<li>"contact hardening" shadows</li>
+<li>infinite terrain shadows</li>
+</ul>
+
+<p><br><img src="/assets/media/EnvShots/shot47.jpg">
+<br><img src="/assets/media/EnvShots/shot50.jpg">
+<br><img src="/assets/media/EnvShots/shot52.jpg">
+<br><img src="/assets/media/EnvShots/shot55.jpg">
+<br><img src="/assets/media/EnvShots/shot57.jpg">
+<br><img src="/assets/media/EnvShots/shot58.jpg">
+<br><img src="/assets/media/EnvShots/shot65.jpg"></p>
+</div>
+
+  <div class="more">
+    <a href="/posts/envshots" class="btn btn-small">read more..</a>
+  </div>
+</div>
+<div class="post">
+  <h3 class="title"><a href="/posts/release0040">Release v0.04.0</a><br /> <span class="date">March 26, 2016</span></h3>
+
+  <div class="summary">
 <p>I've attached a compiled version of the XLE tools to the Github repo.</p>
 
 <p>This is still an early build -- and hasn't be extensively tested on different hardware. So some features may not work on configurations. If you run in problems, or if you find it interesting, I recommended downloading the source and compiling for yourself.</p>
@@ -111,8 +144,6 @@
 
 <p>For older versions of Windows, you will need to install the .Net runtime.</p>
 
-<p>You will also need <a href="https://www.microsoft.com/en-us/download/details.aspx?id=40784">Visual C++ Redistributable Packages for Visual Studio 2013</a>.</p>
-
 <h2 id="toc_1">Documentation</h2>
 
 <p>I've included a couple of "Getting Started" docs:</p>
@@ -122,6 +153,7 @@
 <li><a href="/assets/media/v0.04.0/XLE%20Getting%20Started%20with%20Terrain.pdf">Getting Started with Terrain</a></li>
 </ol>
 
+<p>These will help get you through the first few steps.</p>
 </div>
 
   <div class="more">
@@ -229,37 +261,6 @@
 
   <div class="more">
     <a href="/posts/transmittedspecular3" class="btn btn-small">read more..</a>
-  </div>
-</div>
-<div class="post">
-  <h3 class="title"><a href="/posts/improvedibl">Improved IBL</a><br /> <span class="date">February 01, 2016</span></h3>
-
-  <div class="summary ellipsis">
-<p>I've been working on improving the accuracy of the Imaged Based Lighting (IBL) solution for XLE. This is the technology that allows us to load in a background panorama map and use it for both diffuse and specular lighting.</p>
-
-<p>The best way to do this is by comparing our real-time result to other renderers. So, for example, I've been experimenting with Substance Designer (more on that later). It has nVidia's "IRay" raytracer built-in -- so we can compare the non-real-time results from IRay with real-time XLE. I have other ways to do this, also -- for example, the shader in ToolsHelper/BRDFSlice.sh can generate textures directly comparable with Disney's BRDFExplorer tool.</p>
-
-<p>While doing this (and working on the specular transmission stuff), I've found some interesting improvements to the IBL solution!</p>
-
-<h2 id="toc_0">Conclusion</h2>
-
-<p>This is a really long post; so I'll start with the conclusion. I've made a number of improvements that make the IBL solution appear more realistic, and more similar to ray tracers.</p>
-
-<p><br><img src="/assets/media/ImprovedIBL/Spheres.png">
-<br><img src="/assets/media/ImprovedIBL/SpheresMetal.png">
-<br><img src="/assets/media/ImprovedIBL/Jamie.png">
-<em>"Jamie Gnome" model from here: <a href="http://www.turbosquid.com/3d-models/free-obj-mode-jamie-hyneman-gnome/789391">http://www.turbosquid.com/3d-models/free-obj-mode-jamie-hyneman-gnome/789391</a></em></p>
-
-<p>I found some errors in some source material I referenced and fixed some incorrect assumptions I made. Each change is small. But when added up, they make a big difference. The IBL specular is has a lot much punch, things are jumping off the screen better.</p>
-
-<p>Now, I'll go into detail about what's changed.</p>
-
-<h2 id="toc_1">IBL basis</h2>
-
-</div>
-
-  <div class="more">
-    <a href="/posts/improvedibl" class="btn btn-small">read more..</a>
   </div>
 </div>
 

@@ -51,6 +51,39 @@
         <div class="row-fluid">
   <div class="span12">
       <div class="posts">
+        <h3 class="title"><a href="/posts/materialtool">Material and Node Diagram Tool</a><br/> <span class="date">January 21, 2016</span></h3>
+
+        <div class="summary ellipsis">
+<p>The master branch has just been updated! It now includes a major new tool, called the <em>MaterialTool</em>. This is a dedicated app for building materials and applying them to objects, and includes some cool new features...</p>
+
+<p>In XLE, most material information can be authored in standard graphics packages (like 3DS Max, Maya, Substance Painter, etc). In particular, the most critical material values (<strong>color</strong>, <strong>roughness</strong>, <strong>specular</strong> &amp; <strong>metal</strong>) can come directly from standard packages.</p>
+
+<p>But in cases we want to add custom information to models, or even develop custom shaders for complex materials. This is were the <em>MaterialTool</em> comes in. There is some functionality in common with the <em>ModelViewer</em> and <em>LevelEditor</em> tools -- but the <em>MaterialTool</em> provides a convenient focused tool for this kind of work.</p>
+
+<hr>
+
+<h2 id="toc_0">Basic functionality</h2>
+
+<p><br><img src="/assets/media/MaterialTool/BasicWindow.png"></p>
+
+<p>Our core functionality allows us to preview a model (much like the <em>ModelViewer</em>, with various rendering modes), click on materials and then change their properties (such as opacity, translucency modes, and various shader flags).</p>
+
+<p>This works within the Sony ATF framework, and so we have all of the handy features from the <em>LevelEditor</em>, such as:</p>
+
+<ul>
+<li>detachable, arrangeable windows</li>
+<li>
+<em>IronPython</em> scripting and cvar access</li>
+<li>interface skinning, keyboard rebinding, etc...</li>
+<li>and, of course, it's all very extensible C# code, convenient for adding custom features</li>
+</ul>
+</div>
+
+        <div class="more">
+          <a href="/posts/materialtool" class="btn btn-small">read more..</a>
+        </div>
+      </div>
+      <div class="posts">
         <h3 class="title"><a href="/posts/functionlinkedshaders">Dynamic Function Linking Graph for Shaders</a><br/> <span class="date">December 16, 2015</span></h3>
 
         <div class="summary ellipsis">
@@ -186,38 +219,6 @@ It has been modified to work with XLE, and some XLE specific behaviour has been 
 
         <div class="more">
           <a href="/posts/whattodofirst" class="btn btn-small">read more..</a>
-        </div>
-      </div>
-      <div class="posts">
-        <h3 class="title"><a href="/posts/arealightsandpbr">Area Lights with Physically Based Rendering</a><br/> <span class="date">December 02, 2015</span></h3>
-
-        <div class="summary ellipsis">
-<p>XLE now support a few area light types: <em>sphere</em>, <em>tube</em> &amp; <em>rectangle</em> (with <em>disc</em> and maybe some other shapes coming soon). Maybe in a future post I'll go into some details about the implementation (actually, it's quite interesting!). But this post is about something different: this post is about why they are important.</p>
-
-<p>I'm finding that it makes a huge difference. So much so that not only do we want to support area lights -- we also want to outlaw non-area lights. Point light sources are now the enemy!</p>
-
-<h2 id="toc_0">PBR Concept</h2>
-
-<p>The biggest buzzword at the moment is Physically Based Renderering (or PBR, or sometimes Physically Based Shading). But what does that mean, really?
-Partially it means sampling values from the real world. But really it's just a container under which we're placing many related concepts.</p>
-
-<p>One of these "sub-concepts" of PBR is the idea that a single material should work in many different lighting environments.</p>
-
-<p>In the past, artists often tweaked the material settings for objects to suit the lighting environment they are in. This is a problem because it means that if the object moves into another lighting environment, the material settings must be tweaked to match.</p>
-
-<p>This happen in both movies and games. In games, it's particularly a problem for games with a day/night cycle. In games where time is changing, the lighting environment is also always changing. Previously this means that extreme lighting settings (sunsets, etc) had to be more subtle than real-life. What we want is materials that look correct in all possible lighting environments.</p>
-
-<h2 id="toc_1">Specular highlight size</h2>
-
-<p>There's a simple way to think about this. Let's consider the size of a specular highlight.</p>
-
-<p>Here are 5 spheres rendered in Blender with Cook Torrence lighting.
-<img src="/assets/media/SpecularExample.png"></p>
-
-</div>
-
-        <div class="more">
-          <a href="/posts/arealightsandpbr" class="btn btn-small">read more..</a>
         </div>
       </div>
     

@@ -4,7 +4,7 @@
     <title>XLE development blog</title>
     <description>XLE development blog</description>
     <link>http://xlgames-inc.github.io</link>
-    <pubDate>March 27, 2016</pubDate>
+    <pubDate>March 30, 2016</pubDate>
     <item>
       <title>About</title>
       <link>http://xlgames-inc.github.io/about</link>
@@ -24,6 +24,7 @@
   &lt;h2&gt;2016&lt;/h2&gt;
     &lt;h3&gt;March&lt;/h3&gt;
     &lt;ul&gt;
+      &lt;li&gt;&lt;span&gt;March 30, 2016&lt;/span&gt; &amp;raquo; &lt;a href="/posts/envshots"&gt;Environment Rendering Screenshots&lt;/a&gt;&lt;/li&gt;
       &lt;li&gt;&lt;span&gt;March 26, 2016&lt;/span&gt; &amp;raquo; &lt;a href="/posts/release0040"&gt;Release v0.04.0&lt;/a&gt;&lt;/li&gt;
       &lt;li&gt;&lt;span&gt;March 25, 2016&lt;/span&gt; &amp;raquo; &lt;a href="/posts/environmentsample"&gt;Environment Sample Streamlining&lt;/a&gt;&lt;/li&gt;
       &lt;li&gt;&lt;span&gt;March 14, 2016&lt;/span&gt; &amp;raquo; &lt;a href="/posts/newtoolfeatures"&gt;Latest Tool Features&lt;/a&gt;&lt;/li&gt;
@@ -59,18 +60,19 @@
       <description>
 &lt;ul class="tag_box inline"&gt;
   &lt;li&gt;
-    &lt;a href="/categories#XLE-ref"&gt;XLE &lt;span&gt;15&lt;/span&gt;&lt;/a&gt;
+    &lt;a href="/categories#XLE-ref"&gt;XLE &lt;span&gt;16&lt;/span&gt;&lt;/a&gt;
   &lt;/li&gt;
   &lt;li&gt;
     &lt;a href="/categories#blog-ref"&gt;blog &lt;span&gt;1&lt;/span&gt;&lt;/a&gt;
   &lt;/li&gt;
 &lt;/ul&gt;
 
-  &lt;h3&gt;XLE (15)&lt;/h3&gt;
+  &lt;h3&gt;XLE (16)&lt;/h3&gt;
   &lt;ul&gt;
       &lt;li&gt;&lt;a href="/posts/arealightsandpbr"&gt;Area Lights with Physically Based Rendering&lt;/a&gt;&lt;/li&gt;
       &lt;li&gt;&lt;a href="/posts/assetpathscripts"&gt;Processing textures with the XLE scriptable asset path&lt;/a&gt;&lt;/li&gt;
       &lt;li&gt;&lt;a href="/posts/environmentsample"&gt;Environment Sample Streamlining&lt;/a&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;a href="/posts/envshots"&gt;Environment Rendering Screenshots&lt;/a&gt;&lt;/li&gt;
       &lt;li&gt;&lt;a href="/posts/functionlinkedshaders"&gt;Dynamic Function Linking Graph for Shaders&lt;/a&gt;&lt;/li&gt;
       &lt;li&gt;&lt;a href="/posts/improvedibl"&gt;Improved IBL&lt;/a&gt;&lt;/li&gt;
       &lt;li&gt;&lt;a href="/posts/materialtool"&gt;Material and Node Diagram Tool&lt;/a&gt;&lt;/li&gt;
@@ -103,6 +105,7 @@
   &lt;h2&gt;2016&lt;/h2&gt;
     &lt;h3&gt;March&lt;/h3&gt;
     &lt;ul&gt;
+      &lt;li&gt;&lt;span&gt;March 30, 2016&lt;/span&gt; &amp;raquo; &lt;a href="/posts/envshots"&gt;Environment Rendering Screenshots&lt;/a&gt;&lt;/li&gt;
       &lt;li&gt;&lt;span&gt;March 26, 2016&lt;/span&gt; &amp;raquo; &lt;a href="/posts/release0040"&gt;Release v0.04.0&lt;/a&gt;&lt;/li&gt;
       &lt;li&gt;&lt;span&gt;March 25, 2016&lt;/span&gt; &amp;raquo; &lt;a href="/posts/environmentsample"&gt;Environment Sample Streamlining&lt;/a&gt;&lt;/li&gt;
       &lt;li&gt;&lt;span&gt;March 14, 2016&lt;/span&gt; &amp;raquo; &lt;a href="/posts/newtoolfeatures"&gt;Latest Tool Features&lt;/a&gt;&lt;/li&gt;
@@ -136,9 +139,41 @@
 &lt;hr /&gt;
 
 &lt;div class="post"&gt;
-  &lt;h3 class="title"&gt;&lt;a href="/posts/release0040"&gt;Release v0.04.0&lt;/a&gt;&lt;br /&gt; &lt;span class="date"&gt;March 26, 2016&lt;/span&gt;&lt;/h3&gt;
+  &lt;h3 class="title"&gt;&lt;a href="/posts/envshots"&gt;Environment Rendering Screenshots&lt;/a&gt;&lt;br /&gt; &lt;span class="date"&gt;March 30, 2016&lt;/span&gt;&lt;/h3&gt;
 
   &lt;div class="summary ellipsis"&gt;
+&lt;p&gt;Here are a few screenshots of environment rendering in XLE. I don't have a lot of art I can take screenshots of, so I can't show a very polished scene... But you can see some of the rendering features.&lt;/p&gt;
+
+&lt;p&gt;Look for:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;shallow water surface animation&lt;/li&gt;
+&lt;li&gt;order independent blending for foliage&lt;/li&gt;
+&lt;li&gt;volumetric fog (&amp;amp; related effects)&lt;/li&gt;
+&lt;li&gt;dynamic imposters for distant trees&lt;/li&gt;
+&lt;li&gt;high res terrain geometry&lt;/li&gt;
+&lt;li&gt;terrain decoration spawn&lt;/li&gt;
+&lt;li&gt;"contact hardening" shadows&lt;/li&gt;
+&lt;li&gt;infinite terrain shadows&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;&lt;br&gt;&lt;img src="/assets/media/EnvShots/shot47.jpg"&gt;
+&lt;br&gt;&lt;img src="/assets/media/EnvShots/shot50.jpg"&gt;
+&lt;br&gt;&lt;img src="/assets/media/EnvShots/shot52.jpg"&gt;
+&lt;br&gt;&lt;img src="/assets/media/EnvShots/shot55.jpg"&gt;
+&lt;br&gt;&lt;img src="/assets/media/EnvShots/shot57.jpg"&gt;
+&lt;br&gt;&lt;img src="/assets/media/EnvShots/shot58.jpg"&gt;
+&lt;br&gt;&lt;img src="/assets/media/EnvShots/shot65.jpg"&gt;&lt;/p&gt;
+&lt;/div&gt;
+
+  &lt;div class="more"&gt;
+    &lt;a href="/posts/envshots" class="btn btn-small"&gt;read more..&lt;/a&gt;
+  &lt;/div&gt;
+&lt;/div&gt;
+&lt;div class="post"&gt;
+  &lt;h3 class="title"&gt;&lt;a href="/posts/release0040"&gt;Release v0.04.0&lt;/a&gt;&lt;br /&gt; &lt;span class="date"&gt;March 26, 2016&lt;/span&gt;&lt;/h3&gt;
+
+  &lt;div class="summary"&gt;
 &lt;p&gt;I've attached a compiled version of the XLE tools to the Github repo.&lt;/p&gt;
 
 &lt;p&gt;This is still an early build -- and hasn't be extensively tested on different hardware. So some features may not work on configurations. If you run in problems, or if you find it interesting, I recommended downloading the source and compiling for yourself.&lt;/p&gt;
@@ -150,8 +185,6 @@
 
 &lt;p&gt;For older versions of Windows, you will need to install the .Net runtime.&lt;/p&gt;
 
-&lt;p&gt;You will also need &lt;a href="https://www.microsoft.com/en-us/download/details.aspx?id=40784"&gt;Visual C++ Redistributable Packages for Visual Studio 2013&lt;/a&gt;.&lt;/p&gt;
-
 &lt;h2 id="toc_1"&gt;Documentation&lt;/h2&gt;
 
 &lt;p&gt;I've included a couple of "Getting Started" docs:&lt;/p&gt;
@@ -161,6 +194,7 @@
 &lt;li&gt;&lt;a href="/assets/media/v0.04.0/XLE%20Getting%20Started%20with%20Terrain.pdf"&gt;Getting Started with Terrain&lt;/a&gt;&lt;/li&gt;
 &lt;/ol&gt;
 
+&lt;p&gt;These will help get you through the first few steps.&lt;/p&gt;
 &lt;/div&gt;
 
   &lt;div class="more"&gt;
@@ -270,37 +304,6 @@
     &lt;a href="/posts/transmittedspecular3" class="btn btn-small"&gt;read more..&lt;/a&gt;
   &lt;/div&gt;
 &lt;/div&gt;
-&lt;div class="post"&gt;
-  &lt;h3 class="title"&gt;&lt;a href="/posts/improvedibl"&gt;Improved IBL&lt;/a&gt;&lt;br /&gt; &lt;span class="date"&gt;February 01, 2016&lt;/span&gt;&lt;/h3&gt;
-
-  &lt;div class="summary ellipsis"&gt;
-&lt;p&gt;I've been working on improving the accuracy of the Imaged Based Lighting (IBL) solution for XLE. This is the technology that allows us to load in a background panorama map and use it for both diffuse and specular lighting.&lt;/p&gt;
-
-&lt;p&gt;The best way to do this is by comparing our real-time result to other renderers. So, for example, I've been experimenting with Substance Designer (more on that later). It has nVidia's "IRay" raytracer built-in -- so we can compare the non-real-time results from IRay with real-time XLE. I have other ways to do this, also -- for example, the shader in ToolsHelper/BRDFSlice.sh can generate textures directly comparable with Disney's BRDFExplorer tool.&lt;/p&gt;
-
-&lt;p&gt;While doing this (and working on the specular transmission stuff), I've found some interesting improvements to the IBL solution!&lt;/p&gt;
-
-&lt;h2 id="toc_0"&gt;Conclusion&lt;/h2&gt;
-
-&lt;p&gt;This is a really long post; so I'll start with the conclusion. I've made a number of improvements that make the IBL solution appear more realistic, and more similar to ray tracers.&lt;/p&gt;
-
-&lt;p&gt;&lt;br&gt;&lt;img src="/assets/media/ImprovedIBL/Spheres.png"&gt;
-&lt;br&gt;&lt;img src="/assets/media/ImprovedIBL/SpheresMetal.png"&gt;
-&lt;br&gt;&lt;img src="/assets/media/ImprovedIBL/Jamie.png"&gt;
-&lt;em&gt;"Jamie Gnome" model from here: &lt;a href="http://www.turbosquid.com/3d-models/free-obj-mode-jamie-hyneman-gnome/789391"&gt;http://www.turbosquid.com/3d-models/free-obj-mode-jamie-hyneman-gnome/789391&lt;/a&gt;&lt;/em&gt;&lt;/p&gt;
-
-&lt;p&gt;I found some errors in some source material I referenced and fixed some incorrect assumptions I made. Each change is small. But when added up, they make a big difference. The IBL specular is has a lot much punch, things are jumping off the screen better.&lt;/p&gt;
-
-&lt;p&gt;Now, I'll go into detail about what's changed.&lt;/p&gt;
-
-&lt;h2 id="toc_1"&gt;IBL basis&lt;/h2&gt;
-
-&lt;/div&gt;
-
-  &lt;div class="more"&gt;
-    &lt;a href="/posts/improvedibl" class="btn btn-small"&gt;read more..&lt;/a&gt;
-  &lt;/div&gt;
-&lt;/div&gt;
 
 &lt;div class="pagination"&gt;
   &lt;ul&gt;
@@ -371,6 +374,9 @@
     &lt;a href="/tags#Samples-ref"&gt;Samples &lt;span&gt;1&lt;/span&gt;&lt;/a&gt;
   &lt;/li&gt;
   &lt;li&gt;
+    &lt;a href="/tags#Screenshots-ref"&gt;Screenshots &lt;span&gt;1&lt;/span&gt;&lt;/a&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
     &lt;a href="/tags#blog-ref"&gt;blog &lt;span&gt;1&lt;/span&gt;&lt;/a&gt;
   &lt;/li&gt;
   &lt;li&gt;
@@ -429,6 +435,8 @@
     &lt;li&gt;&lt;a href="/posts/transmissionnodegraph"&gt;Transmission Node Diagram&lt;/a&gt;&lt;/li&gt;
   &lt;h3 id="Samples-ref"&gt;Samples&lt;/h3&gt;
     &lt;li&gt;&lt;a href="/posts/environmentsample"&gt;Environment Sample Streamlining&lt;/a&gt;&lt;/li&gt;
+  &lt;h3 id="Screenshots-ref"&gt;Screenshots&lt;/h3&gt;
+    &lt;li&gt;&lt;a href="/posts/envshots"&gt;Environment Rendering Screenshots&lt;/a&gt;&lt;/li&gt;
   &lt;h3 id="blog-ref"&gt;blog&lt;/h3&gt;
     &lt;li&gt;&lt;a href="/posts/first"&gt;First post&lt;/a&gt;&lt;/li&gt;
   &lt;h3 id="D3D-ref"&gt;D3D&lt;/h3&gt;

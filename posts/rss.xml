@@ -4,7 +4,40 @@
     <title>XLE development blog</title>
     <description>XLE development blog</description>
     <link>http://xlgames-inc.github.io</link>
-    <pubDate>March 27, 2016</pubDate>
+    <pubDate>March 30, 2016</pubDate>
+    <item>
+      <title>Environment Rendering Screenshots</title>
+      <link>http://xlgames-inc.github.io/posts/envshots</link>
+      <pubDate>March 30, 2016</pubDate>
+      <description>&lt;p&gt;Here are a few screenshots of environment rendering in XLE. I don&amp;#39;t have a lot of art I can take screenshots of, so I can&amp;#39;t show a very polished scene... But you can see some of the rendering features.&lt;/p&gt;
+
+&lt;p&gt;Look for:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;shallow water surface animation&lt;/li&gt;
+&lt;li&gt;order independent blending for foliage&lt;/li&gt;
+&lt;li&gt;volumetric fog (&amp;amp; related effects)&lt;/li&gt;
+&lt;li&gt;dynamic imposters for distant trees&lt;/li&gt;
+&lt;li&gt;high res terrain geometry&lt;/li&gt;
+&lt;li&gt;terrain decoration spawn&lt;/li&gt;
+&lt;li&gt;&amp;quot;contact hardening&amp;quot; shadows&lt;/li&gt;
+&lt;li&gt;infinite terrain shadows&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;&lt;br/&gt;&lt;img src="/assets/media/EnvShots/shot47.jpg"&gt;
+&lt;br/&gt;&lt;img src="/assets/media/EnvShots/shot50.jpg"&gt;
+&lt;br/&gt;&lt;img src="/assets/media/EnvShots/shot52.jpg"&gt;
+&lt;br/&gt;&lt;img src="/assets/media/EnvShots/shot55.jpg"&gt;
+&lt;br/&gt;&lt;img src="/assets/media/EnvShots/shot57.jpg"&gt;
+&lt;br/&gt;&lt;img src="/assets/media/EnvShots/shot58.jpg"&gt;
+&lt;br/&gt;&lt;img src="/assets/media/EnvShots/shot65.jpg"&gt;&lt;/p&gt;
+
+&lt;p&gt;Here&amp;#39;s a shot of a turbulent ocean (though the indoor environment reflections are weird!). The ocean animation is dynamically calculated on the GPU, and can simulate both small waves on a calm ocean surface and turbulant large waves.
+&lt;br/&gt;&lt;img src="/assets/media/EnvShots/shot83.jpg"&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;em&gt;(some of the sky textures in these screenshots are from &lt;a href="http://www.hdrlabs.com/sibl/archive.html"&gt;sIBL Archive&lt;/a&gt;)&lt;/em&gt;&lt;/p&gt;
+</description>
+    </item>
     <item>
       <title>Release v0.04.0</title>
       <link>http://xlgames-inc.github.io/posts/release0040</link>
@@ -19,8 +52,6 @@
 &lt;a href="https://github.com/xlgames-inc/XLE/releases/download/v0.04.0/XLE0.04.0.zip"&gt;XLE v0.04.0 Windows x64&lt;/a&gt;&lt;/p&gt;
 
 &lt;p&gt;For older versions of Windows, you will need to install the .Net runtime.&lt;/p&gt;
-
-&lt;p&gt;You will also need &lt;a href="https://www.microsoft.com/en-us/download/details.aspx?id=40784"&gt;Visual C++ Redistributable Packages for Visual Studio 2013&lt;/a&gt;.&lt;/p&gt;
 
 &lt;h2 id="toc_1"&gt;Documentation&lt;/h2&gt;
 
