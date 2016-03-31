@@ -2,7 +2,7 @@
 <html lang="en">
   <head>
     <meta charset="utf-8">
-    <title>Rectangle Light diffuse vs 3DS Max</title>
+    <title>Comparing different methods for order independent transparency</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="author" content="XL Games">
 
@@ -50,67 +50,56 @@
       <div class="content">
         
 <div class="page-header">
-  <h1>Rectangle Light diffuse vs 3DS Max </h1>
+  <h1>Comparing different methods for order independent transparency </h1>
 </div>
 
 <div class="row-fluid post-full">
   <div class="span12">
     <div class="date">
-      <span>December 11, 2015</strong>
+      <span>March 31, 2016</strong>
     </div>
     <div class="content">
-      <p>Just a quick note on rectangle light diffuse. In XLE, rectangle lights are slightly different from the default rectangle lights in 3DS Max.</p>
+      <p>There are has been a lot research on order independent transparency recently. There are a few screenshots comparing the following methods:</p>
 
-<style type="text/css">
-.tg  {border-collapse:collapse;border-spacing:0;}
-.tg td{font-family:Arial, sans-serif;font-size:14px;padding:10px 5px;border-style:solid;border-width:1px;overflow:hidden;word-break:normal;}
-.tg th{font-family:Arial, sans-serif;font-size:14px;font-weight:normal;padding:10px 5px;border-style:solid;border-width:1px;overflow:hidden;word-break:normal;}
-.tg .tg-yw4l{vertical-align:top}
-</style>
+<ul>
+<li><strong>Sorted</strong> -- this mode sorts back-to-front per fragment. It&#39;s very expensive, but serves as a reference.</li>
+<li><strong>Stochastic</strong> --  as per nVidia&#39;s Stochastic Transparency research. This uses MSAA hardware to estimate the optical depth covering a given sample.</li>
+<li><strong>Depth weighted</strong> -- as per nVidia&#39;s other white paper, &quot;A Phenomenological Scattering Model
+for Order-Independent Transparency.&quot; This is very cheap, and uses a fixed equation based on fragment depth to weight samples.</li>
+</ul>
 
-<table class="tg">
-  <tr>
-    <th class="tg-yw4l">XLE lights</th>
-    <th class="tg-yw4l">3DS Max lights (Quicksilver renderer)</th>
-  </tr>
-  <tr>
-    <td class="tg-yw4l"><img src="/assets/media/RectLightDiffuse/XLELightDiag.png"></td>
-    <td class="tg-yw4l"><img src="/assets/media/RectLightDiffuse/MaxLightDiag.png"></td>
-  </tr>
-  <tr>
-    <td class="tg-yw4l"><img src="/assets/media/RectLightDiffuse/XLEDefault.png"></td>
-    <td class="tg-yw4l"><img src="/assets/media/RectLightDiffuse/MaxComparison.png"></td>
-  </tr>
-</table>
+<p><strong>Sorted</strong>
+<br/><img src="/assets/media/OI/Sorted.png"></p>
 
-<p>XLE rectangle lights emit light mostly in the forward direction (and a reduced amount sideways). But in the 3DS Max Quicksilver renderer, rectangle lights emit light in all direction.</p>
+<p><strong>Stochastic</strong>
+<br/><img src="/assets/media/OI/Stochastic.png"></p>
 
-<h2 id="toc_0">Edge cases</h2>
+<p><strong>Depth Weighted</strong>
+<br/><img src="/assets/media/OI/DepthWeighted.png"></p>
 
-<p>This is partially because the method we&#39;re using for diffuse doesn&#39;t work well on extreme angles. In the above example, the light plane and the <strong>top</strong>/<strong>bottom</strong>/<strong>left</strong>/<strong>right</strong> walls are actually perpendicular.</p>
+<p><strong>Unordered</strong>
+<br/><img src="/assets/media/OI/Unordered.png"></p>
 
-<p>This causes weird problems right on the edges.</p>
+<p>You can see the artifacts we get with stochastic modes clearly here. Also, you can see that the depth weighted mode is holding up well in some areas of the image, but produces weird results in other areas.</p>
 
-<table class="tg">
-  <tr>
-    <th class="tg-yw4l">XLE emulating 3DS Max</th>
-    <th class="tg-yw4l">3DS Max lights (Quicksilver Renderer)</th>
-  </tr>
-  <tr>
-    <td class="tg-yw4l"><img src="/assets/media/RectLightDiffuse/XLEEmulateMax.png"></td>
-    <td class="tg-yw4l"><img src="/assets/media/RectLightDiffuse/MaxComparison.png"></td>
-  </tr>
-</table>
+<p>Here&#39;s a scene more similar to what might appear in a game:</p>
 
-<p>In the above example, the left and right walls look fine. But the top and bottom walls are missing their highlight. This is because the light is quite tall. A square light might be fine.</p>
+<p><strong>Sorted</strong>
+<br/><img src="/assets/media/OI/Sorted3.png"></p>
 
-<p>But you can see that, in general, the 3DS Max result and the XLE result is quite similar.</p>
+<p><strong>Stochastic</strong>
+<br/><img src="/assets/media/OI/Stochastic3.png"></p>
 
-<h2 id="toc_1">Practical uses</h2>
+<p><strong>Depth Weighted</strong>
+<br/><img src="/assets/media/OI/DepthWeighted3.png"></p>
 
-<p>It might be possible to fix this with some research and a few tricks. But it&#39;s not clear if that would really be useful. Rectangle lights might be most useful for things like windows, TV screens, photography reflectors, etc. In these cases we normally want the light to always go forward, anyway.</p>
+<p>Here, the artifacts in the stochastic method are less obvious. Also, the volume and shape of the geometry is preserved well.</p>
 
-<p>Plus, if we block off the extreme edges, we have some easy options for shadowing.</p>
+<p>The depth weighted version looks ok when there are few layers of transparency. But as soon as we pile on a few layers, it quickly turns to mush. The shape of the trees has become lost, and we end up with a trees merging into other trees.</p>
+
+<p>When rendering trees like this, we need to calculate the lighting on every layer (whereas, with alpha tested geometry we just calculate it once per pixel). This can become extremely expensive. One of the advantages of the stochastic method is we can estimate the optical depth in front of a layer, and fall back to cheaper lighting for layers that are heavily occluded.</p>
+
+<p>Likewise, in all methods there some room to move some aspects of the lighting from per-layer to per-pixel (for example, the Phenomenological Scattering Model paper does the refraction lookup once per pixel regardless of the number of layers).</p>
 
     </div>
     <ul class="tag_box inline">
@@ -122,20 +111,17 @@
     <ul class="tag_box inline">
       <li><i class="icon-tags"></i></li>
       <li>
-        <a href="/tags#AreaLights-ref">AreaLights <span>5</span></a>
-      </li>
-      <li>
-        <a href="/tags#RectangleLights-ref">RectangleLights <span>2</span></a>
+        <a href="/tags#OITrans-ref">OITrans <span>1</span></a>
       </li>
     </ul>
     <hr>
     <div class="pagination">
       <ul>
-          <li class="prev"><a href="/posts/workingonrectlights" title="Working some improvements to rectangle lights">&larr; Previous</a></li>
+          <li class="prev"><a href="/posts/envshots" title="Environment Rendering Screenshots">&larr; Previous</a></li>
 
           <li><a href="/archive">Archive</a></li>
 
-          <li class="next"><a href="/posts/functionlinkedshaders" title="Dynamic Function Linking Graph for Shaders">Next &rarr;</a></li>
+          <li class="next disabled"><a>Next &rarr;</a>
       </ul>
     </div>
     <hr>

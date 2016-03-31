@@ -4,7 +4,54 @@
     <title>XLE development blog</title>
     <description>XLE development blog</description>
     <link>http://xlgames-inc.github.io</link>
-    <pubDate>March 30, 2016</pubDate>
+    <pubDate>March 31, 2016</pubDate>
+    <item>
+      <title>Comparing different methods for order independent transparency</title>
+      <link>http://xlgames-inc.github.io/posts/compareoitrans</link>
+      <pubDate>March 31, 2016</pubDate>
+      <description>&lt;p&gt;There are has been a lot research on order independent transparency recently. There are a few screenshots comparing the following methods:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;Sorted&lt;/strong&gt; -- this mode sorts back-to-front per fragment. It&amp;#39;s very expensive, but serves as a reference.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Stochastic&lt;/strong&gt; --  as per nVidia&amp;#39;s Stochastic Transparency research. This uses MSAA hardware to estimate the optical depth covering a given sample.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Depth weighted&lt;/strong&gt; -- as per nVidia&amp;#39;s other white paper, &amp;quot;A Phenomenological Scattering Model
+for Order-Independent Transparency.&amp;quot; This is very cheap, and uses a fixed equation based on fragment depth to weight samples.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;&lt;strong&gt;Sorted&lt;/strong&gt;
+&lt;br/&gt;&lt;img src="/assets/media/OI/Sorted.png"&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Stochastic&lt;/strong&gt;
+&lt;br/&gt;&lt;img src="/assets/media/OI/Stochastic.png"&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Depth Weighted&lt;/strong&gt;
+&lt;br/&gt;&lt;img src="/assets/media/OI/DepthWeighted.png"&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Unordered&lt;/strong&gt;
+&lt;br/&gt;&lt;img src="/assets/media/OI/Unordered.png"&gt;&lt;/p&gt;
+
+&lt;p&gt;You can see the artifacts we get with stochastic modes clearly here. Also, you can see that the depth weighted mode is holding up well in some areas of the image, but produces weird results in other areas.&lt;/p&gt;
+
+&lt;p&gt;Here&amp;#39;s a scene more similar to what might appear in a game:&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Sorted&lt;/strong&gt;
+&lt;br/&gt;&lt;img src="/assets/media/OI/Sorted3.png"&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Stochastic&lt;/strong&gt;
+&lt;br/&gt;&lt;img src="/assets/media/OI/Stochastic3.png"&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Depth Weighted&lt;/strong&gt;
+&lt;br/&gt;&lt;img src="/assets/media/OI/DepthWeighted3.png"&gt;&lt;/p&gt;
+
+&lt;p&gt;Here, the artifacts in the stochastic method are less obvious. Also, the volume and shape of the geometry is preserved well.&lt;/p&gt;
+
+&lt;p&gt;The depth weighted version looks ok when there are few layers of transparency. But as soon as we pile on a few layers, it quickly turns to mush. The shape of the trees has become lost, and we end up with a trees merging into other trees.&lt;/p&gt;
+
+&lt;p&gt;When rendering trees like this, we need to calculate the lighting on every layer (whereas, with alpha tested geometry we just calculate it once per pixel). This can become extremely expensive. One of the advantages of the stochastic method is we can estimate the optical depth in front of a layer, and fall back to cheaper lighting for layers that are heavily occluded.&lt;/p&gt;
+
+&lt;p&gt;Likewise, in all methods there some room to move some aspects of the lighting from per-layer to per-pixel (for example, the Phenomenological Scattering Model paper does the refraction lookup once per pixel regardless of the number of layers).&lt;/p&gt;
+</description>
+    </item>
     <item>
       <title>Environment Rendering Screenshots</title>
       <link>http://xlgames-inc.github.io/posts/envshots</link>

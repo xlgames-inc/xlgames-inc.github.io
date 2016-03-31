@@ -4,7 +4,7 @@
     <title>XLE development blog</title>
     <description>XLE development blog</description>
     <link>http://xlgames-inc.github.io</link>
-    <pubDate>March 30, 2016</pubDate>
+    <pubDate>March 31, 2016</pubDate>
     <item>
       <title>About</title>
       <link>http://xlgames-inc.github.io/about</link>
@@ -24,6 +24,7 @@
   &lt;h2&gt;2016&lt;/h2&gt;
     &lt;h3&gt;March&lt;/h3&gt;
     &lt;ul&gt;
+      &lt;li&gt;&lt;span&gt;March 31, 2016&lt;/span&gt; &amp;raquo; &lt;a href="/posts/compareoitrans"&gt;Comparing different methods for order independent transparency&lt;/a&gt;&lt;/li&gt;
       &lt;li&gt;&lt;span&gt;March 30, 2016&lt;/span&gt; &amp;raquo; &lt;a href="/posts/envshots"&gt;Environment Rendering Screenshots&lt;/a&gt;&lt;/li&gt;
       &lt;li&gt;&lt;span&gt;March 26, 2016&lt;/span&gt; &amp;raquo; &lt;a href="/posts/release0040"&gt;Release v0.04.0&lt;/a&gt;&lt;/li&gt;
       &lt;li&gt;&lt;span&gt;March 25, 2016&lt;/span&gt; &amp;raquo; &lt;a href="/posts/environmentsample"&gt;Environment Sample Streamlining&lt;/a&gt;&lt;/li&gt;
@@ -60,17 +61,18 @@
       <description>
 &lt;ul class="tag_box inline"&gt;
   &lt;li&gt;
-    &lt;a href="/categories#XLE-ref"&gt;XLE &lt;span&gt;16&lt;/span&gt;&lt;/a&gt;
+    &lt;a href="/categories#XLE-ref"&gt;XLE &lt;span&gt;17&lt;/span&gt;&lt;/a&gt;
   &lt;/li&gt;
   &lt;li&gt;
     &lt;a href="/categories#blog-ref"&gt;blog &lt;span&gt;1&lt;/span&gt;&lt;/a&gt;
   &lt;/li&gt;
 &lt;/ul&gt;
 
-  &lt;h3&gt;XLE (16)&lt;/h3&gt;
+  &lt;h3&gt;XLE (17)&lt;/h3&gt;
   &lt;ul&gt;
       &lt;li&gt;&lt;a href="/posts/arealightsandpbr"&gt;Area Lights with Physically Based Rendering&lt;/a&gt;&lt;/li&gt;
       &lt;li&gt;&lt;a href="/posts/assetpathscripts"&gt;Processing textures with the XLE scriptable asset path&lt;/a&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;a href="/posts/compareoitrans"&gt;Comparing different methods for order independent transparency&lt;/a&gt;&lt;/li&gt;
       &lt;li&gt;&lt;a href="/posts/environmentsample"&gt;Environment Sample Streamlining&lt;/a&gt;&lt;/li&gt;
       &lt;li&gt;&lt;a href="/posts/envshots"&gt;Environment Rendering Screenshots&lt;/a&gt;&lt;/li&gt;
       &lt;li&gt;&lt;a href="/posts/functionlinkedshaders"&gt;Dynamic Function Linking Graph for Shaders&lt;/a&gt;&lt;/li&gt;
@@ -105,6 +107,7 @@
   &lt;h2&gt;2016&lt;/h2&gt;
     &lt;h3&gt;March&lt;/h3&gt;
     &lt;ul&gt;
+      &lt;li&gt;&lt;span&gt;March 31, 2016&lt;/span&gt; &amp;raquo; &lt;a href="/posts/compareoitrans"&gt;Comparing different methods for order independent transparency&lt;/a&gt;&lt;/li&gt;
       &lt;li&gt;&lt;span&gt;March 30, 2016&lt;/span&gt; &amp;raquo; &lt;a href="/posts/envshots"&gt;Environment Rendering Screenshots&lt;/a&gt;&lt;/li&gt;
       &lt;li&gt;&lt;span&gt;March 26, 2016&lt;/span&gt; &amp;raquo; &lt;a href="/posts/release0040"&gt;Release v0.04.0&lt;/a&gt;&lt;/li&gt;
       &lt;li&gt;&lt;span&gt;March 25, 2016&lt;/span&gt; &amp;raquo; &lt;a href="/posts/environmentsample"&gt;Environment Sample Streamlining&lt;/a&gt;&lt;/li&gt;
@@ -138,6 +141,40 @@
 
 &lt;hr /&gt;
 
+&lt;div class="post"&gt;
+  &lt;h3 class="title"&gt;&lt;a href="/posts/compareoitrans"&gt;Comparing different methods for order independent transparency&lt;/a&gt;&lt;br /&gt; &lt;span class="date"&gt;March 31, 2016&lt;/span&gt;&lt;/h3&gt;
+
+  &lt;div class="summary ellipsis"&gt;
+&lt;p&gt;There are has been a lot research on order independent transparency recently. There are a few screenshots comparing the following methods:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;
+&lt;strong&gt;Sorted&lt;/strong&gt; -- this mode sorts back-to-front per fragment. It's very expensive, but serves as a reference.&lt;/li&gt;
+&lt;li&gt;
+&lt;strong&gt;Stochastic&lt;/strong&gt; --  as per nVidia's Stochastic Transparency research. This uses MSAA hardware to estimate the optical depth covering a given sample.&lt;/li&gt;
+&lt;li&gt;
+&lt;strong&gt;Depth weighted&lt;/strong&gt; -- as per nVidia's other white paper, "A Phenomenological Scattering Model
+for Order-Independent Transparency." This is very cheap, and uses a fixed equation based on fragment depth to weight samples.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;&lt;strong&gt;Sorted&lt;/strong&gt;
+&lt;br&gt;&lt;img src="/assets/media/OI/Sorted.png"&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Stochastic&lt;/strong&gt;
+&lt;br&gt;&lt;img src="/assets/media/OI/Stochastic.png"&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Depth Weighted&lt;/strong&gt;
+&lt;br&gt;&lt;img src="/assets/media/OI/DepthWeighted.png"&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Unordered&lt;/strong&gt;
+&lt;br&gt;&lt;img src="/assets/media/OI/Unordered.png"&gt;&lt;/p&gt;
+
+&lt;/div&gt;
+
+  &lt;div class="more"&gt;
+    &lt;a href="/posts/compareoitrans" class="btn btn-small"&gt;read more..&lt;/a&gt;
+  &lt;/div&gt;
+&lt;/div&gt;
 &lt;div class="post"&gt;
   &lt;h3 class="title"&gt;&lt;a href="/posts/envshots"&gt;Environment Rendering Screenshots&lt;/a&gt;&lt;br /&gt; &lt;span class="date"&gt;March 30, 2016&lt;/span&gt;&lt;/h3&gt;
 
@@ -273,37 +310,6 @@
     &lt;a href="/posts/newtoolfeatures" class="btn btn-small"&gt;read more..&lt;/a&gt;
   &lt;/div&gt;
 &lt;/div&gt;
-&lt;div class="post"&gt;
-  &lt;h3 class="title"&gt;&lt;a href="/posts/transmittedspecular3"&gt;Transmitted specular&lt;/a&gt;&lt;br /&gt; &lt;span class="date"&gt;February 05, 2016&lt;/span&gt;&lt;/h3&gt;
-
-  &lt;div class="summary ellipsis"&gt;
-&lt;p&gt;I've been playing with the transmitted specular implementation for IBL, and working on getting the right balance and visual impression for glass.&lt;/p&gt;
-
-&lt;p&gt;&lt;br&gt;&lt;img src="/assets/media/TransSpec/GlassSphere.png"&gt;
-&lt;br&gt;&lt;em&gt;Background textures from &lt;a href="http://www.hdrlabs.com/sibl/archive.html"&gt;http://www.hdrlabs.com/sibl/archive.html&lt;/a&gt;&lt;/em&gt;&lt;/p&gt;
-
-&lt;p&gt;It's curious to think about how terms have changed over the last few years. "Specular transmission" is the term I've been using to talk about what we might have previously called "refraction mapping", and "specular IBL" is the new term for "reflection mapping." The new terms show how real-time methods are now encompassing ideas previously only used in ray tracers.&lt;/p&gt;
-
-&lt;h2 id="toc_0"&gt;Basic method&lt;/h2&gt;
-
-&lt;p&gt;I've using the basic method from the GGX paper, &lt;em&gt;"Microfacet Models for Refraction through Rough Surfaces"&lt;/em&gt; from Walter, et al. This matches our reflection implementation, of course, because the math for our reflection method is also based on that paper.&lt;/p&gt;
-
-&lt;p&gt;I've been able to adapt the math to the split-term concept used for reflected specular IBL. It works just the same way; we have one lookup-table that tell us the brightness of the refraction, and a cubemap that is pre-blurred according to the shape of our lighting equation.&lt;/p&gt;
-
-&lt;p&gt;See the page on &lt;a href="improvedibl"&gt;Improved IBL&lt;/a&gt; for more information that that split-term stuff.&lt;/p&gt;
-
-&lt;p&gt;The basic principles are simple. But followed blindly, the results do not quite feel right. It turns out that specular transmission is more complicated than specular reflections. I'll talk about some of the complications involved in the implementation...&lt;/p&gt;
-
-&lt;h2 id="toc_1"&gt;Relationship between "specular" and index of refraction&lt;/h2&gt;
-
-&lt;p&gt;It's important to remember that there is a relationship between the "specular" material parameter and the index of refraction.&lt;/p&gt;
-
-&lt;/div&gt;
-
-  &lt;div class="more"&gt;
-    &lt;a href="/posts/transmittedspecular3" class="btn btn-small"&gt;read more..&lt;/a&gt;
-  &lt;/div&gt;
-&lt;/div&gt;
 
 &lt;div class="pagination"&gt;
   &lt;ul&gt;
@@ -368,6 +374,9 @@
     &lt;a href="/tags#IBL-ref"&gt;IBL &lt;span&gt;3&lt;/span&gt;&lt;/a&gt;
   &lt;/li&gt;
   &lt;li&gt;
+    &lt;a href="/tags#OITrans-ref"&gt;OITrans &lt;span&gt;1&lt;/span&gt;&lt;/a&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
     &lt;a href="/tags#Tools-ref"&gt;Tools &lt;span&gt;4&lt;/span&gt;&lt;/a&gt;
   &lt;/li&gt;
   &lt;li&gt;
@@ -428,6 +437,8 @@
     &lt;li&gt;&lt;a href="/posts/assetpathscripts"&gt;Processing textures with the XLE scriptable asset path&lt;/a&gt;&lt;/li&gt;
     &lt;li&gt;&lt;a href="/posts/improvedibl"&gt;Improved IBL&lt;/a&gt;&lt;/li&gt;
     &lt;li&gt;&lt;a href="/posts/transmittedspecular3"&gt;Transmitted specular&lt;/a&gt;&lt;/li&gt;
+  &lt;h3 id="OITrans-ref"&gt;OITrans&lt;/h3&gt;
+    &lt;li&gt;&lt;a href="/posts/compareoitrans"&gt;Comparing different methods for order independent transparency&lt;/a&gt;&lt;/li&gt;
   &lt;h3 id="Tools-ref"&gt;Tools&lt;/h3&gt;
     &lt;li&gt;&lt;a href="/posts/environmentsample"&gt;Environment Sample Streamlining&lt;/a&gt;&lt;/li&gt;
     &lt;li&gt;&lt;a href="/posts/materialtool"&gt;Material and Node Diagram Tool&lt;/a&gt;&lt;/li&gt;

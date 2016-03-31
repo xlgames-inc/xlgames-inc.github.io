@@ -51,6 +51,40 @@
         <div class="row-fluid">
   <div class="span12">
       <div class="posts">
+        <h3 class="title"><a href="/posts/compareoitrans">Comparing different methods for order independent transparency</a><br/> <span class="date">March 31, 2016</span></h3>
+
+        <div class="summary ellipsis">
+<p>There are has been a lot research on order independent transparency recently. There are a few screenshots comparing the following methods:</p>
+
+<ul>
+<li>
+<strong>Sorted</strong> -- this mode sorts back-to-front per fragment. It's very expensive, but serves as a reference.</li>
+<li>
+<strong>Stochastic</strong> --  as per nVidia's Stochastic Transparency research. This uses MSAA hardware to estimate the optical depth covering a given sample.</li>
+<li>
+<strong>Depth weighted</strong> -- as per nVidia's other white paper, "A Phenomenological Scattering Model
+for Order-Independent Transparency." This is very cheap, and uses a fixed equation based on fragment depth to weight samples.</li>
+</ul>
+
+<p><strong>Sorted</strong>
+<br><img src="/assets/media/OI/Sorted.png"></p>
+
+<p><strong>Stochastic</strong>
+<br><img src="/assets/media/OI/Stochastic.png"></p>
+
+<p><strong>Depth Weighted</strong>
+<br><img src="/assets/media/OI/DepthWeighted.png"></p>
+
+<p><strong>Unordered</strong>
+<br><img src="/assets/media/OI/Unordered.png"></p>
+
+</div>
+
+        <div class="more">
+          <a href="/posts/compareoitrans" class="btn btn-small">read more..</a>
+        </div>
+      </div>
+      <div class="posts">
         <h3 class="title"><a href="/posts/envshots">Environment Rendering Screenshots</a><br/> <span class="date">March 30, 2016</span></h3>
 
         <div class="summary ellipsis">
@@ -183,37 +217,6 @@
 
         <div class="more">
           <a href="/posts/newtoolfeatures" class="btn btn-small">read more..</a>
-        </div>
-      </div>
-      <div class="posts">
-        <h3 class="title"><a href="/posts/transmittedspecular3">Transmitted specular</a><br/> <span class="date">February 05, 2016</span></h3>
-
-        <div class="summary ellipsis">
-<p>I've been playing with the transmitted specular implementation for IBL, and working on getting the right balance and visual impression for glass.</p>
-
-<p><br><img src="/assets/media/TransSpec/GlassSphere.png">
-<br><em>Background textures from <a href="http://www.hdrlabs.com/sibl/archive.html">http://www.hdrlabs.com/sibl/archive.html</a></em></p>
-
-<p>It's curious to think about how terms have changed over the last few years. "Specular transmission" is the term I've been using to talk about what we might have previously called "refraction mapping", and "specular IBL" is the new term for "reflection mapping." The new terms show how real-time methods are now encompassing ideas previously only used in ray tracers.</p>
-
-<h2 id="toc_0">Basic method</h2>
-
-<p>I've using the basic method from the GGX paper, <em>"Microfacet Models for Refraction through Rough Surfaces"</em> from Walter, et al. This matches our reflection implementation, of course, because the math for our reflection method is also based on that paper.</p>
-
-<p>I've been able to adapt the math to the split-term concept used for reflected specular IBL. It works just the same way; we have one lookup-table that tell us the brightness of the refraction, and a cubemap that is pre-blurred according to the shape of our lighting equation.</p>
-
-<p>See the page on <a href="improvedibl">Improved IBL</a> for more information that that split-term stuff.</p>
-
-<p>The basic principles are simple. But followed blindly, the results do not quite feel right. It turns out that specular transmission is more complicated than specular reflections. I'll talk about some of the complications involved in the implementation...</p>
-
-<h2 id="toc_1">Relationship between "specular" and index of refraction</h2>
-
-<p>It's important to remember that there is a relationship between the "specular" material parameter and the index of refraction.</p>
-
-</div>
-
-        <div class="more">
-          <a href="/posts/transmittedspecular3" class="btn btn-small">read more..</a>
         </div>
       </div>
     
