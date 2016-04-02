@@ -4,7 +4,7 @@
     <title>XLE development blog</title>
     <description>XLE development blog</description>
     <link>http://xlgames-inc.github.io</link>
-    <pubDate>March 31, 2016</pubDate>
+    <pubDate>April 02, 2016</pubDate>
     <item>
       <title>Comparing different methods for order independent transparency</title>
       <link>http://xlgames-inc.github.io/posts/compareoitrans</link>
@@ -95,10 +95,14 @@ for Order-Independent Transparency.&amp;quot; This is very cheap, and uses a fix
 
 &lt;h2 id="toc_0"&gt;Download&lt;/h2&gt;
 
-&lt;p&gt;XLE v0.04.0:
-&lt;a href="https://github.com/xlgames-inc/XLE/releases/download/v0.04.0/XLE0.04.0.zip"&gt;XLE v0.04.0 Windows x64&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;XLE v0.04.1:
+&lt;a href="https://github.com/xlgames-inc/XLE/releases/download/v0.04.1/XLE0.04.1.zip"&gt;XLE v0.04.1 Windows x64&lt;/a&gt;&lt;/p&gt;
 
-&lt;p&gt;For older versions of Windows, you will need to install the .Net runtime.&lt;/p&gt;
+&lt;p&gt;You will need &lt;a href="https://www.microsoft.com/en-us/download/details.aspx?id=40784"&gt;Visual C++ Redistributable Packages for Visual Studio 2013&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;For older versions of Windows, you will also need to install the .Net runtime.&lt;/p&gt;
+
+&lt;p&gt;Edit -- updated to link to v0.04.1 (which fixes a problem locating the shader compiler dll on some versions of windows).&lt;/p&gt;
 
 &lt;h2 id="toc_1"&gt;Documentation&lt;/h2&gt;
 
