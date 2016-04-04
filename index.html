@@ -62,6 +62,10 @@
 <p>Dev team contact: <a href="mailto:xle@xlgames.com">xle@xlgames.com</a> (in English or Korean)</p>
 
   <h2>2016</h2>
+    <h3>April</h3>
+    <ul>
+      <li><span>April 04, 2016</span> &raquo; <a href="/posts/vulkan">Starting to experiment with Vulkan</a></li>
+    </ul>
     <h3>March</h3>
     <ul>
       <li><span>March 31, 2016</span> &raquo; <a href="/posts/compareoitrans">Comparing different methods for order independent transparency</a></li>
@@ -98,6 +102,37 @@
 
 <hr />
 
+<div class="post">
+  <h3 class="title"><a href="/posts/vulkan">Starting to experiment with Vulkan</a><br /> <span class="date">April 04, 2016</span></h3>
+
+  <div class="summary ellipsis">
+<p>So, it's a simple story -- boy meets API, yada, yada, yada...</p>
+
+<p>I've started to build some initial experiments with the Vulkan API. Version 1.0 of the API was just released -- and there's an SDK from Valve (called LunarG) around.</p>
+
+<h2 id="toc_0">Initial impressions</h2>
+
+<p>My first impressions are very positive! Many of the design ideals and structures of the API are familiar from my days working with consoles (particularly the Sony consoles). This type of API has not been available on open platforms (like Windows) before -- so for people who don't have experience with consoles, it might give an idea of what it's like.</p>
+
+<p>I'm also really happy how much of the surrounding resources have been made open-source... The samples, shader compilation tool-chain, etc... It's all very effective use of github.</p>
+
+<p>Khronos have drawn attention to how much input they've gotten from the game engine development community. And it shows in the results. This is the kind of API that an experienced engine developer wants to see.</p>
+
+<p>I think it's also a model that is much more viable for cross platform development than anything we've seen before. OpenGL had a lot of problems, and DirectX was so tied to the Windows platform. But this feels like something that is truly viable across many platforms (including low end and high end).</p>
+
+<p>I'm really impressed with how a third party group has managed to build an API that balances the needs of engine developers with the needs of hardware designers. I think Khronos has really shown how this kind of thing should be done -- and it seems like a good model for other APIs (sound, physics hardware, etc).</p>
+
+<h2 id="toc_1">Long term viability</h2>
+
+<p>Vulkan feels like an API that could stick around for awhile. OpenGL has been on it's last legs for a long time... And DirectX always needs constant refreshes to survive. But Vulkan feels like it will be here for awhile. Due to it's cross-platform and long term viability, it's really undermined DirectX and Apple's Metal.</p>
+
+<p>I felt the same about C++11, when I started using it. The new C++14 is a huge step forward from the old C++98 days. Many of the design patterns we C++ programmers always wanted to use are not much more viable in C++14. Stroustrup said that C++14 "completes" C++11 -- but really, I think it "completes" C++ as a whole.</p>
+</div>
+
+  <div class="more">
+    <a href="/posts/vulkan" class="btn btn-small">read more..</a>
+  </div>
+</div>
 <div class="post">
   <h3 class="title"><a href="/posts/compareoitrans">Comparing different methods for order independent transparency</a><br /> <span class="date">March 31, 2016</span></h3>
 
@@ -235,38 +270,6 @@ for Order-Independent Transparency." This is very cheap, and uses a fixed equati
 
   <div class="more">
     <a href="/posts/environmentsample" class="btn btn-small">read more..</a>
-  </div>
-</div>
-<div class="post">
-  <h3 class="title"><a href="/posts/newtoolfeatures">Latest Tool Features</a><br /> <span class="date">March 14, 2016</span></h3>
-
-  <div class="summary ellipsis">
-<p>Here's a rundown of some of the latest improvements to the tools. These are just a few additions and improvements made over about a week's time.</p>
-
-<h2 id="toc_0">Search and Replace for placements</h2>
-
-<p>Find placements using complex queries:
-<br><img src="/assets/media/NewToolFeatures/SearchAndReplace.png"></p>
-
-<p>Once found, they can be selected from the results menu (or run a replace operation).</p>
-
-<p>Sometimes it's useful to search for placements that use a specific model:
-<br><img src="/assets/media/NewToolFeatures/SearchShortcut.png"></p>
-
-<h2 id="toc_1">Grouping support for placements</h2>
-
-<p><br><img src="/assets/media/NewToolFeatures/Grouping.png"></p>
-
-<p>Group together objects to make them easier to use. Support for hierarchical groups. Use the “Any Object (ignore groups)” filter to ignore groups when selecting.</p>
-
-<h2 id="toc_2">Randomize transforms</h2>
-
-<p><br><img src="/assets/media/NewToolFeatures/RandomizeTransforms.png">
-<br><img src="/assets/media/NewToolFeatures/RandomTransMenu.png"></p>
-</div>
-
-  <div class="more">
-    <a href="/posts/newtoolfeatures" class="btn btn-small">read more..</a>
   </div>
 </div>
 

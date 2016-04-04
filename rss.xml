@@ -4,7 +4,7 @@
     <title>XLE development blog</title>
     <description>XLE development blog</description>
     <link>http://xlgames-inc.github.io</link>
-    <pubDate>April 02, 2016</pubDate>
+    <pubDate>April 04, 2016</pubDate>
     <item>
       <title>About</title>
       <link>http://xlgames-inc.github.io/about</link>
@@ -22,6 +22,10 @@
       <link>http://xlgames-inc.github.io/archive</link>
       <description>
   &lt;h2&gt;2016&lt;/h2&gt;
+    &lt;h3&gt;April&lt;/h3&gt;
+    &lt;ul&gt;
+      &lt;li&gt;&lt;span&gt;April 04, 2016&lt;/span&gt; &amp;raquo; &lt;a href="/posts/vulkan"&gt;Starting to experiment with Vulkan&lt;/a&gt;&lt;/li&gt;
+    &lt;/ul&gt;
     &lt;h3&gt;March&lt;/h3&gt;
     &lt;ul&gt;
       &lt;li&gt;&lt;span&gt;March 31, 2016&lt;/span&gt; &amp;raquo; &lt;a href="/posts/compareoitrans"&gt;Comparing different methods for order independent transparency&lt;/a&gt;&lt;/li&gt;
@@ -61,14 +65,14 @@
       <description>
 &lt;ul class="tag_box inline"&gt;
   &lt;li&gt;
-    &lt;a href="/categories#XLE-ref"&gt;XLE &lt;span&gt;17&lt;/span&gt;&lt;/a&gt;
+    &lt;a href="/categories#XLE-ref"&gt;XLE &lt;span&gt;18&lt;/span&gt;&lt;/a&gt;
   &lt;/li&gt;
   &lt;li&gt;
     &lt;a href="/categories#blog-ref"&gt;blog &lt;span&gt;1&lt;/span&gt;&lt;/a&gt;
   &lt;/li&gt;
 &lt;/ul&gt;
 
-  &lt;h3&gt;XLE (17)&lt;/h3&gt;
+  &lt;h3&gt;XLE (18)&lt;/h3&gt;
   &lt;ul&gt;
       &lt;li&gt;&lt;a href="/posts/arealightsandpbr"&gt;Area Lights with Physically Based Rendering&lt;/a&gt;&lt;/li&gt;
       &lt;li&gt;&lt;a href="/posts/assetpathscripts"&gt;Processing textures with the XLE scriptable asset path&lt;/a&gt;&lt;/li&gt;
@@ -85,6 +89,7 @@
       &lt;li&gt;&lt;a href="/posts/transmittedspecular"&gt;Transmitted specular&lt;/a&gt;&lt;/li&gt;
       &lt;li&gt;&lt;a href="/posts/transmittedspecular2"&gt;Transmitted specular progress&lt;/a&gt;&lt;/li&gt;
       &lt;li&gt;&lt;a href="/posts/transmittedspecular3"&gt;Transmitted specular&lt;/a&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;a href="/posts/vulkan"&gt;Starting to experiment with Vulkan&lt;/a&gt;&lt;/li&gt;
       &lt;li&gt;&lt;a href="/posts/whattodofirst"&gt;What to do first&lt;/a&gt;&lt;/li&gt;
       &lt;li&gt;&lt;a href="/posts/workingonrectlights"&gt;Working some improvements to rectangle lights&lt;/a&gt;&lt;/li&gt;
   &lt;/ul&gt;
@@ -105,6 +110,10 @@
 &lt;p&gt;Dev team contact: &lt;a href="mailto:xle@xlgames.com"&gt;xle@xlgames.com&lt;/a&gt; (in English or Korean)&lt;/p&gt;
 
   &lt;h2&gt;2016&lt;/h2&gt;
+    &lt;h3&gt;April&lt;/h3&gt;
+    &lt;ul&gt;
+      &lt;li&gt;&lt;span&gt;April 04, 2016&lt;/span&gt; &amp;raquo; &lt;a href="/posts/vulkan"&gt;Starting to experiment with Vulkan&lt;/a&gt;&lt;/li&gt;
+    &lt;/ul&gt;
     &lt;h3&gt;March&lt;/h3&gt;
     &lt;ul&gt;
       &lt;li&gt;&lt;span&gt;March 31, 2016&lt;/span&gt; &amp;raquo; &lt;a href="/posts/compareoitrans"&gt;Comparing different methods for order independent transparency&lt;/a&gt;&lt;/li&gt;
@@ -141,6 +150,37 @@
 
 &lt;hr /&gt;
 
+&lt;div class="post"&gt;
+  &lt;h3 class="title"&gt;&lt;a href="/posts/vulkan"&gt;Starting to experiment with Vulkan&lt;/a&gt;&lt;br /&gt; &lt;span class="date"&gt;April 04, 2016&lt;/span&gt;&lt;/h3&gt;
+
+  &lt;div class="summary ellipsis"&gt;
+&lt;p&gt;So, it's a simple story -- boy meets API, yada, yada, yada...&lt;/p&gt;
+
+&lt;p&gt;I've started to build some initial experiments with the Vulkan API. Version 1.0 of the API was just released -- and there's an SDK from Valve (called LunarG) around.&lt;/p&gt;
+
+&lt;h2 id="toc_0"&gt;Initial impressions&lt;/h2&gt;
+
+&lt;p&gt;My first impressions are very positive! Many of the design ideals and structures of the API are familiar from my days working with consoles (particularly the Sony consoles). This type of API has not been available on open platforms (like Windows) before -- so for people who don't have experience with consoles, it might give an idea of what it's like.&lt;/p&gt;
+
+&lt;p&gt;I'm also really happy how much of the surrounding resources have been made open-source... The samples, shader compilation tool-chain, etc... It's all very effective use of github.&lt;/p&gt;
+
+&lt;p&gt;Khronos have drawn attention to how much input they've gotten from the game engine development community. And it shows in the results. This is the kind of API that an experienced engine developer wants to see.&lt;/p&gt;
+
+&lt;p&gt;I think it's also a model that is much more viable for cross platform development than anything we've seen before. OpenGL had a lot of problems, and DirectX was so tied to the Windows platform. But this feels like something that is truly viable across many platforms (including low end and high end).&lt;/p&gt;
+
+&lt;p&gt;I'm really impressed with how a third party group has managed to build an API that balances the needs of engine developers with the needs of hardware designers. I think Khronos has really shown how this kind of thing should be done -- and it seems like a good model for other APIs (sound, physics hardware, etc).&lt;/p&gt;
+
+&lt;h2 id="toc_1"&gt;Long term viability&lt;/h2&gt;
+
+&lt;p&gt;Vulkan feels like an API that could stick around for awhile. OpenGL has been on it's last legs for a long time... And DirectX always needs constant refreshes to survive. But Vulkan feels like it will be here for awhile. Due to it's cross-platform and long term viability, it's really undermined DirectX and Apple's Metal.&lt;/p&gt;
+
+&lt;p&gt;I felt the same about C++11, when I started using it. The new C++14 is a huge step forward from the old C++98 days. Many of the design patterns we C++ programmers always wanted to use are not much more viable in C++14. Stroustrup said that C++14 "completes" C++11 -- but really, I think it "completes" C++ as a whole.&lt;/p&gt;
+&lt;/div&gt;
+
+  &lt;div class="more"&gt;
+    &lt;a href="/posts/vulkan" class="btn btn-small"&gt;read more..&lt;/a&gt;
+  &lt;/div&gt;
+&lt;/div&gt;
 &lt;div class="post"&gt;
   &lt;h3 class="title"&gt;&lt;a href="/posts/compareoitrans"&gt;Comparing different methods for order independent transparency&lt;/a&gt;&lt;br /&gt; &lt;span class="date"&gt;March 31, 2016&lt;/span&gt;&lt;/h3&gt;
 
@@ -280,38 +320,6 @@ for Order-Independent Transparency." This is very cheap, and uses a fixed equati
     &lt;a href="/posts/environmentsample" class="btn btn-small"&gt;read more..&lt;/a&gt;
   &lt;/div&gt;
 &lt;/div&gt;
-&lt;div class="post"&gt;
-  &lt;h3 class="title"&gt;&lt;a href="/posts/newtoolfeatures"&gt;Latest Tool Features&lt;/a&gt;&lt;br /&gt; &lt;span class="date"&gt;March 14, 2016&lt;/span&gt;&lt;/h3&gt;
-
-  &lt;div class="summary ellipsis"&gt;
-&lt;p&gt;Here's a rundown of some of the latest improvements to the tools. These are just a few additions and improvements made over about a week's time.&lt;/p&gt;
-
-&lt;h2 id="toc_0"&gt;Search and Replace for placements&lt;/h2&gt;
-
-&lt;p&gt;Find placements using complex queries:
-&lt;br&gt;&lt;img src="/assets/media/NewToolFeatures/SearchAndReplace.png"&gt;&lt;/p&gt;
-
-&lt;p&gt;Once found, they can be selected from the results menu (or run a replace operation).&lt;/p&gt;
-
-&lt;p&gt;Sometimes it's useful to search for placements that use a specific model:
-&lt;br&gt;&lt;img src="/assets/media/NewToolFeatures/SearchShortcut.png"&gt;&lt;/p&gt;
-
-&lt;h2 id="toc_1"&gt;Grouping support for placements&lt;/h2&gt;
-
-&lt;p&gt;&lt;br&gt;&lt;img src="/assets/media/NewToolFeatures/Grouping.png"&gt;&lt;/p&gt;
-
-&lt;p&gt;Group together objects to make them easier to use. Support for hierarchical groups. Use the &#x201C;Any Object (ignore groups)&#x201D; filter to ignore groups when selecting.&lt;/p&gt;
-
-&lt;h2 id="toc_2"&gt;Randomize transforms&lt;/h2&gt;
-
-&lt;p&gt;&lt;br&gt;&lt;img src="/assets/media/NewToolFeatures/RandomizeTransforms.png"&gt;
-&lt;br&gt;&lt;img src="/assets/media/NewToolFeatures/RandomTransMenu.png"&gt;&lt;/p&gt;
-&lt;/div&gt;
-
-  &lt;div class="more"&gt;
-    &lt;a href="/posts/newtoolfeatures" class="btn btn-small"&gt;read more..&lt;/a&gt;
-  &lt;/div&gt;
-&lt;/div&gt;
 
 &lt;div class="pagination"&gt;
   &lt;ul&gt;
@@ -417,6 +425,18 @@ for Order-Independent Transparency." This is very cheap, and uses a fixed equati
   &lt;li&gt;
     &lt;a href="/tags#Releases-ref"&gt;Releases &lt;span&gt;1&lt;/span&gt;&lt;/a&gt;
   &lt;/li&gt;
+  &lt;li&gt;
+    &lt;a href="/tags#Vulkan-ref"&gt;Vulkan &lt;span&gt;1&lt;/span&gt;&lt;/a&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;a href="/tags#rendering-ref"&gt;rendering &lt;span&gt;1&lt;/span&gt;&lt;/a&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;a href="/tags#API-ref"&gt;API &lt;span&gt;1&lt;/span&gt;&lt;/a&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;a href="/tags#cross platform-ref"&gt;cross platform &lt;span&gt;1&lt;/span&gt;&lt;/a&gt;
+  &lt;/li&gt;
 &lt;/ul&gt;
 
   &lt;h3 id="PBR-ref"&gt;PBR&lt;/h3&gt;
@@ -481,6 +501,14 @@ for Order-Independent Transparency." This is very cheap, and uses a fixed equati
     &lt;li&gt;&lt;a href="/posts/workingonrectlights"&gt;Working some improvements to rectangle lights&lt;/a&gt;&lt;/li&gt;
   &lt;h3 id="Releases-ref"&gt;Releases&lt;/h3&gt;
     &lt;li&gt;&lt;a href="/posts/release0040"&gt;Release v0.04.0&lt;/a&gt;&lt;/li&gt;
+  &lt;h3 id="Vulkan-ref"&gt;Vulkan&lt;/h3&gt;
+    &lt;li&gt;&lt;a href="/posts/vulkan"&gt;Starting to experiment with Vulkan&lt;/a&gt;&lt;/li&gt;
+  &lt;h3 id="rendering-ref"&gt;rendering&lt;/h3&gt;
+    &lt;li&gt;&lt;a href="/posts/vulkan"&gt;Starting to experiment with Vulkan&lt;/a&gt;&lt;/li&gt;
+  &lt;h3 id="API-ref"&gt;API&lt;/h3&gt;
+    &lt;li&gt;&lt;a href="/posts/vulkan"&gt;Starting to experiment with Vulkan&lt;/a&gt;&lt;/li&gt;
+  &lt;h3 id="cross platform-ref"&gt;cross platform&lt;/h3&gt;
+    &lt;li&gt;&lt;a href="/posts/vulkan"&gt;Starting to experiment with Vulkan&lt;/a&gt;&lt;/li&gt;
  
 </description>
     </item>

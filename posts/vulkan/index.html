@@ -1,0 +1,195 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Starting to experiment with Vulkan</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="author" content="XL Games">
+
+    <!-- Le HTML5 shim, for IE6-8 support of HTML elements -->
+    <!--[if lt IE 9]>
+      <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+
+    <!-- Le styles -->
+<link href='/assets/stylesheets/bootstrap.min-93b47f97c3444c4711853ed5140d82a1.css' type='text/css' rel='stylesheet' media='all'>
+<link href='/assets/stylesheets/style-1dcb1d39791f3457afa56d279fcf0945.css' type='text/css' rel='stylesheet' media='all'>
+<link href='/assets/stylesheets/google_prettify/sons-of-obsidian-5e05343fd0c18e0a05231023b643245c.css' type='text/css' rel='stylesheet' media='all'>
+    <!-- Le fav and touch icons -->
+  <!-- Update these with your own images
+    <link rel="shortcut icon" href="images/favicon.ico">
+    <link rel="apple-touch-icon" href="images/apple-touch-icon.png">
+    <link rel="apple-touch-icon" sizes="72x72" href="images/apple-touch-icon-72x72.png">
+    <link rel="apple-touch-icon" sizes="114x114" href="images/apple-touch-icon-114x114.png">
+  -->
+  </head>
+
+  <body>
+
+    <div class="navbar">
+      <div class="navbar-inner">
+        <div class="container-narrow">
+          <a class="brand" href="/">XLE development blog</a>
+          <ul class="nav">
+              
+                <li><a href="/tags">Tags</a></li>
+              
+              
+                <li><a href="/archive">Archive</a></li>
+              
+              
+                <li><a href="/about">About</a></li>
+              
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="container-narrow">
+
+      <div class="content">
+        
+<div class="page-header">
+  <h1>Starting to experiment with Vulkan </h1>
+</div>
+
+<div class="row-fluid post-full">
+  <div class="span12">
+    <div class="date">
+      <span>April 04, 2016</strong>
+    </div>
+    <div class="content">
+      <p>So, it&#39;s a simple story -- boy meets API, yada, yada, yada...</p>
+
+<p>I&#39;ve started to build some initial experiments with the Vulkan API. Version 1.0 of the API was just released -- and there&#39;s an SDK from Valve (called LunarG) around.</p>
+
+<h2 id="toc_0">Initial impressions</h2>
+
+<p>My first impressions are very positive! Many of the design ideals and structures of the API are familiar from my days working with consoles (particularly the Sony consoles). This type of API has not been available on open platforms (like Windows) before -- so for people who don&#39;t have experience with consoles, it might give an idea of what it&#39;s like.</p>
+
+<p>I&#39;m also really happy how much of the surrounding resources have been made open-source... The samples, shader compilation tool-chain, etc... It&#39;s all very effective use of github.</p>
+
+<p>Khronos have drawn attention to how much input they&#39;ve gotten from the game engine development community. And it shows in the results. This is the kind of API that an experienced engine developer wants to see.</p>
+
+<p>I think it&#39;s also a model that is much more viable for cross platform development than anything we&#39;ve seen before. OpenGL had a lot of problems, and DirectX was so tied to the Windows platform. But this feels like something that is truly viable across many platforms (including low end and high end).</p>
+
+<p>I&#39;m really impressed with how a third party group has managed to build an API that balances the needs of engine developers with the needs of hardware designers. I think Khronos has really shown how this kind of thing should be done -- and it seems like a good model for other APIs (sound, physics hardware, etc).</p>
+
+<h2 id="toc_1">Long term viability</h2>
+
+<p>Vulkan feels like an API that could stick around for awhile. OpenGL has been on it&#39;s last legs for a long time... And DirectX always needs constant refreshes to survive. But Vulkan feels like it will be here for awhile. Due to it&#39;s cross-platform and long term viability, it&#39;s really undermined DirectX and Apple&#39;s Metal.</p>
+
+<p>I felt the same about C++11, when I started using it. The new C++14 is a huge step forward from the old C++98 days. Many of the design patterns we C++ programmers always wanted to use are not much more viable in C++14. Stroustrup said that C++14 &quot;completes&quot; C++11 -- but really, I think it &quot;completes&quot; C++ as a whole.</p>
+
+<p>C++17, C++20 -- these are going to be even better, also. And Vulkan will get better over time. But my gut feeling is that code written in C++14 and Vulkan 1.0 is likely to be viable for a very long time.</p>
+
+<p>By comparison, code written in OpenGL, Apple&#39;s Metal (or, help us, DirectX9) is going to feel stale pretty quickly.</p>
+
+<p>The unfinished part of the equation is the shader language. Vulkan uses SPIR-V as an intermediate language... And that&#39;s great. But it&#39;s not clear yet what high level language should be used. The current SDK uses GLSL -- but maybe we could do better? Perhaps C++ is an option here... But maybe we would be better off with some next iteration forward from HLSL and GLSL.</p>
+
+<h2 id="toc_2">But it&#39;s not easy!</h2>
+
+<p>Clearly, Vulkan is not intended as a beginner&#39;s API. DirectX always tried to find a balance between power and accessibility for it&#39;s API. But Vulkan is designed by and for experienced developers.</p>
+
+<p>This is clearest in the threading and reference counting approaches. Vulkan is mostly leaving it up to the engine developer to handle these things. That&#39;s great when you want to write a really efficient engine... But it&#39;s going to be a major hassle for first timers.</p>
+
+<h2 id="toc_3">XLE code</h2>
+
+<p>You can see the Vulkan code in the <em>&quot;experimental&quot;</em> branch.</p>
+
+<p>I will be adapting and improving platform abstraction layer in XLE as I plug in Vulkan features. Fortunately, it seems that the XLE architecture should mostly work well with Vulkan.</p>
+
+<p>I will also try to use HLSL with Vulkan by cross-compiling first to GLSL and then to SPIR-V.</p>
+
+    </div>
+    <ul class="tag_box inline">
+      <li><i class="icon-folder-open"></i></li>
+      <li>
+        <a href="/categories#XLE-ref">XLE <span>18</span></a>
+      </li>
+    </ul>
+    <ul class="tag_box inline">
+      <li><i class="icon-tags"></i></li>
+      <li>
+        <a href="/tags#Vulkan-ref">Vulkan <span>1</span></a>
+      </li>
+      <li>
+        <a href="/tags#rendering-ref">rendering <span>1</span></a>
+      </li>
+      <li>
+        <a href="/tags#API-ref">API <span>1</span></a>
+      </li>
+      <li>
+        <a href="/tags#cross platform-ref">cross platform <span>1</span></a>
+      </li>
+    </ul>
+    <hr>
+    <div class="pagination">
+      <ul>
+          <li class="prev"><a href="/posts/compareoitrans" title="Comparing different methods for order independent transparency">&larr; Previous</a></li>
+
+          <li><a href="/archive">Archive</a></li>
+
+          <li class="next disabled"><a>Next &rarr;</a>
+      </ul>
+    </div>
+    <hr>
+    <div id="disqus_thread"></div>
+<script>
+    var disqus_developer = 1;
+    var disqus_shortname = 'xledev'; // required: replace example with your forum shortname
+    /* * * DON'T EDIT BELOW THIS LINE * * */
+    (function() {
+        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+        dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<a href="http://disqus.com" class="dsq-brlink">blog comments powered by <span class="logo-disqus">Disqus</span></a>
+
+  </div>
+</div>
+
+
+      </div>
+
+      <hr>
+      <div class="footer">
+        <p>&copy; XL Games 2015
+          with help from <a href="http://ruhoh.com" target="_blank" title="The Definitive Technical Blogging Framework">ruhoh</a>
+          and <a href="http://twitter.github.com/bootstrap/" target="_blank">Twitter Bootstrap</a>
+        </p>
+      </div>
+
+    </div> <!-- /container -->
+
+    <!-- Google Prettify -->
+<script src="http://cdnjs.cloudflare.com/ajax/libs/prettify/188.0.0/prettify.js"></script>
+<script>
+  var pres = document.getElementsByTagName("pre");
+  for (var i=0; i < pres.length; ++i) {
+    pres[i].className = "prettyprint linenums";
+  }
+  prettyPrint();
+</script>
+<!-- end Google Prettify -->
+    <script type="text/javascript">
+
+  var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', 'UA-71034032-1']);
+  _gaq.push(['_trackPageview']);
+  
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+
+</script>
+
+
+    
+  </body>
+</html>

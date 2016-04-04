@@ -4,7 +4,54 @@
     <title>XLE development blog</title>
     <description>XLE development blog</description>
     <link>http://xlgames-inc.github.io</link>
-    <pubDate>April 02, 2016</pubDate>
+    <pubDate>April 04, 2016</pubDate>
+    <item>
+      <title>Starting to experiment with Vulkan</title>
+      <link>http://xlgames-inc.github.io/posts/vulkan</link>
+      <pubDate>April 04, 2016</pubDate>
+      <description>&lt;p&gt;So, it&amp;#39;s a simple story -- boy meets API, yada, yada, yada...&lt;/p&gt;
+
+&lt;p&gt;I&amp;#39;ve started to build some initial experiments with the Vulkan API. Version 1.0 of the API was just released -- and there&amp;#39;s an SDK from Valve (called LunarG) around.&lt;/p&gt;
+
+&lt;h2 id="toc_0"&gt;Initial impressions&lt;/h2&gt;
+
+&lt;p&gt;My first impressions are very positive! Many of the design ideals and structures of the API are familiar from my days working with consoles (particularly the Sony consoles). This type of API has not been available on open platforms (like Windows) before -- so for people who don&amp;#39;t have experience with consoles, it might give an idea of what it&amp;#39;s like.&lt;/p&gt;
+
+&lt;p&gt;I&amp;#39;m also really happy how much of the surrounding resources have been made open-source... The samples, shader compilation tool-chain, etc... It&amp;#39;s all very effective use of github.&lt;/p&gt;
+
+&lt;p&gt;Khronos have drawn attention to how much input they&amp;#39;ve gotten from the game engine development community. And it shows in the results. This is the kind of API that an experienced engine developer wants to see.&lt;/p&gt;
+
+&lt;p&gt;I think it&amp;#39;s also a model that is much more viable for cross platform development than anything we&amp;#39;ve seen before. OpenGL had a lot of problems, and DirectX was so tied to the Windows platform. But this feels like something that is truly viable across many platforms (including low end and high end).&lt;/p&gt;
+
+&lt;p&gt;I&amp;#39;m really impressed with how a third party group has managed to build an API that balances the needs of engine developers with the needs of hardware designers. I think Khronos has really shown how this kind of thing should be done -- and it seems like a good model for other APIs (sound, physics hardware, etc).&lt;/p&gt;
+
+&lt;h2 id="toc_1"&gt;Long term viability&lt;/h2&gt;
+
+&lt;p&gt;Vulkan feels like an API that could stick around for awhile. OpenGL has been on it&amp;#39;s last legs for a long time... And DirectX always needs constant refreshes to survive. But Vulkan feels like it will be here for awhile. Due to it&amp;#39;s cross-platform and long term viability, it&amp;#39;s really undermined DirectX and Apple&amp;#39;s Metal.&lt;/p&gt;
+
+&lt;p&gt;I felt the same about C++11, when I started using it. The new C++14 is a huge step forward from the old C++98 days. Many of the design patterns we C++ programmers always wanted to use are not much more viable in C++14. Stroustrup said that C++14 &amp;quot;completes&amp;quot; C++11 -- but really, I think it &amp;quot;completes&amp;quot; C++ as a whole.&lt;/p&gt;
+
+&lt;p&gt;C++17, C++20 -- these are going to be even better, also. And Vulkan will get better over time. But my gut feeling is that code written in C++14 and Vulkan 1.0 is likely to be viable for a very long time.&lt;/p&gt;
+
+&lt;p&gt;By comparison, code written in OpenGL, Apple&amp;#39;s Metal (or, help us, DirectX9) is going to feel stale pretty quickly.&lt;/p&gt;
+
+&lt;p&gt;The unfinished part of the equation is the shader language. Vulkan uses SPIR-V as an intermediate language... And that&amp;#39;s great. But it&amp;#39;s not clear yet what high level language should be used. The current SDK uses GLSL -- but maybe we could do better? Perhaps C++ is an option here... But maybe we would be better off with some next iteration forward from HLSL and GLSL.&lt;/p&gt;
+
+&lt;h2 id="toc_2"&gt;But it&amp;#39;s not easy!&lt;/h2&gt;
+
+&lt;p&gt;Clearly, Vulkan is not intended as a beginner&amp;#39;s API. DirectX always tried to find a balance between power and accessibility for it&amp;#39;s API. But Vulkan is designed by and for experienced developers.&lt;/p&gt;
+
+&lt;p&gt;This is clearest in the threading and reference counting approaches. Vulkan is mostly leaving it up to the engine developer to handle these things. That&amp;#39;s great when you want to write a really efficient engine... But it&amp;#39;s going to be a major hassle for first timers.&lt;/p&gt;
+
+&lt;h2 id="toc_3"&gt;XLE code&lt;/h2&gt;
+
+&lt;p&gt;You can see the Vulkan code in the &lt;em&gt;&amp;quot;experimental&amp;quot;&lt;/em&gt; branch.&lt;/p&gt;
+
+&lt;p&gt;I will be adapting and improving platform abstraction layer in XLE as I plug in Vulkan features. Fortunately, it seems that the XLE architecture should mostly work well with Vulkan.&lt;/p&gt;
+
+&lt;p&gt;I will also try to use HLSL with Vulkan by cross-compiling first to GLSL and then to SPIR-V.&lt;/p&gt;
+</description>
+    </item>
     <item>
       <title>Comparing different methods for order independent transparency</title>
       <link>http://xlgames-inc.github.io/posts/compareoitrans</link>
