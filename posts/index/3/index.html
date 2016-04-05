@@ -51,6 +51,37 @@
         <div class="row-fluid">
   <div class="span12">
       <div class="posts">
+        <h3 class="title"><a href="/posts/assetpathscripts">Processing textures with the XLE scriptable asset path</a><br/> <span class="date">January 26, 2016</span></h3>
+
+        <div class="summary ellipsis">
+<p>I've included a few Gradle scripts in the XLE distribution. This is mostly just a simple set of tools I use for my own testing. But you may find it useful for your own needs.</p>
+
+<p>Of course this system isn't designed to be 100% robust and fool proof. Actually, it's just a few simple scripts. But it is scalable and flexible.</p>
+
+<h2 id="toc_0">Gradle</h2>
+
+<p>At heart, an <strong>"asset path"</strong> is some system that can identify changed assets, recognize processing working that needs to be performed with those assets, and schedule that work.</p>
+
+<p>For example, we might have an asset for a sky background texture. Various processing tools need to pre-filter this texture so it can be used for image based lighting. Whenever the texture changes (or when the processing tools change) we want to execute the processing steps and produce intermediate assets.</p>
+
+<p>XLE does some processing at runtime. But that is only practical for short processing steps. Expensive processing steps need some other solution.</p>
+
+<p>So we need some build system to manage assets and dependences. Are requirements are similar to build systems we use for code. But most code-oriented build systems don't work well for assets.</p>
+
+<p>I picked <em>Gradle</em> because of it's procedural nature. It allows us to specify input assets -- but also to give instructions to the build path on how to handle that object. For example, we need to tell the build path if a texture is a sky texture, a normals texture, or some other type... That kind of thing just falls out of <em>Gradle</em> very easily.</p>
+
+<h2 id="toc_1">Executing Gradle</h2>
+
+<p>First, you need to install Gradle, from: <a href="http://gradle.org/gradle-download/">http://gradle.org/gradle-download/</a></p>
+
+<p>In Tools/AssetPath, we have the "settings.gradle" root project file. Also, this folder contains some "groovy" source files that contain gradle task type implementations. So, there is a task type for processing sky textures -- which basically just involves executing a number of command line operations.</p>
+</div>
+
+        <div class="more">
+          <a href="/posts/assetpathscripts" class="btn btn-small">read more..</a>
+        </div>
+      </div>
+      <div class="posts">
         <h3 class="title"><a href="/posts/transmittedspecular">Transmitted specular</a><br/> <span class="date">January 25, 2016</span></h3>
 
         <div class="summary ellipsis">
@@ -173,39 +204,6 @@ The one simple method involves "classes" and "interfaces."</p>
 
         <div class="more">
           <a href="/posts/functionlinkedshaders" class="btn btn-small">read more..</a>
-        </div>
-      </div>
-      <div class="posts">
-        <h3 class="title"><a href="/posts/rectlightdiffuse">Rectangle Light diffuse vs 3DS Max</a><br/> <span class="date">December 11, 2015</span></h3>
-
-        <div class="summary ellipsis">
-<p>Just a quick note on rectangle light diffuse. In XLE, rectangle lights are slightly different from the default rectangle lights in 3DS Max.</p>
-
-<style type="text/css">
-.tg  {border-collapse:collapse;border-spacing:0;}
-.tg td{font-family:Arial, sans-serif;font-size:14px;padding:10px 5px;border-style:solid;border-width:1px;overflow:hidden;word-break:normal;}
-.tg th{font-family:Arial, sans-serif;font-size:14px;font-weight:normal;padding:10px 5px;border-style:solid;border-width:1px;overflow:hidden;word-break:normal;}
-.tg .tg-yw4l{vertical-align:top}
-</style>
-
-<table class="tg">
-  <tr>
-    <th class="tg-yw4l">XLE lights</th>
-    <th class="tg-yw4l">3DS Max lights (Quicksilver renderer)</th>
-  </tr>
-  <tr>
-    <td class="tg-yw4l"><img src="/assets/media/RectLightDiffuse/XLELightDiag.png"></td>
-    <td class="tg-yw4l"><img src="/assets/media/RectLightDiffuse/MaxLightDiag.png"></td>
-  </tr>
-  <tr>
-    <td class="tg-yw4l"><img src="/assets/media/RectLightDiffuse/XLEDefault.png"></td>
-    <td class="tg-yw4l"><img src="/assets/media/RectLightDiffuse/MaxComparison.png"></td>
-  </tr>
-</table>
-</div>
-
-        <div class="more">
-          <a href="/posts/rectlightdiffuse" class="btn btn-small">read more..</a>
         </div>
       </div>
     

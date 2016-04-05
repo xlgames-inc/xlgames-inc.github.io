@@ -4,7 +4,77 @@
     <title>XLE development blog</title>
     <description>XLE development blog</description>
     <link>http://xlgames-inc.github.io</link>
-    <pubDate>April 04, 2016</pubDate>
+    <pubDate>April 05, 2016</pubDate>
+    <item>
+      <title>HLSL shader prototype with Vulkan</title>
+      <link>http://xlgames-inc.github.io/posts/vulkanshaderprototype</link>
+      <pubDate>April 05, 2016</pubDate>
+      <description>&lt;p&gt;As part of the Vulkan prototype, I&amp;#39;m experimenting with compiling HLSL shaders to SPIR-V.&lt;/p&gt;
+
+&lt;p&gt;The Vulkan API doesn&amp;#39;t have a high level shader language attached. Instead, it works with a new intermediate bytecode format, called SPIR-V. This works with the LLVM compiler system, so in theory we plug in different front ends to allow various high level languages to compile to SPIR-V.&lt;/p&gt;
+
+&lt;p&gt;That sounds great for the future... But right now, there doesn&amp;#39;t seem to be a great path for generating the SPIR-V bytecode.&lt;/p&gt;
+
+&lt;p&gt;All of the XLE shaders are HLSL... So how do we use them with Vulkan? Let&amp;#39;s consider the options.&lt;/p&gt;
+
+&lt;h2 id="toc_0"&gt;Preprocessor framework&lt;/h2&gt;
+
+&lt;p&gt;One option is to convert the shader code to GLSL using a preprocessor framework. HLSL and GLSL are closely related... But they vary significantly in the way the shader interface is declared (eg, shader resources, vertex elements, built in values, etc).&lt;/p&gt;
+
+&lt;p&gt;We can get around this by using a system of preprocessor macros and complex #includes. We would end up with native HLSL and GLSL code that does the same thing. The core shader code that does the math and lighting (etc) should be fairly compatible between languages... It&amp;#39;s just the interface that is an issue.&lt;/p&gt;
+
+&lt;p&gt;However this kind of approach it&amp;#39;s a bit awkward, and difficult maintain in the long term. And it might mean dropping support for some of the more unusual D3D features I&amp;#39;m using (such as for dynamic linking).&lt;/p&gt;
+
+&lt;p&gt;Also, it looks like GLSL might not be around a very long time. It could possibly go the way of OpenGL in the medium term. So it doesn&amp;#39;t make sense to invest a lot of time into GLSL, just to have to be replaced with something else later.&lt;/p&gt;
+
+&lt;h2 id="toc_1"&gt;Cross compile&lt;/h2&gt;
+
+&lt;p&gt;Another option is to try to convert the HLSL output to SPIR-V by way of a cross compiler.&lt;/p&gt;
+
+&lt;p&gt;There is an interesting project here &lt;a href="https://github.com/James-Jones/HLSLCrossCompiler"&gt;https://github.com/James-Jones/HLSLCrossCompiler&lt;/a&gt;. This will take as input HLSL bytecode, and output GLSL high level shader code.&lt;/p&gt;
+
+&lt;p&gt;HLSL bytecode is a much simpler than HLSL source (given that it&amp;#39;s mostly assembler like instructions). So this approach should be more maintainable.&lt;/p&gt;
+
+&lt;p&gt;The issue here is there is no standard equivalent bytecode form of GLSL. The output from the cross compile is just high level GLSL code.&lt;/p&gt;
+
+&lt;p&gt;Once we have the GLSL code, we can generate SPIR-V using the GLSL pipeline in the Vulkan SDK.&lt;/p&gt;
+
+&lt;h2 id="toc_2"&gt;Cross compile problems&lt;/h2&gt;
+
+&lt;p&gt;The process for compiling a shader becomes quite long:&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;compile HLSL to HLSL bytecode using D3DCompiler_47.dll (ie, just like D3D11)&lt;/li&gt;
+&lt;li&gt;translate HLSL bytecode to GLSL&lt;/li&gt;
+&lt;li&gt;parse GLSL to AST&lt;/li&gt;
+&lt;li&gt;translate GLSL AST to SPIR-V&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;The big problem here is that each step adds it&amp;#39;s own restrictions. So in the end we up with the sum of all those restrictions.&lt;/p&gt;
+
+&lt;p&gt;Another issue is that a few of these steps have know bugs and version support issues. The HLSLCrossCompiler seems to translate several instruction incorrectly. And the GLSL AST to SPIR-V seems to currently only support a subset of GLSL.&lt;/p&gt;
+
+&lt;p&gt;For example, the [earlydepthstencil] annotations in HLSL get correctly converted into GLSL -- but then the SPIR-V translator doesn&amp;#39;t support them!&lt;/p&gt;
+
+&lt;p&gt;Also, GLSL to SPIR-V doesn&amp;#39;t fully support GLSL version 4 shaders yet... So I&amp;#39;m using GLSL 3.3. But that may not be able to support all of the features I&amp;#39;m using in HLSL.&lt;/p&gt;
+
+&lt;p&gt;Fortunately, both the HLSL cross compile and the GLSL to SPIR-V compiler are open-source... So there is room to make fixes and improvements if necessary. And it means those projects will be more open about what is working, and what isn&amp;#39;t.&lt;/p&gt;
+
+&lt;h2 id="toc_3"&gt;Prototype results&lt;/h2&gt;
+
+&lt;p&gt;It seems that the cross-compile approach is actually going to be best, despite the problems. So, I&amp;#39;ve got an early version of this process working in the &amp;quot;experimental&amp;quot; branch.&lt;/p&gt;
+
+&lt;p&gt;In this branch, there is a new implementation of RenderCore::ShaderService::ILowLevelCompiler that does HLSL -&amp;gt; SPIR-V translation.&lt;/p&gt;
+
+&lt;p&gt;It requires some libraries from the Vulkan SDK currently... I&amp;#39;m not sure how I will incorporate those into linking process (perhaps it will mean a new VULKAN_SDK environment variable).&lt;/p&gt;
+
+&lt;p&gt;I&amp;#39;ve only tested a few shaders so far.... But it works! It actually does compile, and we end up with SPIR-V at the end. Wow, pretty incredible.&lt;/p&gt;
+
+&lt;p&gt;I&amp;#39;ve added a new &amp;quot;VULKAN=1&amp;quot; shader define. This will be probably be required for enabling and disabling certain shader features for this pipeline.&lt;/p&gt;
+
+&lt;p&gt;The next step will be working on how to best extract reflection information from the shaders. We&amp;#39;ve actually got many ways to do that now... But I want to check to make sure we can still get the information we need out.&lt;/p&gt;
+</description>
+    </item>
     <item>
       <title>Starting to experiment with Vulkan</title>
       <link>http://xlgames-inc.github.io/posts/vulkan</link>

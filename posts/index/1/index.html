@@ -51,6 +51,37 @@
         <div class="row-fluid">
   <div class="span12">
       <div class="posts">
+        <h3 class="title"><a href="/posts/vulkanshaderprototype">HLSL shader prototype with Vulkan</a><br/> <span class="date">April 05, 2016</span></h3>
+
+        <div class="summary ellipsis">
+<p>As part of the Vulkan prototype, I'm experimenting with compiling HLSL shaders to SPIR-V.</p>
+
+<p>The Vulkan API doesn't have a high level shader language attached. Instead, it works with a new intermediate bytecode format, called SPIR-V. This works with the LLVM compiler system, so in theory we plug in different front ends to allow various high level languages to compile to SPIR-V.</p>
+
+<p>That sounds great for the future... But right now, there doesn't seem to be a great path for generating the SPIR-V bytecode.</p>
+
+<p>All of the XLE shaders are HLSL... So how do we use them with Vulkan? Let's consider the options.</p>
+
+<h2 id="toc_0">Preprocessor framework</h2>
+
+<p>One option is to convert the shader code to GLSL using a preprocessor framework. HLSL and GLSL are closely related... But they vary significantly in the way the shader interface is declared (eg, shader resources, vertex elements, built in values, etc).</p>
+
+<p>We can get around this by using a system of preprocessor macros and complex #includes. We would end up with native HLSL and GLSL code that does the same thing. The core shader code that does the math and lighting (etc) should be fairly compatible between languages... It's just the interface that is an issue.</p>
+
+<p>However this kind of approach it's a bit awkward, and difficult maintain in the long term. And it might mean dropping support for some of the more unusual D3D features I'm using (such as for dynamic linking).</p>
+
+<p>Also, it looks like GLSL might not be around a very long time. It could possibly go the way of OpenGL in the medium term. So it doesn't make sense to invest a lot of time into GLSL, just to have to be replaced with something else later.</p>
+
+<h2 id="toc_1">Cross compile</h2>
+
+<p>Another option is to try to convert the HLSL output to SPIR-V by way of a cross compiler.</p>
+</div>
+
+        <div class="more">
+          <a href="/posts/vulkanshaderprototype" class="btn btn-small">read more..</a>
+        </div>
+      </div>
+      <div class="posts">
         <h3 class="title"><a href="/posts/vulkan">Starting to experiment with Vulkan</a><br/> <span class="date">April 04, 2016</span></h3>
 
         <div class="summary ellipsis">
@@ -178,46 +209,6 @@ for Order-Independent Transparency." This is very cheap, and uses a fixed equati
 
         <div class="more">
           <a href="/posts/release0040" class="btn btn-small">read more..</a>
-        </div>
-      </div>
-      <div class="posts">
-        <h3 class="title"><a href="/posts/environmentsample">Environment Sample Streamlining</a><br/> <span class="date">March 25, 2016</span></h3>
-
-        <div class="summary ellipsis">
-<p>Along with the tools improvements, I've added a few features to make the "Environment" sample a little easier to use.</p>
-
-<h2 id="toc_0">Exporting to the Environment sample</h2>
-
-<ol>
-<li>Start a new world</li>
-<li>Find the "palette" window and drag these objects into the main viewport:
-
-<ul>
-<li>CharacterSpawn</li>
-<li>AmbientSettings</li>
-<li>DirLight
-<br><img src="/assets/media/EnvSample/StarterObjects.png">
-</li>
-</ul>
-</li>
-<li>You may want to position the character spawn and directional light using the move manipulator</li>
-<li>Save your world to some location (with "File/Save As"). The next step will create an export relative to this location.</li>
-<li>Do an "Export to game":
-
-<ul>
-<li>in the level editor, the world is stored as large XML tree. But this isn't loaded into the environment sample. Instead we have a number of small configuration files.
-<br><img src="/assets/media/EnvSample/Export.png">
-</li>
-</ul>
-</li>
-<li>Now execute the environment sample:
-<br><img src="/assets/media/EnvSample/ExecuteEnvSample.png">
-</li>
-</ol>
-</div>
-
-        <div class="more">
-          <a href="/posts/environmentsample" class="btn btn-small">read more..</a>
         </div>
       </div>
     

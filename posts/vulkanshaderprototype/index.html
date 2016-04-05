@@ -1,0 +1,221 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>HLSL shader prototype with Vulkan</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="author" content="XL Games">
+
+    <!-- Le HTML5 shim, for IE6-8 support of HTML elements -->
+    <!--[if lt IE 9]>
+      <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+
+    <!-- Le styles -->
+<link href='/assets/stylesheets/bootstrap.min-93b47f97c3444c4711853ed5140d82a1.css' type='text/css' rel='stylesheet' media='all'>
+<link href='/assets/stylesheets/style-1dcb1d39791f3457afa56d279fcf0945.css' type='text/css' rel='stylesheet' media='all'>
+<link href='/assets/stylesheets/google_prettify/sons-of-obsidian-5e05343fd0c18e0a05231023b643245c.css' type='text/css' rel='stylesheet' media='all'>
+    <!-- Le fav and touch icons -->
+  <!-- Update these with your own images
+    <link rel="shortcut icon" href="images/favicon.ico">
+    <link rel="apple-touch-icon" href="images/apple-touch-icon.png">
+    <link rel="apple-touch-icon" sizes="72x72" href="images/apple-touch-icon-72x72.png">
+    <link rel="apple-touch-icon" sizes="114x114" href="images/apple-touch-icon-114x114.png">
+  -->
+  </head>
+
+  <body>
+
+    <div class="navbar">
+      <div class="navbar-inner">
+        <div class="container-narrow">
+          <a class="brand" href="/">XLE development blog</a>
+          <ul class="nav">
+              
+                <li><a href="/tags">Tags</a></li>
+              
+              
+                <li><a href="/archive">Archive</a></li>
+              
+              
+                <li><a href="/about">About</a></li>
+              
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="container-narrow">
+
+      <div class="content">
+        
+<div class="page-header">
+  <h1>HLSL shader prototype with Vulkan </h1>
+</div>
+
+<div class="row-fluid post-full">
+  <div class="span12">
+    <div class="date">
+      <span>April 05, 2016</strong>
+    </div>
+    <div class="content">
+      <p>As part of the Vulkan prototype, I&#39;m experimenting with compiling HLSL shaders to SPIR-V.</p>
+
+<p>The Vulkan API doesn&#39;t have a high level shader language attached. Instead, it works with a new intermediate bytecode format, called SPIR-V. This works with the LLVM compiler system, so in theory we plug in different front ends to allow various high level languages to compile to SPIR-V.</p>
+
+<p>That sounds great for the future... But right now, there doesn&#39;t seem to be a great path for generating the SPIR-V bytecode.</p>
+
+<p>All of the XLE shaders are HLSL... So how do we use them with Vulkan? Let&#39;s consider the options.</p>
+
+<h2 id="toc_0">Preprocessor framework</h2>
+
+<p>One option is to convert the shader code to GLSL using a preprocessor framework. HLSL and GLSL are closely related... But they vary significantly in the way the shader interface is declared (eg, shader resources, vertex elements, built in values, etc).</p>
+
+<p>We can get around this by using a system of preprocessor macros and complex #includes. We would end up with native HLSL and GLSL code that does the same thing. The core shader code that does the math and lighting (etc) should be fairly compatible between languages... It&#39;s just the interface that is an issue.</p>
+
+<p>However this kind of approach it&#39;s a bit awkward, and difficult maintain in the long term. And it might mean dropping support for some of the more unusual D3D features I&#39;m using (such as for dynamic linking).</p>
+
+<p>Also, it looks like GLSL might not be around a very long time. It could possibly go the way of OpenGL in the medium term. So it doesn&#39;t make sense to invest a lot of time into GLSL, just to have to be replaced with something else later.</p>
+
+<h2 id="toc_1">Cross compile</h2>
+
+<p>Another option is to try to convert the HLSL output to SPIR-V by way of a cross compiler.</p>
+
+<p>There is an interesting project here <a href="https://github.com/James-Jones/HLSLCrossCompiler">https://github.com/James-Jones/HLSLCrossCompiler</a>. This will take as input HLSL bytecode, and output GLSL high level shader code.</p>
+
+<p>HLSL bytecode is a much simpler than HLSL source (given that it&#39;s mostly assembler like instructions). So this approach should be more maintainable.</p>
+
+<p>The issue here is there is no standard equivalent bytecode form of GLSL. The output from the cross compile is just high level GLSL code.</p>
+
+<p>Once we have the GLSL code, we can generate SPIR-V using the GLSL pipeline in the Vulkan SDK.</p>
+
+<h2 id="toc_2">Cross compile problems</h2>
+
+<p>The process for compiling a shader becomes quite long:</p>
+
+<ol>
+<li>compile HLSL to HLSL bytecode using D3DCompiler_47.dll (ie, just like D3D11)</li>
+<li>translate HLSL bytecode to GLSL</li>
+<li>parse GLSL to AST</li>
+<li>translate GLSL AST to SPIR-V</li>
+</ol>
+
+<p>The big problem here is that each step adds it&#39;s own restrictions. So in the end we up with the sum of all those restrictions.</p>
+
+<p>Another issue is that a few of these steps have know bugs and version support issues. The HLSLCrossCompiler seems to translate several instruction incorrectly. And the GLSL AST to SPIR-V seems to currently only support a subset of GLSL.</p>
+
+<p>For example, the [earlydepthstencil] annotations in HLSL get correctly converted into GLSL -- but then the SPIR-V translator doesn&#39;t support them!</p>
+
+<p>Also, GLSL to SPIR-V doesn&#39;t fully support GLSL version 4 shaders yet... So I&#39;m using GLSL 3.3. But that may not be able to support all of the features I&#39;m using in HLSL.</p>
+
+<p>Fortunately, both the HLSL cross compile and the GLSL to SPIR-V compiler are open-source... So there is room to make fixes and improvements if necessary. And it means those projects will be more open about what is working, and what isn&#39;t.</p>
+
+<h2 id="toc_3">Prototype results</h2>
+
+<p>It seems that the cross-compile approach is actually going to be best, despite the problems. So, I&#39;ve got an early version of this process working in the &quot;experimental&quot; branch.</p>
+
+<p>In this branch, there is a new implementation of RenderCore::ShaderService::ILowLevelCompiler that does HLSL -&gt; SPIR-V translation.</p>
+
+<p>It requires some libraries from the Vulkan SDK currently... I&#39;m not sure how I will incorporate those into linking process (perhaps it will mean a new VULKAN_SDK environment variable).</p>
+
+<p>I&#39;ve only tested a few shaders so far.... But it works! It actually does compile, and we end up with SPIR-V at the end. Wow, pretty incredible.</p>
+
+<p>I&#39;ve added a new &quot;VULKAN=1&quot; shader define. This will be probably be required for enabling and disabling certain shader features for this pipeline.</p>
+
+<p>The next step will be working on how to best extract reflection information from the shaders. We&#39;ve actually got many ways to do that now... But I want to check to make sure we can still get the information we need out.</p>
+
+    </div>
+    <ul class="tag_box inline">
+      <li><i class="icon-folder-open"></i></li>
+      <li>
+        <a href="/categories#XLE-ref">XLE <span>19</span></a>
+      </li>
+    </ul>
+    <ul class="tag_box inline">
+      <li><i class="icon-tags"></i></li>
+      <li>
+        <a href="/tags#Vulkan-ref">Vulkan <span>2</span></a>
+      </li>
+      <li>
+        <a href="/tags#cross platform-ref">cross platform <span>2</span></a>
+      </li>
+      <li>
+        <a href="/tags#shaders-ref">shaders <span>1</span></a>
+      </li>
+      <li>
+        <a href="/tags#HLSL-ref">HLSL <span>1</span></a>
+      </li>
+      <li>
+        <a href="/tags#SPIR-V-ref">SPIR-V <span>1</span></a>
+      </li>
+    </ul>
+    <hr>
+    <div class="pagination">
+      <ul>
+          <li class="prev"><a href="/posts/vulkan" title="Starting to experiment with Vulkan">&larr; Previous</a></li>
+
+          <li><a href="/archive">Archive</a></li>
+
+          <li class="next disabled"><a>Next &rarr;</a>
+      </ul>
+    </div>
+    <hr>
+    <div id="disqus_thread"></div>
+<script>
+    var disqus_developer = 1;
+    var disqus_shortname = 'xledev'; // required: replace example with your forum shortname
+    /* * * DON'T EDIT BELOW THIS LINE * * */
+    (function() {
+        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+        dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<a href="http://disqus.com" class="dsq-brlink">blog comments powered by <span class="logo-disqus">Disqus</span></a>
+
+  </div>
+</div>
+
+
+      </div>
+
+      <hr>
+      <div class="footer">
+        <p>&copy; XL Games 2015
+          with help from <a href="http://ruhoh.com" target="_blank" title="The Definitive Technical Blogging Framework">ruhoh</a>
+          and <a href="http://twitter.github.com/bootstrap/" target="_blank">Twitter Bootstrap</a>
+        </p>
+      </div>
+
+    </div> <!-- /container -->
+
+    <!-- Google Prettify -->
+<script src="http://cdnjs.cloudflare.com/ajax/libs/prettify/188.0.0/prettify.js"></script>
+<script>
+  var pres = document.getElementsByTagName("pre");
+  for (var i=0; i < pres.length; ++i) {
+    pres[i].className = "prettyprint linenums";
+  }
+  prettyPrint();
+</script>
+<!-- end Google Prettify -->
+    <script type="text/javascript">
+
+  var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', 'UA-71034032-1']);
+  _gaq.push(['_trackPageview']);
+  
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+
+</script>
+
+
+    
+  </body>
+</html>

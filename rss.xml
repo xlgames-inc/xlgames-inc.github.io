@@ -4,7 +4,7 @@
     <title>XLE development blog</title>
     <description>XLE development blog</description>
     <link>http://xlgames-inc.github.io</link>
-    <pubDate>April 04, 2016</pubDate>
+    <pubDate>April 05, 2016</pubDate>
     <item>
       <title>About</title>
       <link>http://xlgames-inc.github.io/about</link>
@@ -24,6 +24,7 @@
   &lt;h2&gt;2016&lt;/h2&gt;
     &lt;h3&gt;April&lt;/h3&gt;
     &lt;ul&gt;
+      &lt;li&gt;&lt;span&gt;April 05, 2016&lt;/span&gt; &amp;raquo; &lt;a href="/posts/vulkanshaderprototype"&gt;HLSL shader prototype with Vulkan&lt;/a&gt;&lt;/li&gt;
       &lt;li&gt;&lt;span&gt;April 04, 2016&lt;/span&gt; &amp;raquo; &lt;a href="/posts/vulkan"&gt;Starting to experiment with Vulkan&lt;/a&gt;&lt;/li&gt;
     &lt;/ul&gt;
     &lt;h3&gt;March&lt;/h3&gt;
@@ -65,14 +66,14 @@
       <description>
 &lt;ul class="tag_box inline"&gt;
   &lt;li&gt;
-    &lt;a href="/categories#XLE-ref"&gt;XLE &lt;span&gt;18&lt;/span&gt;&lt;/a&gt;
+    &lt;a href="/categories#XLE-ref"&gt;XLE &lt;span&gt;19&lt;/span&gt;&lt;/a&gt;
   &lt;/li&gt;
   &lt;li&gt;
     &lt;a href="/categories#blog-ref"&gt;blog &lt;span&gt;1&lt;/span&gt;&lt;/a&gt;
   &lt;/li&gt;
 &lt;/ul&gt;
 
-  &lt;h3&gt;XLE (18)&lt;/h3&gt;
+  &lt;h3&gt;XLE (19)&lt;/h3&gt;
   &lt;ul&gt;
       &lt;li&gt;&lt;a href="/posts/arealightsandpbr"&gt;Area Lights with Physically Based Rendering&lt;/a&gt;&lt;/li&gt;
       &lt;li&gt;&lt;a href="/posts/assetpathscripts"&gt;Processing textures with the XLE scriptable asset path&lt;/a&gt;&lt;/li&gt;
@@ -90,6 +91,7 @@
       &lt;li&gt;&lt;a href="/posts/transmittedspecular2"&gt;Transmitted specular progress&lt;/a&gt;&lt;/li&gt;
       &lt;li&gt;&lt;a href="/posts/transmittedspecular3"&gt;Transmitted specular&lt;/a&gt;&lt;/li&gt;
       &lt;li&gt;&lt;a href="/posts/vulkan"&gt;Starting to experiment with Vulkan&lt;/a&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;a href="/posts/vulkanshaderprototype"&gt;HLSL shader prototype with Vulkan&lt;/a&gt;&lt;/li&gt;
       &lt;li&gt;&lt;a href="/posts/whattodofirst"&gt;What to do first&lt;/a&gt;&lt;/li&gt;
       &lt;li&gt;&lt;a href="/posts/workingonrectlights"&gt;Working some improvements to rectangle lights&lt;/a&gt;&lt;/li&gt;
   &lt;/ul&gt;
@@ -112,6 +114,7 @@
   &lt;h2&gt;2016&lt;/h2&gt;
     &lt;h3&gt;April&lt;/h3&gt;
     &lt;ul&gt;
+      &lt;li&gt;&lt;span&gt;April 05, 2016&lt;/span&gt; &amp;raquo; &lt;a href="/posts/vulkanshaderprototype"&gt;HLSL shader prototype with Vulkan&lt;/a&gt;&lt;/li&gt;
       &lt;li&gt;&lt;span&gt;April 04, 2016&lt;/span&gt; &amp;raquo; &lt;a href="/posts/vulkan"&gt;Starting to experiment with Vulkan&lt;/a&gt;&lt;/li&gt;
     &lt;/ul&gt;
     &lt;h3&gt;March&lt;/h3&gt;
@@ -150,6 +153,37 @@
 
 &lt;hr /&gt;
 
+&lt;div class="post"&gt;
+  &lt;h3 class="title"&gt;&lt;a href="/posts/vulkanshaderprototype"&gt;HLSL shader prototype with Vulkan&lt;/a&gt;&lt;br /&gt; &lt;span class="date"&gt;April 05, 2016&lt;/span&gt;&lt;/h3&gt;
+
+  &lt;div class="summary ellipsis"&gt;
+&lt;p&gt;As part of the Vulkan prototype, I'm experimenting with compiling HLSL shaders to SPIR-V.&lt;/p&gt;
+
+&lt;p&gt;The Vulkan API doesn't have a high level shader language attached. Instead, it works with a new intermediate bytecode format, called SPIR-V. This works with the LLVM compiler system, so in theory we plug in different front ends to allow various high level languages to compile to SPIR-V.&lt;/p&gt;
+
+&lt;p&gt;That sounds great for the future... But right now, there doesn't seem to be a great path for generating the SPIR-V bytecode.&lt;/p&gt;
+
+&lt;p&gt;All of the XLE shaders are HLSL... So how do we use them with Vulkan? Let's consider the options.&lt;/p&gt;
+
+&lt;h2 id="toc_0"&gt;Preprocessor framework&lt;/h2&gt;
+
+&lt;p&gt;One option is to convert the shader code to GLSL using a preprocessor framework. HLSL and GLSL are closely related... But they vary significantly in the way the shader interface is declared (eg, shader resources, vertex elements, built in values, etc).&lt;/p&gt;
+
+&lt;p&gt;We can get around this by using a system of preprocessor macros and complex #includes. We would end up with native HLSL and GLSL code that does the same thing. The core shader code that does the math and lighting (etc) should be fairly compatible between languages... It's just the interface that is an issue.&lt;/p&gt;
+
+&lt;p&gt;However this kind of approach it's a bit awkward, and difficult maintain in the long term. And it might mean dropping support for some of the more unusual D3D features I'm using (such as for dynamic linking).&lt;/p&gt;
+
+&lt;p&gt;Also, it looks like GLSL might not be around a very long time. It could possibly go the way of OpenGL in the medium term. So it doesn't make sense to invest a lot of time into GLSL, just to have to be replaced with something else later.&lt;/p&gt;
+
+&lt;h2 id="toc_1"&gt;Cross compile&lt;/h2&gt;
+
+&lt;p&gt;Another option is to try to convert the HLSL output to SPIR-V by way of a cross compiler.&lt;/p&gt;
+&lt;/div&gt;
+
+  &lt;div class="more"&gt;
+    &lt;a href="/posts/vulkanshaderprototype" class="btn btn-small"&gt;read more..&lt;/a&gt;
+  &lt;/div&gt;
+&lt;/div&gt;
 &lt;div class="post"&gt;
   &lt;h3 class="title"&gt;&lt;a href="/posts/vulkan"&gt;Starting to experiment with Vulkan&lt;/a&gt;&lt;br /&gt; &lt;span class="date"&gt;April 04, 2016&lt;/span&gt;&lt;/h3&gt;
 
@@ -280,46 +314,6 @@ for Order-Independent Transparency." This is very cheap, and uses a fixed equati
     &lt;a href="/posts/release0040" class="btn btn-small"&gt;read more..&lt;/a&gt;
   &lt;/div&gt;
 &lt;/div&gt;
-&lt;div class="post"&gt;
-  &lt;h3 class="title"&gt;&lt;a href="/posts/environmentsample"&gt;Environment Sample Streamlining&lt;/a&gt;&lt;br /&gt; &lt;span class="date"&gt;March 25, 2016&lt;/span&gt;&lt;/h3&gt;
-
-  &lt;div class="summary ellipsis"&gt;
-&lt;p&gt;Along with the tools improvements, I've added a few features to make the "Environment" sample a little easier to use.&lt;/p&gt;
-
-&lt;h2 id="toc_0"&gt;Exporting to the Environment sample&lt;/h2&gt;
-
-&lt;ol&gt;
-&lt;li&gt;Start a new world&lt;/li&gt;
-&lt;li&gt;Find the "palette" window and drag these objects into the main viewport:
-
-&lt;ul&gt;
-&lt;li&gt;CharacterSpawn&lt;/li&gt;
-&lt;li&gt;AmbientSettings&lt;/li&gt;
-&lt;li&gt;DirLight
-&lt;br&gt;&lt;img src="/assets/media/EnvSample/StarterObjects.png"&gt;
-&lt;/li&gt;
-&lt;/ul&gt;
-&lt;/li&gt;
-&lt;li&gt;You may want to position the character spawn and directional light using the move manipulator&lt;/li&gt;
-&lt;li&gt;Save your world to some location (with "File/Save As"). The next step will create an export relative to this location.&lt;/li&gt;
-&lt;li&gt;Do an "Export to game":
-
-&lt;ul&gt;
-&lt;li&gt;in the level editor, the world is stored as large XML tree. But this isn't loaded into the environment sample. Instead we have a number of small configuration files.
-&lt;br&gt;&lt;img src="/assets/media/EnvSample/Export.png"&gt;
-&lt;/li&gt;
-&lt;/ul&gt;
-&lt;/li&gt;
-&lt;li&gt;Now execute the environment sample:
-&lt;br&gt;&lt;img src="/assets/media/EnvSample/ExecuteEnvSample.png"&gt;
-&lt;/li&gt;
-&lt;/ol&gt;
-&lt;/div&gt;
-
-  &lt;div class="more"&gt;
-    &lt;a href="/posts/environmentsample" class="btn btn-small"&gt;read more..&lt;/a&gt;
-  &lt;/div&gt;
-&lt;/div&gt;
 
 &lt;div class="pagination"&gt;
   &lt;ul&gt;
@@ -426,7 +420,7 @@ for Order-Independent Transparency." This is very cheap, and uses a fixed equati
     &lt;a href="/tags#Releases-ref"&gt;Releases &lt;span&gt;1&lt;/span&gt;&lt;/a&gt;
   &lt;/li&gt;
   &lt;li&gt;
-    &lt;a href="/tags#Vulkan-ref"&gt;Vulkan &lt;span&gt;1&lt;/span&gt;&lt;/a&gt;
+    &lt;a href="/tags#Vulkan-ref"&gt;Vulkan &lt;span&gt;2&lt;/span&gt;&lt;/a&gt;
   &lt;/li&gt;
   &lt;li&gt;
     &lt;a href="/tags#rendering-ref"&gt;rendering &lt;span&gt;1&lt;/span&gt;&lt;/a&gt;
@@ -435,7 +429,16 @@ for Order-Independent Transparency." This is very cheap, and uses a fixed equati
     &lt;a href="/tags#API-ref"&gt;API &lt;span&gt;1&lt;/span&gt;&lt;/a&gt;
   &lt;/li&gt;
   &lt;li&gt;
-    &lt;a href="/tags#cross platform-ref"&gt;cross platform &lt;span&gt;1&lt;/span&gt;&lt;/a&gt;
+    &lt;a href="/tags#cross platform-ref"&gt;cross platform &lt;span&gt;2&lt;/span&gt;&lt;/a&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;a href="/tags#shaders-ref"&gt;shaders &lt;span&gt;1&lt;/span&gt;&lt;/a&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;a href="/tags#HLSL-ref"&gt;HLSL &lt;span&gt;1&lt;/span&gt;&lt;/a&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;a href="/tags#SPIR-V-ref"&gt;SPIR-V &lt;span&gt;1&lt;/span&gt;&lt;/a&gt;
   &lt;/li&gt;
 &lt;/ul&gt;
 
@@ -503,12 +506,20 @@ for Order-Independent Transparency." This is very cheap, and uses a fixed equati
     &lt;li&gt;&lt;a href="/posts/release0040"&gt;Release v0.04.0&lt;/a&gt;&lt;/li&gt;
   &lt;h3 id="Vulkan-ref"&gt;Vulkan&lt;/h3&gt;
     &lt;li&gt;&lt;a href="/posts/vulkan"&gt;Starting to experiment with Vulkan&lt;/a&gt;&lt;/li&gt;
+    &lt;li&gt;&lt;a href="/posts/vulkanshaderprototype"&gt;HLSL shader prototype with Vulkan&lt;/a&gt;&lt;/li&gt;
   &lt;h3 id="rendering-ref"&gt;rendering&lt;/h3&gt;
     &lt;li&gt;&lt;a href="/posts/vulkan"&gt;Starting to experiment with Vulkan&lt;/a&gt;&lt;/li&gt;
   &lt;h3 id="API-ref"&gt;API&lt;/h3&gt;
     &lt;li&gt;&lt;a href="/posts/vulkan"&gt;Starting to experiment with Vulkan&lt;/a&gt;&lt;/li&gt;
   &lt;h3 id="cross platform-ref"&gt;cross platform&lt;/h3&gt;
     &lt;li&gt;&lt;a href="/posts/vulkan"&gt;Starting to experiment with Vulkan&lt;/a&gt;&lt;/li&gt;
+    &lt;li&gt;&lt;a href="/posts/vulkanshaderprototype"&gt;HLSL shader prototype with Vulkan&lt;/a&gt;&lt;/li&gt;
+  &lt;h3 id="shaders-ref"&gt;shaders&lt;/h3&gt;
+    &lt;li&gt;&lt;a href="/posts/vulkanshaderprototype"&gt;HLSL shader prototype with Vulkan&lt;/a&gt;&lt;/li&gt;
+  &lt;h3 id="HLSL-ref"&gt;HLSL&lt;/h3&gt;
+    &lt;li&gt;&lt;a href="/posts/vulkanshaderprototype"&gt;HLSL shader prototype with Vulkan&lt;/a&gt;&lt;/li&gt;
+  &lt;h3 id="SPIR-V-ref"&gt;SPIR-V&lt;/h3&gt;
+    &lt;li&gt;&lt;a href="/posts/vulkanshaderprototype"&gt;HLSL shader prototype with Vulkan&lt;/a&gt;&lt;/li&gt;
  
 </description>
     </item>

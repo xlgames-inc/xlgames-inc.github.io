@@ -75,6 +75,9 @@
     <h3>April</h3>
     <ul>
       <li>
+<span>April 05, 2016</span> » <a href="/posts/vulkanshaderprototype">HLSL shader prototype with Vulkan</a>
+</li>
+      <li>
 <span>April 04, 2016</span> » <a href="/posts/vulkan">Starting to experiment with Vulkan</a>
 </li>
     </ul>
@@ -105,7 +108,6 @@
 <span>February 01, 2016</span> » <a href="/posts/improvedibl">Improved IBL</a>
 </li>
     </ul>
-    <h3>January</h3>
     </div>
 
         <div class="more">
@@ -118,14 +120,14 @@
         <div class="summary ellipsis">
 <ul class="tag_box inline">
   <li>
-    <a href="/categories#XLE-ref">XLE <span>18</span></a>
+    <a href="/categories#XLE-ref">XLE <span>19</span></a>
   </li>
   <li>
     <a href="/categories#blog-ref">blog <span>1</span></a>
   </li>
 </ul>
 
-  <h3>XLE (18)</h3>
+  <h3>XLE (19)</h3>
   <ul>
       <li><a href="/posts/arealightsandpbr">Area Lights with Physically Based Rendering</a></li>
       <li><a href="/posts/assetpathscripts">Processing textures with the XLE scriptable asset path</a></li>
@@ -143,6 +145,7 @@
       <li><a href="/posts/transmittedspecular2">Transmitted specular progress</a></li>
       <li><a href="/posts/transmittedspecular3">Transmitted specular</a></li>
       <li><a href="/posts/vulkan">Starting to experiment with Vulkan</a></li>
+      <li><a href="/posts/vulkanshaderprototype">HLSL shader prototype with Vulkan</a></li>
       <li><a href="/posts/whattodofirst">What to do first</a></li>
       <li><a href="/posts/workingonrectlights">Working some improvements to rectangle lights</a></li>
   </ul>
@@ -156,27 +159,27 @@
         <h3 class="title"><a href="/">Home</a><br/> <span class="date"></span></h3>
 
         <div class="summary ellipsis">
-<p>So, it's a simple story -- boy meets API, yada, yada, yada...</p>
+<p>As part of the Vulkan prototype, I'm experimenting with compiling HLSL shaders to SPIR-V.</p>
 
-<p>I've started to build some initial experiments with the Vulkan API. Version 1.0 of the API was just released -- and there's an SDK from Valve (called LunarG) around.</p>
+<p>The Vulkan API doesn't have a high level shader language attached. Instead, it works with a new intermediate bytecode format, called SPIR-V. This works with the LLVM compiler system, so in theory we plug in different front ends to allow various high level languages to compile to SPIR-V.</p>
 
-<h2 id="toc_0">Initial impressions</h2>
+<p>That sounds great for the future... But right now, there doesn't seem to be a great path for generating the SPIR-V bytecode.</p>
 
-<p>My first impressions are very positive! Many of the design ideals and structures of the API are familiar from my days working with consoles (particularly the Sony consoles). This type of API has not been available on open platforms (like Windows) before -- so for people who don't have experience with consoles, it might give an idea of what it's like.</p>
+<p>All of the XLE shaders are HLSL... So how do we use them with Vulkan? Let's consider the options.</p>
 
-<p>I'm also really happy how much of the surrounding resources have been made open-source... The samples, shader compilation tool-chain, etc... It's all very effective use of github.</p>
+<h2 id="toc_0">Preprocessor framework</h2>
 
-<p>Khronos have drawn attention to how much input they've gotten from the game engine development community. And it shows in the results. This is the kind of API that an experienced engine developer wants to see.</p>
+<p>One option is to convert the shader code to GLSL using a preprocessor framework. HLSL and GLSL are closely related... But they vary significantly in the way the shader interface is declared (eg, shader resources, vertex elements, built in values, etc).</p>
 
-<p>I think it's also a model that is much more viable for cross platform development than anything we've seen before. OpenGL had a lot of problems, and DirectX was so tied to the Windows platform. But this feels like something that is truly viable across many platforms (including low end and high end).</p>
+<p>We can get around this by using a system of preprocessor macros and complex #includes. We would end up with native HLSL and GLSL code that does the same thing. The core shader code that does the math and lighting (etc) should be fairly compatible between languages... It's just the interface that is an issue.</p>
 
-<p>I'm really impressed with how a third party group has managed to build an API that balances the needs of engine developers with the needs of hardware designers. I think Khronos has really shown how this kind of thing should be done -- and it seems like a good model for other APIs (sound, physics hardware, etc).</p>
+<p>However this kind of approach it's a bit awkward, and difficult maintain in the long term. And it might mean dropping support for some of the more unusual D3D features I'm using (such as for dynamic linking).</p>
 
-<h2 id="toc_1">Long term viability</h2>
+<p>Also, it looks like GLSL might not be around a very long time. It could possibly go the way of OpenGL in the medium term. So it doesn't make sense to invest a lot of time into GLSL, just to have to be replaced with something else later.</p>
 
-<p>Vulkan feels like an API that could stick around for awhile. OpenGL has been on it's last legs for a long time... And DirectX always needs constant refreshes to survive. But Vulkan feels like it will be here for awhile. Due to it's cross-platform and long term viability, it's really undermined DirectX and Apple's Metal.</p>
+<h2 id="toc_1">Cross compile</h2>
 
-<p>I felt the same about C++11, when I started using it. The new C++14 is a huge step forward from the old C++98 days. Many of the design patterns we C++ programmers always wanted to use are not much more viable in C++14. Stroustrup said that C++14 "completes" C++11 -- but really, I think it "completes" C++ as a whole.</p>
+<p>Another option is to try to convert the HLSL output to SPIR-V by way of a cross compiler.</p>
 </div>
 
         <div class="more">
