@@ -4,7 +4,74 @@
     <title>XLE development blog</title>
     <description>XLE development blog</description>
     <link>http://xlgames-inc.github.io</link>
-    <pubDate>April 05, 2016</pubDate>
+    <pubDate>April 08, 2016</pubDate>
+    <item>
+      <title>Vulkan prototype slowly progressing</title>
+      <link>http://xlgames-inc.github.io/posts/vulkanprototypeslowprogress</link>
+      <pubDate>April 08, 2016</pubDate>
+      <description>&lt;p&gt;So, the Vulkan prototype is progress... But I&amp;#39;m running into many problems working with the drivers and the associated tools. Here&amp;#39;s some examples of the problems I&amp;#39;m finding.&lt;/p&gt;
+
+&lt;h2 id="toc_0"&gt;RenderDoc crashing&lt;/h2&gt;
+
+&lt;p&gt;RenderDoc is the best tool for debugging Vulkan at the moment... But every time I tried to capture a log, it just crashed! The crash report didn&amp;#39;t contain any useful information. All I could do was guess at the problem.&lt;/p&gt;
+
+&lt;p&gt;Fortunately, RenderDoc has one really great feature... It&amp;#39;s open-source! So, I just downloaded the code and ran from Visual Studio (it compiled first time).&lt;/p&gt;
+
+&lt;p&gt;RenderDoc is still very unstable for Vulkan. But now that I have my own compiled version, that&amp;#39;s not really a big issue. I can just debug any crashes and make changes as required. All of the other GPU debugging tools I&amp;#39;ve ever used (PIX, console tools, GPA, nsight, etc) have been unstable, as well. But they were all closed source. So whenever I got an error, my only choices were to either use another debugging, or guess at the problem. With this in mind, (open-source + very unstable) is probably better than (closed-source + mostly stable).&lt;/p&gt;
+
+&lt;p&gt;My issue was related to &amp;quot;binding&amp;quot; decorations in SPIR-V. RenderDoc requires that all resources have binding decorations. I found this was also an issue for run-time XLE code. Even though the GLSL compiler is capable of generating SPIR-V code without binding decorations, it seems like all practical uses require them.&lt;/p&gt;
+
+&lt;p&gt;My shaders weren&amp;#39;t getting &amp;quot;bindings&amp;quot; for any resources, and this was the cause of RenderDoc&amp;#39;s crashes!&lt;/p&gt;
+
+&lt;h2 id="toc_1"&gt;HLSL cross compiler and &amp;quot;bindings&amp;quot;&lt;/h2&gt;
+
+&lt;p&gt;Part of the issue is related to the HLSL cross compiler. In some cases, the cross compiler can attach &amp;quot;location&amp;quot; values, but it never attaches &amp;quot;binding&amp;quot; values for textures or constant buffers.&lt;/p&gt;
+
+&lt;p&gt;Fortunately, the HLSL cross compiler is also open-source... So I can create a fork with the modifications I need. That seems to be required in this case. I could try to attach the binding information later in the pipeline (eg, by modifying the output GLSL, or by inserting instructions into the SPIR-V bytecode)... But changing and improving the cross compiler seems like the best option.&lt;/p&gt;
+
+&lt;p&gt;We ideally also want to specify the &amp;quot;descriptor set&amp;quot; in the GLSL code. Unfortunately, HLSL 5 doesn&amp;#39;t have an equivalent concept. That is going to require some more effort.&lt;/p&gt;
+
+&lt;h2 id="toc_2"&gt;Cross compiler incorrect translation&lt;/h2&gt;
+
+&lt;p&gt;The next problem was some HLSL instructions were generating incorrect GLSL code. In particular, I was using an expression like &amp;quot;float4(localPosition.xy, 0, 1)&amp;quot; to generate a 4D vector. But this was being treated as &amp;quot;float4(localPosition.xy, 0, 0)&amp;quot;.&lt;/p&gt;
+
+&lt;p&gt;There are a number of unknown instructions that are incorrectly translated by the HLSL cross compiler... So it looks like I&amp;#39;ll need to do some work improving the code.&lt;/p&gt;
+
+&lt;h2 id="toc_3"&gt;Vulkan validation layer&lt;/h2&gt;
+
+&lt;p&gt;It took me awhile to figure out how to enable the Vulkan validation layer. This is really important for finding usage errors! But it&amp;#39;s not really documented and it&amp;#39;s a very unclear how to get it working.&lt;/p&gt;
+
+&lt;p&gt;Eventually, I found out I needed to set the VK&lt;em&gt;LAYER&lt;/em&gt;PATH environment variable. It seems like this should be set by the SDK installer, but maybe it was an oversight.&lt;/p&gt;
+
+&lt;p&gt;Anyway, I also needed to use the VK&lt;em&gt;EXT&lt;/em&gt;DEBUG&lt;em&gt;REPORT&lt;/em&gt;EXTENSION_NAME extension to install a message handler. It looks like there are other ways to use the validation layers. But I still don&amp;#39;t know how to get them working. For now, I&amp;#39;m just catching errors and warnings and pushing them into the XLE logging system.&lt;/p&gt;
+
+&lt;h2 id="toc_4"&gt;Binding samplers and images together&lt;/h2&gt;
+
+&lt;p&gt;HLSL separates samplers and textures, but Vulkan seems to prefer to combine them together into one. This is going to cause a bit of any issue with the way XLE shaders use samplers... Probably to start with, I just use a single point filtering sampler for all textures.&lt;/p&gt;
+
+&lt;h2 id="toc_5"&gt;vkCmdBindDescriptorSets ending command buffers&lt;/h2&gt;
+
+&lt;p&gt;For some reason, vkCmdBindDescriptorSets is silently &amp;quot;ending&amp;quot; the command buffer. It not clear why -- there must be some error. But I haven&amp;#39;t found it yet. Even the validation layers aren&amp;#39;t much help in this case.&lt;/p&gt;
+
+&lt;h2 id="toc_6"&gt;&amp;quot;Image layouts&amp;quot; concept confusing&lt;/h2&gt;
+
+&lt;p&gt;There seems to be some confusion in the API over a concept called &amp;quot;image layouts.&amp;quot; This appears to be related to how images are stored in memory. The exact detail are very implementation specific and opaque. We need to instruct the GPU (rather than the CPU side of the API) to change the layout of an image. So changing the layout involves appending commands to the command buffer.&lt;/p&gt;
+
+&lt;p&gt;But there are multiple different ways to do this... It&amp;#39;s not really clear how to best handle this currently. The samples have their own way of dealing with image layouts. But that doesn&amp;#39;t look like the most optimal approach -- and anyway, it&amp;#39;s architecturally awkward (because it mixes unsynchronised initialisation functions with synchronised command buffer functions).&lt;/p&gt;
+
+&lt;p&gt;So, I&amp;#39;ll need to do some experimentation to find the best way!&lt;/p&gt;
+
+&lt;h2 id="toc_7"&gt;Now rendering geometry!&lt;/h2&gt;
+
+&lt;p&gt;But, I&amp;#39;ve finally got some basic geometry rendering! It&amp;#39;s just a few 2D triangles, but it&amp;#39;s something!&lt;/p&gt;
+
+&lt;p&gt;In short, there are a lot of problems and difficulties with using Vulkan currently.&lt;/p&gt;
+
+&lt;p&gt;I think I&amp;#39;ve found problems with every step in the chain so far. But many of the tools and library are open-source, and that is helping a lot. If (for example) RenderDoc had been closed source, I would just be making guesses now, and probably not getting very far.&lt;/p&gt;
+
+&lt;p&gt;It would be nice if everything was stable and polished... But for now, as long as I can identify the particular cause of each problem, I think I can make educated decisions about how to navigate through the minefield.&lt;/p&gt;
+</description>
+    </item>
     <item>
       <title>HLSL shader prototype with Vulkan</title>
       <link>http://xlgames-inc.github.io/posts/vulkanshaderprototype</link>
@@ -1461,45 +1528,6 @@ Partially it means sampling values from the real world. But really it&amp;#39;s 
 - it should be simpler and better (at the same time)&lt;/p&gt;
 
 &lt;p&gt;3 cheers for area lights!&lt;/p&gt;
-</description>
-    </item>
-    <item>
-      <title>First post</title>
-      <link>http://xlgames-inc.github.io/posts/first</link>
-      <pubDate>December 01, 2015</pubDate>
-      <description>&lt;p&gt;This blog will contain some day-to-day information about XLE.&lt;/p&gt;
-
-&lt;p&gt;Let&amp;#39;s start with some screenshots, rendered with XLE:&lt;/p&gt;
-
-&lt;p&gt;&lt;img src="/assets/media/CaptainSplitBrightLogo.png"&gt;&lt;br&gt;
-The Captain character from &lt;a href="http://archeage.xlgames.com/"&gt;Archeage&lt;/a&gt; (&lt;a href="http://www.trionworlds.com/archeage/en/"&gt;US site&lt;/a&gt;).&lt;/p&gt;
-
-&lt;p&gt;&lt;img src="/assets/media/Archepunk4.png"&gt;&lt;br&gt;
-One of the (many) costumes from Archeage.&lt;/p&gt;
-
-&lt;p&gt;&lt;img src="/assets/media/SkeleCommander.png"&gt;&lt;br&gt;
-A skeleton enemy from Archeage.&lt;/p&gt;
-
-&lt;p&gt;&lt;img src="/assets/media/Copperhead1.png"&gt;&lt;br&gt;
-A military spacecraft.&lt;/p&gt;
-
-&lt;p&gt;&lt;img src="/assets/media/gweonid4.png"&gt;&lt;br&gt;
-The &amp;quot;Gweonid&amp;quot; character from Archeage.&lt;/p&gt;
-
-&lt;p&gt;&lt;img src="/assets/media/MetalGolem0.png"&gt;&lt;br&gt;
-A metal golem character from Archeage.&lt;/p&gt;
-
-&lt;p&gt;&lt;img src="/assets/media/NyraAndDragon1.png"&gt;&lt;br&gt;
-One of the costumes from Archeage, and &amp;quot;Nyra&amp;quot; character.
-Nyra model comes from &lt;a href="http://www.paultosca.com/"&gt;Paul Tosca&lt;/a&gt;. Thanks for the great model, Paul!&lt;/p&gt;
-
-&lt;p&gt;&lt;img src="/assets/media/Nyra9.png"&gt;&lt;br&gt;
-Detail of Nyra&lt;/p&gt;
-
-&lt;p&gt;&lt;img src="/assets/media/Nyra10.png"&gt;&lt;br&gt;
-One more from Nyra.&lt;/p&gt;
-
-&lt;p&gt;Many of the backgrounds in these images are from &lt;a href="http://www.hdrlabs.com/sibl/archive.html"&gt;sIBL Archive&lt;/a&gt;.&lt;/p&gt;
 </description>
     </item>
   </channel>

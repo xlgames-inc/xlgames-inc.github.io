@@ -1,0 +1,212 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Vulkan prototype slowly progressing</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="author" content="XL Games">
+
+    <!-- Le HTML5 shim, for IE6-8 support of HTML elements -->
+    <!--[if lt IE 9]>
+      <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+
+    <!-- Le styles -->
+<link href='/assets/stylesheets/bootstrap.min-93b47f97c3444c4711853ed5140d82a1.css' type='text/css' rel='stylesheet' media='all'>
+<link href='/assets/stylesheets/style-1dcb1d39791f3457afa56d279fcf0945.css' type='text/css' rel='stylesheet' media='all'>
+<link href='/assets/stylesheets/google_prettify/sons-of-obsidian-5e05343fd0c18e0a05231023b643245c.css' type='text/css' rel='stylesheet' media='all'>
+    <!-- Le fav and touch icons -->
+  <!-- Update these with your own images
+    <link rel="shortcut icon" href="images/favicon.ico">
+    <link rel="apple-touch-icon" href="images/apple-touch-icon.png">
+    <link rel="apple-touch-icon" sizes="72x72" href="images/apple-touch-icon-72x72.png">
+    <link rel="apple-touch-icon" sizes="114x114" href="images/apple-touch-icon-114x114.png">
+  -->
+  </head>
+
+  <body>
+
+    <div class="navbar">
+      <div class="navbar-inner">
+        <div class="container-narrow">
+          <a class="brand" href="/">XLE development blog</a>
+          <ul class="nav">
+              
+                <li><a href="/tags">Tags</a></li>
+              
+              
+                <li><a href="/archive">Archive</a></li>
+              
+              
+                <li><a href="/about">About</a></li>
+              
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="container-narrow">
+
+      <div class="content">
+        
+<div class="page-header">
+  <h1>Vulkan prototype slowly progressing </h1>
+</div>
+
+<div class="row-fluid post-full">
+  <div class="span12">
+    <div class="date">
+      <span>April 08, 2016</strong>
+    </div>
+    <div class="content">
+      <p>So, the Vulkan prototype is progress... But I&#39;m running into many problems working with the drivers and the associated tools. Here&#39;s some examples of the problems I&#39;m finding.</p>
+
+<h2 id="toc_0">RenderDoc crashing</h2>
+
+<p>RenderDoc is the best tool for debugging Vulkan at the moment... But every time I tried to capture a log, it just crashed! The crash report didn&#39;t contain any useful information. All I could do was guess at the problem.</p>
+
+<p>Fortunately, RenderDoc has one really great feature... It&#39;s open-source! So, I just downloaded the code and ran from Visual Studio (it compiled first time).</p>
+
+<p>RenderDoc is still very unstable for Vulkan. But now that I have my own compiled version, that&#39;s not really a big issue. I can just debug any crashes and make changes as required. All of the other GPU debugging tools I&#39;ve ever used (PIX, console tools, GPA, nsight, etc) have been unstable, as well. But they were all closed source. So whenever I got an error, my only choices were to either use another debugging, or guess at the problem. With this in mind, (open-source + very unstable) is probably better than (closed-source + mostly stable).</p>
+
+<p>My issue was related to &quot;binding&quot; decorations in SPIR-V. RenderDoc requires that all resources have binding decorations. I found this was also an issue for run-time XLE code. Even though the GLSL compiler is capable of generating SPIR-V code without binding decorations, it seems like all practical uses require them.</p>
+
+<p>My shaders weren&#39;t getting &quot;bindings&quot; for any resources, and this was the cause of RenderDoc&#39;s crashes!</p>
+
+<h2 id="toc_1">HLSL cross compiler and &quot;bindings&quot;</h2>
+
+<p>Part of the issue is related to the HLSL cross compiler. In some cases, the cross compiler can attach &quot;location&quot; values, but it never attaches &quot;binding&quot; values for textures or constant buffers.</p>
+
+<p>Fortunately, the HLSL cross compiler is also open-source... So I can create a fork with the modifications I need. That seems to be required in this case. I could try to attach the binding information later in the pipeline (eg, by modifying the output GLSL, or by inserting instructions into the SPIR-V bytecode)... But changing and improving the cross compiler seems like the best option.</p>
+
+<p>We ideally also want to specify the &quot;descriptor set&quot; in the GLSL code. Unfortunately, HLSL 5 doesn&#39;t have an equivalent concept. That is going to require some more effort.</p>
+
+<h2 id="toc_2">Cross compiler incorrect translation</h2>
+
+<p>The next problem was some HLSL instructions were generating incorrect GLSL code. In particular, I was using an expression like &quot;float4(localPosition.xy, 0, 1)&quot; to generate a 4D vector. But this was being treated as &quot;float4(localPosition.xy, 0, 0)&quot;.</p>
+
+<p>There are a number of unknown instructions that are incorrectly translated by the HLSL cross compiler... So it looks like I&#39;ll need to do some work improving the code.</p>
+
+<h2 id="toc_3">Vulkan validation layer</h2>
+
+<p>It took me awhile to figure out how to enable the Vulkan validation layer. This is really important for finding usage errors! But it&#39;s not really documented and it&#39;s a very unclear how to get it working.</p>
+
+<p>Eventually, I found out I needed to set the VK<em>LAYER</em>PATH environment variable. It seems like this should be set by the SDK installer, but maybe it was an oversight.</p>
+
+<p>Anyway, I also needed to use the VK<em>EXT</em>DEBUG<em>REPORT</em>EXTENSION_NAME extension to install a message handler. It looks like there are other ways to use the validation layers. But I still don&#39;t know how to get them working. For now, I&#39;m just catching errors and warnings and pushing them into the XLE logging system.</p>
+
+<h2 id="toc_4">Binding samplers and images together</h2>
+
+<p>HLSL separates samplers and textures, but Vulkan seems to prefer to combine them together into one. This is going to cause a bit of any issue with the way XLE shaders use samplers... Probably to start with, I just use a single point filtering sampler for all textures.</p>
+
+<h2 id="toc_5">vkCmdBindDescriptorSets ending command buffers</h2>
+
+<p>For some reason, vkCmdBindDescriptorSets is silently &quot;ending&quot; the command buffer. It not clear why -- there must be some error. But I haven&#39;t found it yet. Even the validation layers aren&#39;t much help in this case.</p>
+
+<h2 id="toc_6">&quot;Image layouts&quot; concept confusing</h2>
+
+<p>There seems to be some confusion in the API over a concept called &quot;image layouts.&quot; This appears to be related to how images are stored in memory. The exact detail are very implementation specific and opaque. We need to instruct the GPU (rather than the CPU side of the API) to change the layout of an image. So changing the layout involves appending commands to the command buffer.</p>
+
+<p>But there are multiple different ways to do this... It&#39;s not really clear how to best handle this currently. The samples have their own way of dealing with image layouts. But that doesn&#39;t look like the most optimal approach -- and anyway, it&#39;s architecturally awkward (because it mixes unsynchronised initialisation functions with synchronised command buffer functions).</p>
+
+<p>So, I&#39;ll need to do some experimentation to find the best way!</p>
+
+<h2 id="toc_7">Now rendering geometry!</h2>
+
+<p>But, I&#39;ve finally got some basic geometry rendering! It&#39;s just a few 2D triangles, but it&#39;s something!</p>
+
+<p>In short, there are a lot of problems and difficulties with using Vulkan currently.</p>
+
+<p>I think I&#39;ve found problems with every step in the chain so far. But many of the tools and library are open-source, and that is helping a lot. If (for example) RenderDoc had been closed source, I would just be making guesses now, and probably not getting very far.</p>
+
+<p>It would be nice if everything was stable and polished... But for now, as long as I can identify the particular cause of each problem, I think I can make educated decisions about how to navigate through the minefield.</p>
+
+    </div>
+    <ul class="tag_box inline">
+      <li><i class="icon-folder-open"></i></li>
+      <li>
+        <a href="/categories#XLE-ref">XLE <span>20</span></a>
+      </li>
+    </ul>
+    <ul class="tag_box inline">
+      <li><i class="icon-tags"></i></li>
+      <li>
+        <a href="/tags#Vulkan-ref">Vulkan <span>3</span></a>
+      </li>
+      <li>
+        <a href="/tags#cross platform-ref">cross platform <span>3</span></a>
+      </li>
+      <li>
+        <a href="/tags#SPIR-V-ref">SPIR-V <span>2</span></a>
+      </li>
+    </ul>
+    <hr>
+    <div class="pagination">
+      <ul>
+          <li class="prev"><a href="/posts/vulkanshaderprototype" title="HLSL shader prototype with Vulkan">&larr; Previous</a></li>
+
+          <li><a href="/archive">Archive</a></li>
+
+          <li class="next disabled"><a>Next &rarr;</a>
+      </ul>
+    </div>
+    <hr>
+    <div id="disqus_thread"></div>
+<script>
+    var disqus_developer = 1;
+    var disqus_shortname = 'xledev'; // required: replace example with your forum shortname
+    /* * * DON'T EDIT BELOW THIS LINE * * */
+    (function() {
+        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+        dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<a href="http://disqus.com" class="dsq-brlink">blog comments powered by <span class="logo-disqus">Disqus</span></a>
+
+  </div>
+</div>
+
+
+      </div>
+
+      <hr>
+      <div class="footer">
+        <p>&copy; XL Games 2015
+          with help from <a href="http://ruhoh.com" target="_blank" title="The Definitive Technical Blogging Framework">ruhoh</a>
+          and <a href="http://twitter.github.com/bootstrap/" target="_blank">Twitter Bootstrap</a>
+        </p>
+      </div>
+
+    </div> <!-- /container -->
+
+    <!-- Google Prettify -->
+<script src="http://cdnjs.cloudflare.com/ajax/libs/prettify/188.0.0/prettify.js"></script>
+<script>
+  var pres = document.getElementsByTagName("pre");
+  for (var i=0; i < pres.length; ++i) {
+    pres[i].className = "prettyprint linenums";
+  }
+  prettyPrint();
+</script>
+<!-- end Google Prettify -->
+    <script type="text/javascript">
+
+  var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', 'UA-71034032-1']);
+  _gaq.push(['_trackPageview']);
+  
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+
+</script>
+
+
+    
+  </body>
+</html>

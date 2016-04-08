@@ -75,6 +75,9 @@
     <h3>April</h3>
     <ul>
       <li>
+<span>April 08, 2016</span> » <a href="/posts/vulkanprototypeslowprogress">Vulkan prototype slowly progressing</a>
+</li>
+      <li>
 <span>April 05, 2016</span> » <a href="/posts/vulkanshaderprototype">HLSL shader prototype with Vulkan</a>
 </li>
       <li>
@@ -108,7 +111,7 @@
 <span>February 01, 2016</span> » <a href="/posts/improvedibl">Improved IBL</a>
 </li>
     </ul>
-    </div>
+</div>
 
         <div class="more">
           <a href="/archive" class="btn btn-small">read more..</a>
@@ -120,14 +123,14 @@
         <div class="summary ellipsis">
 <ul class="tag_box inline">
   <li>
-    <a href="/categories#XLE-ref">XLE <span>19</span></a>
+    <a href="/categories#XLE-ref">XLE <span>20</span></a>
   </li>
   <li>
     <a href="/categories#blog-ref">blog <span>1</span></a>
   </li>
 </ul>
 
-  <h3>XLE (19)</h3>
+  <h3>XLE (20)</h3>
   <ul>
       <li><a href="/posts/arealightsandpbr">Area Lights with Physically Based Rendering</a></li>
       <li><a href="/posts/assetpathscripts">Processing textures with the XLE scriptable asset path</a></li>
@@ -145,6 +148,7 @@
       <li><a href="/posts/transmittedspecular2">Transmitted specular progress</a></li>
       <li><a href="/posts/transmittedspecular3">Transmitted specular</a></li>
       <li><a href="/posts/vulkan">Starting to experiment with Vulkan</a></li>
+      <li><a href="/posts/vulkanprototypeslowprogress">Vulkan prototype slowly progressing</a></li>
       <li><a href="/posts/vulkanshaderprototype">HLSL shader prototype with Vulkan</a></li>
       <li><a href="/posts/whattodofirst">What to do first</a></li>
       <li><a href="/posts/workingonrectlights">Working some improvements to rectangle lights</a></li>
@@ -159,27 +163,27 @@
         <h3 class="title"><a href="/">Home</a><br/> <span class="date"></span></h3>
 
         <div class="summary ellipsis">
-<p>As part of the Vulkan prototype, I'm experimenting with compiling HLSL shaders to SPIR-V.</p>
+<p>So, the Vulkan prototype is progress... But I'm running into many problems working with the drivers and the associated tools. Here's some examples of the problems I'm finding.</p>
 
-<p>The Vulkan API doesn't have a high level shader language attached. Instead, it works with a new intermediate bytecode format, called SPIR-V. This works with the LLVM compiler system, so in theory we plug in different front ends to allow various high level languages to compile to SPIR-V.</p>
+<h2 id="toc_0">RenderDoc crashing</h2>
 
-<p>That sounds great for the future... But right now, there doesn't seem to be a great path for generating the SPIR-V bytecode.</p>
+<p>RenderDoc is the best tool for debugging Vulkan at the moment... But every time I tried to capture a log, it just crashed! The crash report didn't contain any useful information. All I could do was guess at the problem.</p>
 
-<p>All of the XLE shaders are HLSL... So how do we use them with Vulkan? Let's consider the options.</p>
+<p>Fortunately, RenderDoc has one really great feature... It's open-source! So, I just downloaded the code and ran from Visual Studio (it compiled first time).</p>
 
-<h2 id="toc_0">Preprocessor framework</h2>
+<p>RenderDoc is still very unstable for Vulkan. But now that I have my own compiled version, that's not really a big issue. I can just debug any crashes and make changes as required. All of the other GPU debugging tools I've ever used (PIX, console tools, GPA, nsight, etc) have been unstable, as well. But they were all closed source. So whenever I got an error, my only choices were to either use another debugging, or guess at the problem. With this in mind, (open-source + very unstable) is probably better than (closed-source + mostly stable).</p>
 
-<p>One option is to convert the shader code to GLSL using a preprocessor framework. HLSL and GLSL are closely related... But they vary significantly in the way the shader interface is declared (eg, shader resources, vertex elements, built in values, etc).</p>
+<p>My issue was related to "binding" decorations in SPIR-V. RenderDoc requires that all resources have binding decorations. I found this was also an issue for run-time XLE code. Even though the GLSL compiler is capable of generating SPIR-V code without binding decorations, it seems like all practical uses require them.</p>
 
-<p>We can get around this by using a system of preprocessor macros and complex #includes. We would end up with native HLSL and GLSL code that does the same thing. The core shader code that does the math and lighting (etc) should be fairly compatible between languages... It's just the interface that is an issue.</p>
+<p>My shaders weren't getting "bindings" for any resources, and this was the cause of RenderDoc's crashes!</p>
 
-<p>However this kind of approach it's a bit awkward, and difficult maintain in the long term. And it might mean dropping support for some of the more unusual D3D features I'm using (such as for dynamic linking).</p>
+<h2 id="toc_1">HLSL cross compiler and "bindings"</h2>
 
-<p>Also, it looks like GLSL might not be around a very long time. It could possibly go the way of OpenGL in the medium term. So it doesn't make sense to invest a lot of time into GLSL, just to have to be replaced with something else later.</p>
+<p>Part of the issue is related to the HLSL cross compiler. In some cases, the cross compiler can attach "location" values, but it never attaches "binding" values for textures or constant buffers.</p>
 
-<h2 id="toc_1">Cross compile</h2>
+<p>Fortunately, the HLSL cross compiler is also open-source... So I can create a fork with the modifications I need. That seems to be required in this case. I could try to attach the binding information later in the pipeline (eg, by modifying the output GLSL, or by inserting instructions into the SPIR-V bytecode)... But changing and improving the cross compiler seems like the best option.</p>
 
-<p>Another option is to try to convert the HLSL output to SPIR-V by way of a cross compiler.</p>
+<p>We ideally also want to specify the "descriptor set" in the GLSL code. Unfortunately, HLSL 5 doesn't have an equivalent concept. That is going to require some more effort.</p>
 </div>
 
         <div class="more">

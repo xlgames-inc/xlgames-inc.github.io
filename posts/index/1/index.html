@@ -51,6 +51,37 @@
         <div class="row-fluid">
   <div class="span12">
       <div class="posts">
+        <h3 class="title"><a href="/posts/vulkanprototypeslowprogress">Vulkan prototype slowly progressing</a><br/> <span class="date">April 08, 2016</span></h3>
+
+        <div class="summary ellipsis">
+<p>So, the Vulkan prototype is progress... But I'm running into many problems working with the drivers and the associated tools. Here's some examples of the problems I'm finding.</p>
+
+<h2 id="toc_0">RenderDoc crashing</h2>
+
+<p>RenderDoc is the best tool for debugging Vulkan at the moment... But every time I tried to capture a log, it just crashed! The crash report didn't contain any useful information. All I could do was guess at the problem.</p>
+
+<p>Fortunately, RenderDoc has one really great feature... It's open-source! So, I just downloaded the code and ran from Visual Studio (it compiled first time).</p>
+
+<p>RenderDoc is still very unstable for Vulkan. But now that I have my own compiled version, that's not really a big issue. I can just debug any crashes and make changes as required. All of the other GPU debugging tools I've ever used (PIX, console tools, GPA, nsight, etc) have been unstable, as well. But they were all closed source. So whenever I got an error, my only choices were to either use another debugging, or guess at the problem. With this in mind, (open-source + very unstable) is probably better than (closed-source + mostly stable).</p>
+
+<p>My issue was related to "binding" decorations in SPIR-V. RenderDoc requires that all resources have binding decorations. I found this was also an issue for run-time XLE code. Even though the GLSL compiler is capable of generating SPIR-V code without binding decorations, it seems like all practical uses require them.</p>
+
+<p>My shaders weren't getting "bindings" for any resources, and this was the cause of RenderDoc's crashes!</p>
+
+<h2 id="toc_1">HLSL cross compiler and "bindings"</h2>
+
+<p>Part of the issue is related to the HLSL cross compiler. In some cases, the cross compiler can attach "location" values, but it never attaches "binding" values for textures or constant buffers.</p>
+
+<p>Fortunately, the HLSL cross compiler is also open-source... So I can create a fork with the modifications I need. That seems to be required in this case. I could try to attach the binding information later in the pipeline (eg, by modifying the output GLSL, or by inserting instructions into the SPIR-V bytecode)... But changing and improving the cross compiler seems like the best option.</p>
+
+<p>We ideally also want to specify the "descriptor set" in the GLSL code. Unfortunately, HLSL 5 doesn't have an equivalent concept. That is going to require some more effort.</p>
+</div>
+
+        <div class="more">
+          <a href="/posts/vulkanprototypeslowprogress" class="btn btn-small">read more..</a>
+        </div>
+      </div>
+      <div class="posts">
         <h3 class="title"><a href="/posts/vulkanshaderprototype">HLSL shader prototype with Vulkan</a><br/> <span class="date">April 05, 2016</span></h3>
 
         <div class="summary ellipsis">
@@ -178,39 +209,6 @@ for Order-Independent Transparency." This is very cheap, and uses a fixed equati
           <a href="/posts/envshots" class="btn btn-small">read more..</a>
         </div>
       </div>
-      <div class="posts">
-        <h3 class="title"><a href="/posts/release0040">Release v0.04.0</a><br/> <span class="date">March 26, 2016</span></h3>
-
-        <div class="summary ellipsis">
-<p>I've attached a compiled version of the XLE tools to the Github repo.</p>
-
-<p>This is still an early build -- and hasn't be extensively tested on different hardware. So some features may not work on configurations. If you run in problems, or if you find it interesting, I recommended downloading the source and compiling for yourself.</p>
-
-<h2 id="toc_0">Download</h2>
-
-<p>XLE v0.04.1:
-<a href="https://github.com/xlgames-inc/XLE/releases/download/v0.04.1/XLE0.04.1.zip">XLE v0.04.1 Windows x64</a></p>
-
-<p>You will need <a href="https://www.microsoft.com/en-us/download/details.aspx?id=40784">Visual C++ Redistributable Packages for Visual Studio 2013</a>.</p>
-
-<p>For older versions of Windows, you will also need to install the .Net runtime.</p>
-
-<p>Edit -- updated to link to v0.04.1 (which fixes a problem locating the shader compiler dll on some versions of windows).</p>
-
-<h2 id="toc_1">Documentation</h2>
-
-<p>I've included a couple of "Getting Started" docs:</p>
-
-<ol>
-<li><a href="/assets/media/v0.04.0/XLE%20Getting%20Started%20Exporting.pdf">Getting Started Exporting</a></li>
-<li><a href="/assets/media/v0.04.0/XLE%20Getting%20Started%20with%20Terrain.pdf">Getting Started with Terrain</a></li>
-</ol>
-</div>
-
-        <div class="more">
-          <a href="/posts/release0040" class="btn btn-small">read more..</a>
-        </div>
-      </div>
     
     <div class="pagination">
       <ul>
@@ -218,6 +216,7 @@ for Order-Independent Transparency." This is very cheap, and uses a fixed equati
           <li><a href="/posts/index/2">2</a></li>
           <li><a href="/posts/index/3">3</a></li>
           <li><a href="/posts/index/4">4</a></li>
+          <li><a href="/posts/index/5">5</a></li>
       </ul>
     </div>
   </div>
