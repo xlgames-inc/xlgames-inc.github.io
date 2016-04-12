@@ -64,6 +64,7 @@
   <h2>2016</h2>
     <h3>April</h3>
     <ul>
+      <li><span>April 12, 2016</span> &raquo; <a href="/posts/vulkantips">Important Vulkan tips</a></li>
       <li><span>April 08, 2016</span> &raquo; <a href="/posts/vulkanprototypeslowprogress">Vulkan prototype slowly progressing</a></li>
       <li><span>April 05, 2016</span> &raquo; <a href="/posts/vulkanshaderprototype">HLSL shader prototype with Vulkan</a></li>
       <li><span>April 04, 2016</span> &raquo; <a href="/posts/vulkan">Starting to experiment with Vulkan</a></li>
@@ -101,9 +102,42 @@
     </ul>
 
 <p><img src="/assets/media/NyraAndDragon1.png"></p>
+<p><img src="/assets/media/EnvShots/shot50.jpg"></p>
+<p><a href="posts/envshots">More screenshots</a></p>
 
 <hr />
 
+<div class="post">
+  <h3 class="title"><a href="/posts/vulkantips">Important Vulkan tips</a><br /> <span class="date">April 12, 2016</span></h3>
+
+  <div class="summary ellipsis">
+<p>After 1 week of playing around with Vulkan, here are 4 tips I've learned. These are maybe not very obvious (some aren't clearly documented), but I think they're important to know.</p>
+
+<h2 id="toc_0">1. Use buffers as staging areas to initialize images</h2>
+
+<p>The crux of this is we need to use a function, <em>vkCmdCopyBufferToImage</em>, to implement staging images with Vulkan. It's almost impossible to do any graphics work with Vulkan without doing this -- but a first glance it might seem a bit counter-intuitive. First a bit of a background.</p>
+
+<p>Vulkan images have a "tiling" property, which can be either "linear" or "optimal." This is property relates to how pixels are arranged in memory within a single mip level.</p>
+
+<p>In linear tiling, texels are arranged in row by row, column by column. So a texel's linear address follows this pattern:</p>
+
+<pre><code>address = (y*rowPitch) + x*bitsPerPixel/8
+</code></pre>
+
+<p>When we have images on disk, we usually expect them to have this tiling.</p>
+
+<p>However, this has a big problem. Texels in the same row will be near each other in memory. But texels in the same column will be quite separate in memory.</p>
+
+<p>Given that images can be mapped arbitrarily on the final 2D triangles, we can't control the order in which the GPU will access the texels. So this is big issue for the memory cache.</p>
+
+<p>So all GPUs are able to rearrange the texels into a "swizzled" order that tries to guarantee that nearby texels in 2D (or 3D) image space will be nearby in linear memory. This is called "optimal" tiling in Vulkan.</p>
+
+</div>
+
+  <div class="more">
+    <a href="/posts/vulkantips" class="btn btn-small">read more..</a>
+  </div>
+</div>
 <div class="post">
   <h3 class="title"><a href="/posts/vulkanprototypeslowprogress">Vulkan prototype slowly progressing</a><br /> <span class="date">April 08, 2016</span></h3>
 
@@ -229,38 +263,6 @@ for Order-Independent Transparency." This is very cheap, and uses a fixed equati
 
   <div class="more">
     <a href="/posts/compareoitrans" class="btn btn-small">read more..</a>
-  </div>
-</div>
-<div class="post">
-  <h3 class="title"><a href="/posts/envshots">Environment Rendering Screenshots</a><br /> <span class="date">March 30, 2016</span></h3>
-
-  <div class="summary ellipsis">
-<p>Here are a few screenshots of environment rendering in XLE. I don't have a lot of art I can take screenshots of, so I can't show a very polished scene... But you can see some of the rendering features.</p>
-
-<p>Look for:</p>
-
-<ul>
-<li>shallow water surface animation</li>
-<li>order independent blending for foliage</li>
-<li>volumetric fog (&amp; related effects)</li>
-<li>dynamic imposters for distant trees</li>
-<li>high res terrain geometry</li>
-<li>terrain decoration spawn</li>
-<li>"contact hardening" shadows</li>
-<li>infinite terrain shadows</li>
-</ul>
-
-<p><br><img src="/assets/media/EnvShots/shot47.jpg">
-<br><img src="/assets/media/EnvShots/shot50.jpg">
-<br><img src="/assets/media/EnvShots/shot52.jpg">
-<br><img src="/assets/media/EnvShots/shot55.jpg">
-<br><img src="/assets/media/EnvShots/shot57.jpg">
-<br><img src="/assets/media/EnvShots/shot58.jpg">
-<br><img src="/assets/media/EnvShots/shot65.jpg"></p>
-</div>
-
-  <div class="more">
-    <a href="/posts/envshots" class="btn btn-small">read more..</a>
   </div>
 </div>
 

@@ -4,7 +4,7 @@
     <title>XLE development blog</title>
     <description>XLE development blog</description>
     <link>http://xlgames-inc.github.io</link>
-    <pubDate>April 08, 2016</pubDate>
+    <pubDate>April 12, 2016</pubDate>
     <item>
       <title>About</title>
       <link>http://xlgames-inc.github.io/about</link>
@@ -24,6 +24,7 @@
   &lt;h2&gt;2016&lt;/h2&gt;
     &lt;h3&gt;April&lt;/h3&gt;
     &lt;ul&gt;
+      &lt;li&gt;&lt;span&gt;April 12, 2016&lt;/span&gt; &amp;raquo; &lt;a href="/posts/vulkantips"&gt;Important Vulkan tips&lt;/a&gt;&lt;/li&gt;
       &lt;li&gt;&lt;span&gt;April 08, 2016&lt;/span&gt; &amp;raquo; &lt;a href="/posts/vulkanprototypeslowprogress"&gt;Vulkan prototype slowly progressing&lt;/a&gt;&lt;/li&gt;
       &lt;li&gt;&lt;span&gt;April 05, 2016&lt;/span&gt; &amp;raquo; &lt;a href="/posts/vulkanshaderprototype"&gt;HLSL shader prototype with Vulkan&lt;/a&gt;&lt;/li&gt;
       &lt;li&gt;&lt;span&gt;April 04, 2016&lt;/span&gt; &amp;raquo; &lt;a href="/posts/vulkan"&gt;Starting to experiment with Vulkan&lt;/a&gt;&lt;/li&gt;
@@ -67,14 +68,14 @@
       <description>
 &lt;ul class="tag_box inline"&gt;
   &lt;li&gt;
-    &lt;a href="/categories#XLE-ref"&gt;XLE &lt;span&gt;20&lt;/span&gt;&lt;/a&gt;
+    &lt;a href="/categories#XLE-ref"&gt;XLE &lt;span&gt;21&lt;/span&gt;&lt;/a&gt;
   &lt;/li&gt;
   &lt;li&gt;
     &lt;a href="/categories#blog-ref"&gt;blog &lt;span&gt;1&lt;/span&gt;&lt;/a&gt;
   &lt;/li&gt;
 &lt;/ul&gt;
 
-  &lt;h3&gt;XLE (20)&lt;/h3&gt;
+  &lt;h3&gt;XLE (21)&lt;/h3&gt;
   &lt;ul&gt;
       &lt;li&gt;&lt;a href="/posts/arealightsandpbr"&gt;Area Lights with Physically Based Rendering&lt;/a&gt;&lt;/li&gt;
       &lt;li&gt;&lt;a href="/posts/assetpathscripts"&gt;Processing textures with the XLE scriptable asset path&lt;/a&gt;&lt;/li&gt;
@@ -94,6 +95,7 @@
       &lt;li&gt;&lt;a href="/posts/vulkan"&gt;Starting to experiment with Vulkan&lt;/a&gt;&lt;/li&gt;
       &lt;li&gt;&lt;a href="/posts/vulkanprototypeslowprogress"&gt;Vulkan prototype slowly progressing&lt;/a&gt;&lt;/li&gt;
       &lt;li&gt;&lt;a href="/posts/vulkanshaderprototype"&gt;HLSL shader prototype with Vulkan&lt;/a&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;a href="/posts/vulkantips"&gt;Important Vulkan tips&lt;/a&gt;&lt;/li&gt;
       &lt;li&gt;&lt;a href="/posts/whattodofirst"&gt;What to do first&lt;/a&gt;&lt;/li&gt;
       &lt;li&gt;&lt;a href="/posts/workingonrectlights"&gt;Working some improvements to rectangle lights&lt;/a&gt;&lt;/li&gt;
   &lt;/ul&gt;
@@ -116,6 +118,7 @@
   &lt;h2&gt;2016&lt;/h2&gt;
     &lt;h3&gt;April&lt;/h3&gt;
     &lt;ul&gt;
+      &lt;li&gt;&lt;span&gt;April 12, 2016&lt;/span&gt; &amp;raquo; &lt;a href="/posts/vulkantips"&gt;Important Vulkan tips&lt;/a&gt;&lt;/li&gt;
       &lt;li&gt;&lt;span&gt;April 08, 2016&lt;/span&gt; &amp;raquo; &lt;a href="/posts/vulkanprototypeslowprogress"&gt;Vulkan prototype slowly progressing&lt;/a&gt;&lt;/li&gt;
       &lt;li&gt;&lt;span&gt;April 05, 2016&lt;/span&gt; &amp;raquo; &lt;a href="/posts/vulkanshaderprototype"&gt;HLSL shader prototype with Vulkan&lt;/a&gt;&lt;/li&gt;
       &lt;li&gt;&lt;span&gt;April 04, 2016&lt;/span&gt; &amp;raquo; &lt;a href="/posts/vulkan"&gt;Starting to experiment with Vulkan&lt;/a&gt;&lt;/li&gt;
@@ -153,9 +156,42 @@
     &lt;/ul&gt;
 
 &lt;p&gt;&lt;img src="/assets/media/NyraAndDragon1.png"&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src="/assets/media/EnvShots/shot50.jpg"&gt;&lt;/p&gt;
+&lt;p&gt;&lt;a href="posts/envshots"&gt;More screenshots&lt;/a&gt;&lt;/p&gt;
 
 &lt;hr /&gt;
 
+&lt;div class="post"&gt;
+  &lt;h3 class="title"&gt;&lt;a href="/posts/vulkantips"&gt;Important Vulkan tips&lt;/a&gt;&lt;br /&gt; &lt;span class="date"&gt;April 12, 2016&lt;/span&gt;&lt;/h3&gt;
+
+  &lt;div class="summary ellipsis"&gt;
+&lt;p&gt;After 1 week of playing around with Vulkan, here are 4 tips I've learned. These are maybe not very obvious (some aren't clearly documented), but I think they're important to know.&lt;/p&gt;
+
+&lt;h2 id="toc_0"&gt;1. Use buffers as staging areas to initialize images&lt;/h2&gt;
+
+&lt;p&gt;The crux of this is we need to use a function, &lt;em&gt;vkCmdCopyBufferToImage&lt;/em&gt;, to implement staging images with Vulkan. It's almost impossible to do any graphics work with Vulkan without doing this -- but a first glance it might seem a bit counter-intuitive. First a bit of a background.&lt;/p&gt;
+
+&lt;p&gt;Vulkan images have a "tiling" property, which can be either "linear" or "optimal." This is property relates to how pixels are arranged in memory within a single mip level.&lt;/p&gt;
+
+&lt;p&gt;In linear tiling, texels are arranged in row by row, column by column. So a texel's linear address follows this pattern:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;address = (y*rowPitch) + x*bitsPerPixel/8
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;When we have images on disk, we usually expect them to have this tiling.&lt;/p&gt;
+
+&lt;p&gt;However, this has a big problem. Texels in the same row will be near each other in memory. But texels in the same column will be quite separate in memory.&lt;/p&gt;
+
+&lt;p&gt;Given that images can be mapped arbitrarily on the final 2D triangles, we can't control the order in which the GPU will access the texels. So this is big issue for the memory cache.&lt;/p&gt;
+
+&lt;p&gt;So all GPUs are able to rearrange the texels into a "swizzled" order that tries to guarantee that nearby texels in 2D (or 3D) image space will be nearby in linear memory. This is called "optimal" tiling in Vulkan.&lt;/p&gt;
+
+&lt;/div&gt;
+
+  &lt;div class="more"&gt;
+    &lt;a href="/posts/vulkantips" class="btn btn-small"&gt;read more..&lt;/a&gt;
+  &lt;/div&gt;
+&lt;/div&gt;
 &lt;div class="post"&gt;
   &lt;h3 class="title"&gt;&lt;a href="/posts/vulkanprototypeslowprogress"&gt;Vulkan prototype slowly progressing&lt;/a&gt;&lt;br /&gt; &lt;span class="date"&gt;April 08, 2016&lt;/span&gt;&lt;/h3&gt;
 
@@ -283,38 +319,6 @@ for Order-Independent Transparency." This is very cheap, and uses a fixed equati
     &lt;a href="/posts/compareoitrans" class="btn btn-small"&gt;read more..&lt;/a&gt;
   &lt;/div&gt;
 &lt;/div&gt;
-&lt;div class="post"&gt;
-  &lt;h3 class="title"&gt;&lt;a href="/posts/envshots"&gt;Environment Rendering Screenshots&lt;/a&gt;&lt;br /&gt; &lt;span class="date"&gt;March 30, 2016&lt;/span&gt;&lt;/h3&gt;
-
-  &lt;div class="summary ellipsis"&gt;
-&lt;p&gt;Here are a few screenshots of environment rendering in XLE. I don't have a lot of art I can take screenshots of, so I can't show a very polished scene... But you can see some of the rendering features.&lt;/p&gt;
-
-&lt;p&gt;Look for:&lt;/p&gt;
-
-&lt;ul&gt;
-&lt;li&gt;shallow water surface animation&lt;/li&gt;
-&lt;li&gt;order independent blending for foliage&lt;/li&gt;
-&lt;li&gt;volumetric fog (&amp;amp; related effects)&lt;/li&gt;
-&lt;li&gt;dynamic imposters for distant trees&lt;/li&gt;
-&lt;li&gt;high res terrain geometry&lt;/li&gt;
-&lt;li&gt;terrain decoration spawn&lt;/li&gt;
-&lt;li&gt;"contact hardening" shadows&lt;/li&gt;
-&lt;li&gt;infinite terrain shadows&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;&lt;br&gt;&lt;img src="/assets/media/EnvShots/shot47.jpg"&gt;
-&lt;br&gt;&lt;img src="/assets/media/EnvShots/shot50.jpg"&gt;
-&lt;br&gt;&lt;img src="/assets/media/EnvShots/shot52.jpg"&gt;
-&lt;br&gt;&lt;img src="/assets/media/EnvShots/shot55.jpg"&gt;
-&lt;br&gt;&lt;img src="/assets/media/EnvShots/shot57.jpg"&gt;
-&lt;br&gt;&lt;img src="/assets/media/EnvShots/shot58.jpg"&gt;
-&lt;br&gt;&lt;img src="/assets/media/EnvShots/shot65.jpg"&gt;&lt;/p&gt;
-&lt;/div&gt;
-
-  &lt;div class="more"&gt;
-    &lt;a href="/posts/envshots" class="btn btn-small"&gt;read more..&lt;/a&gt;
-  &lt;/div&gt;
-&lt;/div&gt;
 
 &lt;div class="pagination"&gt;
   &lt;ul&gt;
@@ -422,7 +426,7 @@ for Order-Independent Transparency." This is very cheap, and uses a fixed equati
     &lt;a href="/tags#Releases-ref"&gt;Releases &lt;span&gt;1&lt;/span&gt;&lt;/a&gt;
   &lt;/li&gt;
   &lt;li&gt;
-    &lt;a href="/tags#Vulkan-ref"&gt;Vulkan &lt;span&gt;3&lt;/span&gt;&lt;/a&gt;
+    &lt;a href="/tags#Vulkan-ref"&gt;Vulkan &lt;span&gt;4&lt;/span&gt;&lt;/a&gt;
   &lt;/li&gt;
   &lt;li&gt;
     &lt;a href="/tags#rendering-ref"&gt;rendering &lt;span&gt;1&lt;/span&gt;&lt;/a&gt;
@@ -431,7 +435,7 @@ for Order-Independent Transparency." This is very cheap, and uses a fixed equati
     &lt;a href="/tags#API-ref"&gt;API &lt;span&gt;1&lt;/span&gt;&lt;/a&gt;
   &lt;/li&gt;
   &lt;li&gt;
-    &lt;a href="/tags#cross platform-ref"&gt;cross platform &lt;span&gt;3&lt;/span&gt;&lt;/a&gt;
+    &lt;a href="/tags#cross platform-ref"&gt;cross platform &lt;span&gt;4&lt;/span&gt;&lt;/a&gt;
   &lt;/li&gt;
   &lt;li&gt;
     &lt;a href="/tags#SPIR-V-ref"&gt;SPIR-V &lt;span&gt;2&lt;/span&gt;&lt;/a&gt;
@@ -510,6 +514,7 @@ for Order-Independent Transparency." This is very cheap, and uses a fixed equati
     &lt;li&gt;&lt;a href="/posts/vulkan"&gt;Starting to experiment with Vulkan&lt;/a&gt;&lt;/li&gt;
     &lt;li&gt;&lt;a href="/posts/vulkanprototypeslowprogress"&gt;Vulkan prototype slowly progressing&lt;/a&gt;&lt;/li&gt;
     &lt;li&gt;&lt;a href="/posts/vulkanshaderprototype"&gt;HLSL shader prototype with Vulkan&lt;/a&gt;&lt;/li&gt;
+    &lt;li&gt;&lt;a href="/posts/vulkantips"&gt;Important Vulkan tips&lt;/a&gt;&lt;/li&gt;
   &lt;h3 id="rendering-ref"&gt;rendering&lt;/h3&gt;
     &lt;li&gt;&lt;a href="/posts/vulkan"&gt;Starting to experiment with Vulkan&lt;/a&gt;&lt;/li&gt;
   &lt;h3 id="API-ref"&gt;API&lt;/h3&gt;
@@ -518,6 +523,7 @@ for Order-Independent Transparency." This is very cheap, and uses a fixed equati
     &lt;li&gt;&lt;a href="/posts/vulkan"&gt;Starting to experiment with Vulkan&lt;/a&gt;&lt;/li&gt;
     &lt;li&gt;&lt;a href="/posts/vulkanprototypeslowprogress"&gt;Vulkan prototype slowly progressing&lt;/a&gt;&lt;/li&gt;
     &lt;li&gt;&lt;a href="/posts/vulkanshaderprototype"&gt;HLSL shader prototype with Vulkan&lt;/a&gt;&lt;/li&gt;
+    &lt;li&gt;&lt;a href="/posts/vulkantips"&gt;Important Vulkan tips&lt;/a&gt;&lt;/li&gt;
   &lt;h3 id="SPIR-V-ref"&gt;SPIR-V&lt;/h3&gt;
     &lt;li&gt;&lt;a href="/posts/vulkanprototypeslowprogress"&gt;Vulkan prototype slowly progressing&lt;/a&gt;&lt;/li&gt;
     &lt;li&gt;&lt;a href="/posts/vulkanshaderprototype"&gt;HLSL shader prototype with Vulkan&lt;/a&gt;&lt;/li&gt;

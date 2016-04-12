@@ -1,0 +1,219 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Important Vulkan tips</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="author" content="XL Games">
+
+    <!-- Le HTML5 shim, for IE6-8 support of HTML elements -->
+    <!--[if lt IE 9]>
+      <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+
+    <!-- Le styles -->
+<link href='/assets/stylesheets/bootstrap.min-93b47f97c3444c4711853ed5140d82a1.css' type='text/css' rel='stylesheet' media='all'>
+<link href='/assets/stylesheets/style-1dcb1d39791f3457afa56d279fcf0945.css' type='text/css' rel='stylesheet' media='all'>
+<link href='/assets/stylesheets/google_prettify/sons-of-obsidian-5e05343fd0c18e0a05231023b643245c.css' type='text/css' rel='stylesheet' media='all'>
+    <!-- Le fav and touch icons -->
+  <!-- Update these with your own images
+    <link rel="shortcut icon" href="images/favicon.ico">
+    <link rel="apple-touch-icon" href="images/apple-touch-icon.png">
+    <link rel="apple-touch-icon" sizes="72x72" href="images/apple-touch-icon-72x72.png">
+    <link rel="apple-touch-icon" sizes="114x114" href="images/apple-touch-icon-114x114.png">
+  -->
+  </head>
+
+  <body>
+
+    <div class="navbar">
+      <div class="navbar-inner">
+        <div class="container-narrow">
+          <a class="brand" href="/">XLE development blog</a>
+          <ul class="nav">
+              
+                <li><a href="/tags">Tags</a></li>
+              
+              
+                <li><a href="/archive">Archive</a></li>
+              
+              
+                <li><a href="/about">About</a></li>
+              
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="container-narrow">
+
+      <div class="content">
+        
+<div class="page-header">
+  <h1>Important Vulkan tips </h1>
+</div>
+
+<div class="row-fluid post-full">
+  <div class="span12">
+    <div class="date">
+      <span>April 12, 2016</strong>
+    </div>
+    <div class="content">
+      <p>After 1 week of playing around with Vulkan, here are 4 tips I&#39;ve learned. These are maybe not very obvious (some aren&#39;t clearly documented), but I think they&#39;re important to know.</p>
+
+<h2 id="toc_0">1. Use buffers as staging areas to initialize images</h2>
+
+<p>The crux of this is we need to use a function, <em>vkCmdCopyBufferToImage</em>, to implement staging images with Vulkan. It&#39;s almost impossible to do any graphics work with Vulkan without doing this -- but a first glance it might seem a bit counter-intuitive. First a bit of a background.</p>
+
+<p>Vulkan images have a &quot;tiling&quot; property, which can be either &quot;linear&quot; or &quot;optimal.&quot; This is property relates to how pixels are arranged in memory within a single mip level.</p>
+
+<p>In linear tiling, texels are arranged in row by row, column by column. So a texel&#39;s linear address follows this pattern:</p>
+
+<pre><code>address = (y*rowPitch) + x*bitsPerPixel/8
+</code></pre>
+
+<p>When we have images on disk, we usually expect them to have this tiling.</p>
+
+<p>However, this has a big problem. Texels in the same row will be near each other in memory. But texels in the same column will be quite separate in memory.</p>
+
+<p>Given that images can be mapped arbitrarily on the final 2D triangles, we can&#39;t control the order in which the GPU will access the texels. So this is big issue for the memory cache.</p>
+
+<p>So all GPUs are able to rearrange the texels into a &quot;swizzled&quot; order that tries to guarantee that nearby texels in 2D (or 3D) image space will be nearby in linear memory. This is called &quot;optimal&quot; tiling in Vulkan.</p>
+
+<p>Optimal tiling really is going to be much faster in almost all cases. Some GPUs have limited support for reading linear iamges in shaders -- but this will rarely be a good idea. The existential advantage of linear tiling is that it is easy to program the CPU code that reads and writes image memory. Also, optimal tiling isn&#39;t defined as any particular pattern -- it&#39;s vendor specific. I have a feeling that it might actually the same pattern for all hardware (that is, hierarchically packing into 2x2 or 2x2x2 blocks), but I don&#39;t know that for sure.</p>
+
+<p>Because optimal tiling isn&#39;t defined, we can&#39;t pass the initial image data in that tiling. We must initialize the image data in linear tiling.</p>
+
+<p>This is why staging images are required. We initialize a linear staging image in &quot;host visible&quot; memory first. Then we issue a command, and the GPU will copy from the staging image into the final image, swizzling into optimal layout as it goes. It&#39;s been like this for many, many years -- but to PC programmers, it may seem new because DirectX hides this behaviour.</p>
+
+<p>So, I said &quot;staging image&quot; above. But what I really meant to say was &quot;staging buffer.&quot; Here&#39;s the problem -- even though there are &quot;linear&quot; tiling images that can be positioned in &quot;host visible&quot; memory, these can only have a single mip level and a single array layer. So how do we initialize textures with multiple mip levels and multiple array layers?</p>
+
+<p>It seems that we&#39;re intended to use a VkBuffer for this. That&#39;s the trick -- and every Vulkan programmer needs to know it :).</p>
+
+<p>It may seem strange to do this, but it does make sense... In Vulkan, a <em>VkImage</em> contains functionality for driving the &quot;sample&quot; shader operations. All these concepts of tiling, mip levels, pixel formats, etc, are all related to shader sampling. But a staging texture will never be sampled by a shader. So, in effect, the <em>VkImage</em> concepts are redundant. We just want an area of video memory with no special restrictions (and <em>VkBuffer</em> fits that requirement better).</p>
+
+<p>It does mean we have to implement our own functions for arranging mip levels and array layers within the buffer space. In one sense, this means writing a custom implementation of <em>vkGetImageSubresourceLayout</em>.</p>
+
+<p>So, first we create the staging buffer, and initialize the device memory. Then we can issue the copy command with <em>vkCmdCopyBufferToImage</em>. This allows us to copy into the image subresources from arbitrary memory within the buffer. I find the interface for this function a little awkward (and there are some limitations) but it&#39;s not to bad.</p>
+
+<p>There&#39;s a thread on nvidia&#39;s site that seems to verify that this was intended: <a href="https://devtalk.nvidia.com/default/topic/926085/texture-memory-management/">https://devtalk.nvidia.com/default/topic/926085/texture-memory-management/</a>.</p>
+
+<p>Anyway, it&#39;s an important trick. Because (as far as I can tell) this is the only way to create textures with multiple mip levels or multiple array layers in Vulkan!</p>
+
+<h2 id="toc_1">2. Write custom reflection for SPIR-V bytecode</h2>
+
+<p>The SPIR-V bytecode is a very simple format, and it&#39;s also an open standard. The bytecode also contains many of the variable and type names from the original source code (which are called decorations). These aren&#39;t used during execution -- but they are useful for debugging and reflection.</p>
+
+<p>I&#39;ve implemented a little bit of code to read SPIR-V bytecode and extract layout bindings and other useful information. This is similar to the ID3DShaderReflection interface in DirectX. But since it&#39;s custom coded, it&#39;s crazy efficient.</p>
+
+<p>I recommend checking out the following files in the Vulkan SDK for a starting point for working with SPIR-V byte code:</p>
+
+<ol>
+<li>glslang/SPIRV/disassemble.cpp</li>
+<li>glslang/SPIRV/doc.cpp</li>
+</ol>
+
+<h2 id="toc_2">3. Set the VK_LAYER_PATH variable!</h2>
+
+<p>The Vulkan SDK has a bunch of debugging &quot;layers&quot; built in. These are really useful!</p>
+
+<p>But to get them working, you need to set the VK_LAYER_PATH variable to your sdk &quot;bin&quot; directory (eg C:/VulkanSDK/1.0.5.0/Bin), and maybe do a bunch of other things. This may not be documented anywhere...?!</p>
+
+<p>When things go wrong with Vulkan, usually you&#39;ll just get a program crash (that is, if the video card driver doesn&#39;t crash and bluescreen). You won&#39;t get much debugging information normally. To get error and warning messages, you&#39;ll need the layers installed.</p>
+
+<p>If you read the Vulkan specs document, you&#39;ll notice that all functions have a set of rules about input parameters -- written in contract style. These are the kinds of things the layers check for. But they also check for threading access and other frequent usage problems.</p>
+
+<p>It&#39;s really helpful, believe me! Get it working early on. Play with the &quot;enable<em>validation</em>with_callback&quot; sample until it&#39;s working.</p>
+
+<h2 id="toc_3">4. Download the source code for RenderDoc</h2>
+
+<p>Compile a debug build of RenderDoc for yourself, and run it in the debugger. You&#39;ll get asserts and debugging information in those cases where your code is so screwy that even RenderDoc can&#39;t handle it.</p>
+
+<p>Just go to renderdoc.org -- it&#39;ll redirect to github!</p>
+
+    </div>
+    <ul class="tag_box inline">
+      <li><i class="icon-folder-open"></i></li>
+      <li>
+        <a href="/categories#XLE-ref">XLE <span>21</span></a>
+      </li>
+    </ul>
+    <ul class="tag_box inline">
+      <li><i class="icon-tags"></i></li>
+      <li>
+        <a href="/tags#Vulkan-ref">Vulkan <span>4</span></a>
+      </li>
+      <li>
+        <a href="/tags#cross platform-ref">cross platform <span>4</span></a>
+      </li>
+    </ul>
+    <hr>
+    <div class="pagination">
+      <ul>
+          <li class="prev"><a href="/posts/vulkanprototypeslowprogress" title="Vulkan prototype slowly progressing">&larr; Previous</a></li>
+
+          <li><a href="/archive">Archive</a></li>
+
+          <li class="next disabled"><a>Next &rarr;</a>
+      </ul>
+    </div>
+    <hr>
+    <div id="disqus_thread"></div>
+<script>
+    var disqus_developer = 1;
+    var disqus_shortname = 'xledev'; // required: replace example with your forum shortname
+    /* * * DON'T EDIT BELOW THIS LINE * * */
+    (function() {
+        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+        dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<a href="http://disqus.com" class="dsq-brlink">blog comments powered by <span class="logo-disqus">Disqus</span></a>
+
+  </div>
+</div>
+
+
+      </div>
+
+      <hr>
+      <div class="footer">
+        <p>&copy; XL Games 2015
+          with help from <a href="http://ruhoh.com" target="_blank" title="The Definitive Technical Blogging Framework">ruhoh</a>
+          and <a href="http://twitter.github.com/bootstrap/" target="_blank">Twitter Bootstrap</a>
+        </p>
+      </div>
+
+    </div> <!-- /container -->
+
+    <!-- Google Prettify -->
+<script src="http://cdnjs.cloudflare.com/ajax/libs/prettify/188.0.0/prettify.js"></script>
+<script>
+  var pres = document.getElementsByTagName("pre");
+  for (var i=0; i < pres.length; ++i) {
+    pres[i].className = "prettyprint linenums";
+  }
+  prettyPrint();
+</script>
+<!-- end Google Prettify -->
+    <script type="text/javascript">
+
+  var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', 'UA-71034032-1']);
+  _gaq.push(['_trackPageview']);
+  
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+
+</script>
+
+
+    
+  </body>
+</html>

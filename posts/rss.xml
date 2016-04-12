@@ -4,7 +4,84 @@
     <title>XLE development blog</title>
     <description>XLE development blog</description>
     <link>http://xlgames-inc.github.io</link>
-    <pubDate>April 08, 2016</pubDate>
+    <pubDate>April 12, 2016</pubDate>
+    <item>
+      <title>Important Vulkan tips</title>
+      <link>http://xlgames-inc.github.io/posts/vulkantips</link>
+      <pubDate>April 12, 2016</pubDate>
+      <description>&lt;p&gt;After 1 week of playing around with Vulkan, here are 4 tips I&amp;#39;ve learned. These are maybe not very obvious (some aren&amp;#39;t clearly documented), but I think they&amp;#39;re important to know.&lt;/p&gt;
+
+&lt;h2 id="toc_0"&gt;1. Use buffers as staging areas to initialize images&lt;/h2&gt;
+
+&lt;p&gt;The crux of this is we need to use a function, &lt;em&gt;vkCmdCopyBufferToImage&lt;/em&gt;, to implement staging images with Vulkan. It&amp;#39;s almost impossible to do any graphics work with Vulkan without doing this -- but a first glance it might seem a bit counter-intuitive. First a bit of a background.&lt;/p&gt;
+
+&lt;p&gt;Vulkan images have a &amp;quot;tiling&amp;quot; property, which can be either &amp;quot;linear&amp;quot; or &amp;quot;optimal.&amp;quot; This is property relates to how pixels are arranged in memory within a single mip level.&lt;/p&gt;
+
+&lt;p&gt;In linear tiling, texels are arranged in row by row, column by column. So a texel&amp;#39;s linear address follows this pattern:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;address = (y*rowPitch) + x*bitsPerPixel/8
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;When we have images on disk, we usually expect them to have this tiling.&lt;/p&gt;
+
+&lt;p&gt;However, this has a big problem. Texels in the same row will be near each other in memory. But texels in the same column will be quite separate in memory.&lt;/p&gt;
+
+&lt;p&gt;Given that images can be mapped arbitrarily on the final 2D triangles, we can&amp;#39;t control the order in which the GPU will access the texels. So this is big issue for the memory cache.&lt;/p&gt;
+
+&lt;p&gt;So all GPUs are able to rearrange the texels into a &amp;quot;swizzled&amp;quot; order that tries to guarantee that nearby texels in 2D (or 3D) image space will be nearby in linear memory. This is called &amp;quot;optimal&amp;quot; tiling in Vulkan.&lt;/p&gt;
+
+&lt;p&gt;Optimal tiling really is going to be much faster in almost all cases. Some GPUs have limited support for reading linear iamges in shaders -- but this will rarely be a good idea. The existential advantage of linear tiling is that it is easy to program the CPU code that reads and writes image memory. Also, optimal tiling isn&amp;#39;t defined as any particular pattern -- it&amp;#39;s vendor specific. I have a feeling that it might actually the same pattern for all hardware (that is, hierarchically packing into 2x2 or 2x2x2 blocks), but I don&amp;#39;t know that for sure.&lt;/p&gt;
+
+&lt;p&gt;Because optimal tiling isn&amp;#39;t defined, we can&amp;#39;t pass the initial image data in that tiling. We must initialize the image data in linear tiling.&lt;/p&gt;
+
+&lt;p&gt;This is why staging images are required. We initialize a linear staging image in &amp;quot;host visible&amp;quot; memory first. Then we issue a command, and the GPU will copy from the staging image into the final image, swizzling into optimal layout as it goes. It&amp;#39;s been like this for many, many years -- but to PC programmers, it may seem new because DirectX hides this behaviour.&lt;/p&gt;
+
+&lt;p&gt;So, I said &amp;quot;staging image&amp;quot; above. But what I really meant to say was &amp;quot;staging buffer.&amp;quot; Here&amp;#39;s the problem -- even though there are &amp;quot;linear&amp;quot; tiling images that can be positioned in &amp;quot;host visible&amp;quot; memory, these can only have a single mip level and a single array layer. So how do we initialize textures with multiple mip levels and multiple array layers?&lt;/p&gt;
+
+&lt;p&gt;It seems that we&amp;#39;re intended to use a VkBuffer for this. That&amp;#39;s the trick -- and every Vulkan programmer needs to know it :).&lt;/p&gt;
+
+&lt;p&gt;It may seem strange to do this, but it does make sense... In Vulkan, a &lt;em&gt;VkImage&lt;/em&gt; contains functionality for driving the &amp;quot;sample&amp;quot; shader operations. All these concepts of tiling, mip levels, pixel formats, etc, are all related to shader sampling. But a staging texture will never be sampled by a shader. So, in effect, the &lt;em&gt;VkImage&lt;/em&gt; concepts are redundant. We just want an area of video memory with no special restrictions (and &lt;em&gt;VkBuffer&lt;/em&gt; fits that requirement better).&lt;/p&gt;
+
+&lt;p&gt;It does mean we have to implement our own functions for arranging mip levels and array layers within the buffer space. In one sense, this means writing a custom implementation of &lt;em&gt;vkGetImageSubresourceLayout&lt;/em&gt;.&lt;/p&gt;
+
+&lt;p&gt;So, first we create the staging buffer, and initialize the device memory. Then we can issue the copy command with &lt;em&gt;vkCmdCopyBufferToImage&lt;/em&gt;. This allows us to copy into the image subresources from arbitrary memory within the buffer. I find the interface for this function a little awkward (and there are some limitations) but it&amp;#39;s not to bad.&lt;/p&gt;
+
+&lt;p&gt;There&amp;#39;s a thread on nvidia&amp;#39;s site that seems to verify that this was intended: &lt;a href="https://devtalk.nvidia.com/default/topic/926085/texture-memory-management/"&gt;https://devtalk.nvidia.com/default/topic/926085/texture-memory-management/&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;Anyway, it&amp;#39;s an important trick. Because (as far as I can tell) this is the only way to create textures with multiple mip levels or multiple array layers in Vulkan!&lt;/p&gt;
+
+&lt;h2 id="toc_1"&gt;2. Write custom reflection for SPIR-V bytecode&lt;/h2&gt;
+
+&lt;p&gt;The SPIR-V bytecode is a very simple format, and it&amp;#39;s also an open standard. The bytecode also contains many of the variable and type names from the original source code (which are called decorations). These aren&amp;#39;t used during execution -- but they are useful for debugging and reflection.&lt;/p&gt;
+
+&lt;p&gt;I&amp;#39;ve implemented a little bit of code to read SPIR-V bytecode and extract layout bindings and other useful information. This is similar to the ID3DShaderReflection interface in DirectX. But since it&amp;#39;s custom coded, it&amp;#39;s crazy efficient.&lt;/p&gt;
+
+&lt;p&gt;I recommend checking out the following files in the Vulkan SDK for a starting point for working with SPIR-V byte code:&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;glslang/SPIRV/disassemble.cpp&lt;/li&gt;
+&lt;li&gt;glslang/SPIRV/doc.cpp&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;h2 id="toc_2"&gt;3. Set the VK_LAYER_PATH variable!&lt;/h2&gt;
+
+&lt;p&gt;The Vulkan SDK has a bunch of debugging &amp;quot;layers&amp;quot; built in. These are really useful!&lt;/p&gt;
+
+&lt;p&gt;But to get them working, you need to set the VK_LAYER_PATH variable to your sdk &amp;quot;bin&amp;quot; directory (eg C:/VulkanSDK/1.0.5.0/Bin), and maybe do a bunch of other things. This may not be documented anywhere...?!&lt;/p&gt;
+
+&lt;p&gt;When things go wrong with Vulkan, usually you&amp;#39;ll just get a program crash (that is, if the video card driver doesn&amp;#39;t crash and bluescreen). You won&amp;#39;t get much debugging information normally. To get error and warning messages, you&amp;#39;ll need the layers installed.&lt;/p&gt;
+
+&lt;p&gt;If you read the Vulkan specs document, you&amp;#39;ll notice that all functions have a set of rules about input parameters -- written in contract style. These are the kinds of things the layers check for. But they also check for threading access and other frequent usage problems.&lt;/p&gt;
+
+&lt;p&gt;It&amp;#39;s really helpful, believe me! Get it working early on. Play with the &amp;quot;enable&lt;em&gt;validation&lt;/em&gt;with_callback&amp;quot; sample until it&amp;#39;s working.&lt;/p&gt;
+
+&lt;h2 id="toc_3"&gt;4. Download the source code for RenderDoc&lt;/h2&gt;
+
+&lt;p&gt;Compile a debug build of RenderDoc for yourself, and run it in the debugger. You&amp;#39;ll get asserts and debugging information in those cases where your code is so screwy that even RenderDoc can&amp;#39;t handle it.&lt;/p&gt;
+
+&lt;p&gt;Just go to renderdoc.org -- it&amp;#39;ll redirect to github!&lt;/p&gt;
+</description>
+    </item>
     <item>
       <title>Vulkan prototype slowly progressing</title>
       <link>http://xlgames-inc.github.io/posts/vulkanprototypeslowprogress</link>
@@ -41,9 +118,9 @@
 
 &lt;p&gt;It took me awhile to figure out how to enable the Vulkan validation layer. This is really important for finding usage errors! But it&amp;#39;s not really documented and it&amp;#39;s a very unclear how to get it working.&lt;/p&gt;
 
-&lt;p&gt;Eventually, I found out I needed to set the VK&lt;em&gt;LAYER&lt;/em&gt;PATH environment variable. It seems like this should be set by the SDK installer, but maybe it was an oversight.&lt;/p&gt;
+&lt;p&gt;Eventually, I found out I needed to set the VK_LAYER_PATH environment variable. It seems like this should be set by the SDK installer, but maybe it was an oversight.&lt;/p&gt;
 
-&lt;p&gt;Anyway, I also needed to use the VK&lt;em&gt;EXT&lt;/em&gt;DEBUG&lt;em&gt;REPORT&lt;/em&gt;EXTENSION_NAME extension to install a message handler. It looks like there are other ways to use the validation layers. But I still don&amp;#39;t know how to get them working. For now, I&amp;#39;m just catching errors and warnings and pushing them into the XLE logging system.&lt;/p&gt;
+&lt;p&gt;Anyway, I also needed to use the VK_EXT_DEBUG_REPORT_EXTENSION_NAME extension to install a message handler. It looks like there are other ways to use the validation layers. But I still don&amp;#39;t know how to get them working. For now, I&amp;#39;m just catching errors and warnings and pushing them into the XLE logging system.&lt;/p&gt;
 
 &lt;h2 id="toc_4"&gt;Binding samplers and images together&lt;/h2&gt;
 
@@ -254,6 +331,8 @@ for Order-Independent Transparency.&amp;quot; This is very cheap, and uses a fix
 &lt;li&gt;&amp;quot;contact hardening&amp;quot; shadows&lt;/li&gt;
 &lt;li&gt;infinite terrain shadows&lt;/li&gt;
 &lt;/ul&gt;
+
+&lt;p&gt;(see &lt;a href="../first/index.html"&gt;older screenshots here&lt;/a&gt;)&lt;/p&gt;
 
 &lt;p&gt;&lt;br/&gt;&lt;img src="/assets/media/EnvShots/shot47.jpg"&gt;
 &lt;br/&gt;&lt;img src="/assets/media/EnvShots/shot50.jpg"&gt;
@@ -1443,91 +1522,6 @@ Here you can see all of the properties for the item. You can customize the light
 &lt;h2 id="toc_6"&gt;What about the next 10 minutes?&lt;/h2&gt;
 
 &lt;p&gt;Well, that&amp;#39;s the end of the quick introduction. The rest is up to you. Have fun!&lt;/p&gt;
-</description>
-    </item>
-    <item>
-      <title>Area Lights with Physically Based Rendering</title>
-      <link>http://xlgames-inc.github.io/posts/arealightsandpbr</link>
-      <pubDate>December 02, 2015</pubDate>
-      <description>&lt;p&gt;XLE now support a few area light types: &lt;em&gt;sphere&lt;/em&gt;, &lt;em&gt;tube&lt;/em&gt; &amp;amp; &lt;em&gt;rectangle&lt;/em&gt; (with &lt;em&gt;disc&lt;/em&gt; and maybe some other shapes coming soon). Maybe in a future post I&amp;#39;ll go into some details about the implementation (actually, it&amp;#39;s quite interesting!). But this post is about something different: this post is about why they are important.&lt;/p&gt;
-
-&lt;p&gt;I&amp;#39;m finding that it makes a huge difference. So much so that not only do we want to support area lights -- we also want to outlaw non-area lights. Point light sources are now the enemy!&lt;/p&gt;
-
-&lt;h2 id="toc_0"&gt;PBR Concept&lt;/h2&gt;
-
-&lt;p&gt;The biggest buzzword at the moment is Physically Based Renderering (or PBR, or sometimes Physically Based Shading). But what does that mean, really?
-Partially it means sampling values from the real world. But really it&amp;#39;s just a container under which we&amp;#39;re placing many related concepts.&lt;/p&gt;
-
-&lt;p&gt;One of these &amp;quot;sub-concepts&amp;quot; of PBR is the idea that a single material should work in many different lighting environments.&lt;/p&gt;
-
-&lt;p&gt;In the past, artists often tweaked the material settings for objects to suit the lighting environment they are in. This is a problem because it means that if the object moves into another lighting environment, the material settings must be tweaked to match.&lt;/p&gt;
-
-&lt;p&gt;This happen in both movies and games. In games, it&amp;#39;s particularly a problem for games with a day/night cycle. In games where time is changing, the lighting environment is also always changing. Previously this means that extreme lighting settings (sunsets, etc) had to be more subtle than real-life. What we want is materials that look correct in all possible lighting environments.&lt;/p&gt;
-
-&lt;h2 id="toc_1"&gt;Specular highlight size&lt;/h2&gt;
-
-&lt;p&gt;There&amp;#39;s a simple way to think about this. Let&amp;#39;s consider the size of a specular highlight.&lt;/p&gt;
-
-&lt;p&gt;Here are 5 spheres rendered in Blender with Cook Torrence lighting.
-&lt;img src="/assets/media/SpecularExample.png"&gt;&lt;/p&gt;
-
-&lt;p&gt;Each sphere is reflecting the same light, but the material settings are changed to change the size of highlight in each sphere.&lt;/p&gt;
-
-&lt;p&gt;In older games, this was the only way to change the size of the highlight. If a highlight appeared too small or too big, an artist would change the material settings.&lt;/p&gt;
-
-&lt;p&gt;However there should be something else that should effect the size of the highlight: obviously, it&amp;#39;s the shape of the light! We need area lights to achieve that.&lt;/p&gt;
-
-&lt;h2 id="toc_2"&gt;New model for specular highlights&lt;/h2&gt;
-
-&lt;p&gt;So, we have two important concepts to control the size of the specular highlights:
-- &lt;strong&gt;material roughness&lt;/strong&gt;
-- &lt;strong&gt;light size&lt;/strong&gt;&lt;/p&gt;
-
-&lt;p&gt;Notice that these ideas are simpler and clearer than concepts in older engines. Previously we might talk about &lt;em&gt;&amp;quot;gloss&amp;quot;&lt;/em&gt; or &lt;em&gt;&amp;quot;specular power&amp;quot;&lt;/em&gt; or &lt;em&gt;&amp;quot;specular hardness.&amp;quot;&lt;/em&gt; But what do those really mean?&lt;/p&gt;
-
-&lt;p&gt;Roughness is much clearer. It&amp;#39;s just a single value between 0 and 1. And it&amp;#39;s linear -- not exponential! It&amp;#39;s probably the most important variable of our material model (other than Color, I guess).&lt;/p&gt;
-
-&lt;h3 id="toc_3"&gt;Roughness&lt;/h3&gt;
-
-&lt;p&gt;Roughness controls the size of the highlight by spreading the light energy over a large area.&lt;/p&gt;
-
-&lt;p&gt;Notice the image above. In one extreme the highlight is a dense, concentrated point of light. In the other extreme, the specular light energy is spread out over a very large area, so that it appear almost like diffuse lighting.&lt;/p&gt;
-
-&lt;p&gt;This is critical for us because in XLE, all materials are reflective. But when the roughness is very high, the reflections get spread out over a very large area, so that they appear almost diffuse.&lt;/p&gt;
-
-&lt;p&gt;Also, both specular highlights and IBL reflections get spread out in the same way. Sometimes it&amp;#39;s even difficult to tell what is a specular highlight, and what is a reflection.&lt;/p&gt;
-
-&lt;h3 id="toc_4"&gt;Light size&lt;/h3&gt;
-
-&lt;p&gt;With rectangle and sphere lights, the size of the highlight will change significantly with the size of the light (and also the distance to the light). But it changes in a very different way to roughness. Large lights give an appearance that just wasn&amp;#39;t possible previously.&lt;/p&gt;
-
-&lt;p&gt;If we want to make a very large specular highlight, we can do that by changing the size of the light. So there is no need to tweak the material any more!&lt;/p&gt;
-
-&lt;h2 id="toc_5"&gt;No more point lights&lt;/h2&gt;
-
-&lt;p&gt;Now, the only problem with this is point lights no longer look correct. If the material is balanced correctly for use with area lights, then highlights from point lights will look unnaturally too small. This is logical, because point light sources don&amp;#39;t exist in reality.&lt;/p&gt;
-
-&lt;p&gt;Fortunately, sphere lights are only slightly more expensive than point lights. And we can use the same BRDFs with sphere lights. So it&amp;#39;s an easy transition.&lt;/p&gt;
-
-&lt;p&gt;So the solution is to always use area lights, and never use point lights.&lt;/p&gt;
-
-&lt;h2 id="toc_6"&gt;Authoring material settings&lt;/h2&gt;
-
-&lt;p&gt;Even though we&amp;#39;ve created a separation between material settings and lighting environment settings, I&amp;#39;m still finding that we will probably need some kind of standard lighting environment for authoring the material settings.&lt;/p&gt;
-
-&lt;p&gt;That is, the values that artists will select for roughness may vary with the lighting environment they are testing with.&lt;/p&gt;
-
-&lt;p&gt;Probably an &lt;em&gt;Image Based Lighting&lt;/em&gt; environment would be best for this. This is a great reason why BRDF for IBL and dynamic lights should match as closely as possible. We should author the material settings in a 100% IBL environment, and then we should expect that dynamic lights should just work.&lt;/p&gt;
-
-&lt;h2 id="toc_7"&gt;Simpler... and better&lt;/h2&gt;
-
-&lt;p&gt;So, I found that area lights are critical to the PBR concept. So much so that an engine that doesn&amp;#39;t support area lights shouldn&amp;#39;t properly be called PBR.&lt;/p&gt;
-
-&lt;p&gt;And I think it meets two important concepts of PBR:
-- materials should look correct in all lighting environments
-- it should be simpler and better (at the same time)&lt;/p&gt;
-
-&lt;p&gt;3 cheers for area lights!&lt;/p&gt;
 </description>
     </item>
   </channel>

@@ -75,6 +75,9 @@
     <h3>April</h3>
     <ul>
       <li>
+<span>April 12, 2016</span> » <a href="/posts/vulkantips">Important Vulkan tips</a>
+</li>
+      <li>
 <span>April 08, 2016</span> » <a href="/posts/vulkanprototypeslowprogress">Vulkan prototype slowly progressing</a>
 </li>
       <li>
@@ -123,14 +126,14 @@
         <div class="summary ellipsis">
 <ul class="tag_box inline">
   <li>
-    <a href="/categories#XLE-ref">XLE <span>20</span></a>
+    <a href="/categories#XLE-ref">XLE <span>21</span></a>
   </li>
   <li>
     <a href="/categories#blog-ref">blog <span>1</span></a>
   </li>
 </ul>
 
-  <h3>XLE (20)</h3>
+  <h3>XLE (21)</h3>
   <ul>
       <li><a href="/posts/arealightsandpbr">Area Lights with Physically Based Rendering</a></li>
       <li><a href="/posts/assetpathscripts">Processing textures with the XLE scriptable asset path</a></li>
@@ -150,6 +153,7 @@
       <li><a href="/posts/vulkan">Starting to experiment with Vulkan</a></li>
       <li><a href="/posts/vulkanprototypeslowprogress">Vulkan prototype slowly progressing</a></li>
       <li><a href="/posts/vulkanshaderprototype">HLSL shader prototype with Vulkan</a></li>
+      <li><a href="/posts/vulkantips">Important Vulkan tips</a></li>
       <li><a href="/posts/whattodofirst">What to do first</a></li>
       <li><a href="/posts/workingonrectlights">Working some improvements to rectangle lights</a></li>
   </ul>
@@ -163,27 +167,27 @@
         <h3 class="title"><a href="/">Home</a><br/> <span class="date"></span></h3>
 
         <div class="summary ellipsis">
-<p>So, the Vulkan prototype is progress... But I'm running into many problems working with the drivers and the associated tools. Here's some examples of the problems I'm finding.</p>
+<p>After 1 week of playing around with Vulkan, here are 4 tips I've learned. These are maybe not very obvious (some aren't clearly documented), but I think they're important to know.</p>
 
-<h2 id="toc_0">RenderDoc crashing</h2>
+<h2 id="toc_0">1. Use buffers as staging areas to initialize images</h2>
 
-<p>RenderDoc is the best tool for debugging Vulkan at the moment... But every time I tried to capture a log, it just crashed! The crash report didn't contain any useful information. All I could do was guess at the problem.</p>
+<p>The crux of this is we need to use a function, <em>vkCmdCopyBufferToImage</em>, to implement staging images with Vulkan. It's almost impossible to do any graphics work with Vulkan without doing this -- but a first glance it might seem a bit counter-intuitive. First a bit of a background.</p>
 
-<p>Fortunately, RenderDoc has one really great feature... It's open-source! So, I just downloaded the code and ran from Visual Studio (it compiled first time).</p>
+<p>Vulkan images have a "tiling" property, which can be either "linear" or "optimal." This is property relates to how pixels are arranged in memory within a single mip level.</p>
 
-<p>RenderDoc is still very unstable for Vulkan. But now that I have my own compiled version, that's not really a big issue. I can just debug any crashes and make changes as required. All of the other GPU debugging tools I've ever used (PIX, console tools, GPA, nsight, etc) have been unstable, as well. But they were all closed source. So whenever I got an error, my only choices were to either use another debugging, or guess at the problem. With this in mind, (open-source + very unstable) is probably better than (closed-source + mostly stable).</p>
+<p>In linear tiling, texels are arranged in row by row, column by column. So a texel's linear address follows this pattern:</p>
 
-<p>My issue was related to "binding" decorations in SPIR-V. RenderDoc requires that all resources have binding decorations. I found this was also an issue for run-time XLE code. Even though the GLSL compiler is capable of generating SPIR-V code without binding decorations, it seems like all practical uses require them.</p>
+<pre><code>address = (y*rowPitch) + x*bitsPerPixel/8
+</code></pre>
 
-<p>My shaders weren't getting "bindings" for any resources, and this was the cause of RenderDoc's crashes!</p>
+<p>When we have images on disk, we usually expect them to have this tiling.</p>
 
-<h2 id="toc_1">HLSL cross compiler and "bindings"</h2>
+<p>However, this has a big problem. Texels in the same row will be near each other in memory. But texels in the same column will be quite separate in memory.</p>
 
-<p>Part of the issue is related to the HLSL cross compiler. In some cases, the cross compiler can attach "location" values, but it never attaches "binding" values for textures or constant buffers.</p>
+<p>Given that images can be mapped arbitrarily on the final 2D triangles, we can't control the order in which the GPU will access the texels. So this is big issue for the memory cache.</p>
 
-<p>Fortunately, the HLSL cross compiler is also open-source... So I can create a fork with the modifications I need. That seems to be required in this case. I could try to attach the binding information later in the pipeline (eg, by modifying the output GLSL, or by inserting instructions into the SPIR-V bytecode)... But changing and improving the cross compiler seems like the best option.</p>
+<p>So all GPUs are able to rearrange the texels into a "swizzled" order that tries to guarantee that nearby texels in 2D (or 3D) image space will be nearby in linear memory. This is called "optimal" tiling in Vulkan.</p>
 
-<p>We ideally also want to specify the "descriptor set" in the GLSL code. Unfortunately, HLSL 5 doesn't have an equivalent concept. That is going to require some more effort.</p>
 </div>
 
         <div class="more">
