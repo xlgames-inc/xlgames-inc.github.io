@@ -1,0 +1,309 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Vulkan prototype - the big issues</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="author" content="XL Games">
+
+    <!-- Le HTML5 shim, for IE6-8 support of HTML elements -->
+    <!--[if lt IE 9]>
+      <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+
+    <!-- Le styles -->
+<link href='/assets/stylesheets/bootstrap.min-93b47f97c3444c4711853ed5140d82a1.css' type='text/css' rel='stylesheet' media='all'>
+<link href='/assets/stylesheets/style-1dcb1d39791f3457afa56d279fcf0945.css' type='text/css' rel='stylesheet' media='all'>
+<link href='/assets/stylesheets/google_prettify/sons-of-obsidian-5e05343fd0c18e0a05231023b643245c.css' type='text/css' rel='stylesheet' media='all'>
+    <!-- Le fav and touch icons -->
+  <!-- Update these with your own images
+    <link rel="shortcut icon" href="images/favicon.ico">
+    <link rel="apple-touch-icon" href="images/apple-touch-icon.png">
+    <link rel="apple-touch-icon" sizes="72x72" href="images/apple-touch-icon-72x72.png">
+    <link rel="apple-touch-icon" sizes="114x114" href="images/apple-touch-icon-114x114.png">
+  -->
+  </head>
+
+  <body>
+
+    <div class="navbar">
+      <div class="navbar-inner">
+        <div class="container-narrow">
+          <a class="brand" href="/">XLE development blog</a>
+          <ul class="nav">
+              
+                <li><a href="/tags">Tags</a></li>
+              
+              
+                <li><a href="/archive">Archive</a></li>
+              
+              
+                <li><a href="/about">About</a></li>
+              
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="container-narrow">
+
+      <div class="content">
+        
+<div class="page-header">
+  <h1>Vulkan prototype - the big issues </h1>
+</div>
+
+<div class="row-fluid post-full">
+  <div class="span12">
+    <div class="date">
+      <span>April 15, 2016</strong>
+    </div>
+    <div class="content">
+      <p>I&#39;m making more progress on the <em>Vulkan</em> prototype. Now the SceneEngine compiles, BufferUploads works, and it&#39;s now possible to render basic geometry. Many features aren&#39;t supported. But the core rendering features (such as binding textures, compiling shaders, pushing geometry through the pipeline) have an early implementation.</p>
+
+<p>So, while a working <em>Vulkan</em> version is now close, I have a much better idea of what major hurdles there would be to get a really streamlined and efficient <em>Vulkan</em> implementation!</p>
+
+<h2 id="toc_0">RenderPasses</h2>
+
+<p>This is going to be the big issue. RenderPasses are a new concept in <em>Vulkan</em> (though with heritage from <em>Apple Metal</em> and <em>OpenGL</em>), and not very compatible with the DirectX way of handling render targets. This is going to require some deep thought!</p>
+
+<p>I haven&#39;t researched this thoroughly -- but this is my basic understanding of what might be happening...</p>
+
+<p>RenderPasses seem to be fundamentally designed around PowerVR-style hardware (such as that found in IPhones and some Android hardware). Now, if I understand the situation correctly, this type of hardware doesn&#39;t need a traditional depth buffer. Instead it collates triangles as they are submitted, then splits them into buckets for tiles on the screen, and finally decomposes them into scanlines. The scanlines can be sorted using an old algorithm, so that for every pixel we know the front-most scanline.</p>
+
+<p>The key issue here is that that we collate triangle information in the frame buffer, and do not produce a final pixel value until all triangles are finished. This requires the hardware to maintain buffers of triangle scanlines attached to the frame buffer.</p>
+
+<p>The key problem here is this: what happens if we have render targets A and B, both of which are used in the same frame. We render to A, then to B, and then switch back to A and start rendering again?</p>
+
+<p>In a traditional DirectX <code>OMSetRenderTargets</code> environment, this is not a big issue. We might do this (for example) to render a reflection into target B, which appears on geometry in target A. Maybe we cause a bit of a GPU pipeline stall; but it&#39;s probably not going to be a major issue.</p>
+
+<p>With the PowerVR-style hardware, however, it&#39;s a bigger deal. We want to continue collating triangle information in A throughout the entire frame. We don&#39;t want to separate that into 2. It would be better if A and B were actually 2 separate viewports onto the same frame buffer.</p>
+
+<p>In other words, when we switch away from A, we kind of want to know if we will be returning to it. That&#39;s what RenderPasses are useful for. We can express to the API that A is not finished yet, and that B just contains temporary data that will eventually be used on A.</p>
+
+<p>AMD claim on their website that this expressiveness is also useful for traditional forward rendering hardware. But it probably isn&#39;t quite so significant.</p>
+
+<p>Nevertheless, Vulkan appears to be built entirely around RenderPasses, and the interface is very different from <code>OMSetRenderTargets</code>. So we need to figure out what to do.</p>
+
+<h2 id="toc_1">RenderPass integration</h2>
+
+<p>There are 2 approaches:</p>
+
+<ol>
+<li>Make RenderPasses a first-class feature of <code>RenderCore::Metal</code>, and deprecate binding render targets
+
+<ul>
+<li>this would require all client code to change to using RenderPasses. For DirectX, the RenderPass object would just generate <code>OMSetRenderTarget</code> calls</li>
+</ul></li>
+<li>Dynamically build simple RenderPasses when binding render targets
+
+<ul>
+<li>the client code wouldn&#39;t need to change. However, the render passes generated would not be ideal. It would also require calling <code>VkCreateRenderPass</code> and <code>VkCreateFramebuffer</code> during the frame (which is probably not ideal)</li>
+</ul></li>
+<li>Support both RenderPasses and binding render targets
+
+<ul>
+<li>clients can choose to use either</li>
+</ul></li>
+</ol>
+
+<p>I&#39;m encouraged to choose method one, even though it will require the most work.</p>
+
+<p>When there are these kinds of incompatibilities between APIs, it&#39;s normally best to follow the design of one of the APIs fairly closely. So, we can write Vulkan code in a DirectX-like way, or we can write DirectX code in a Vulkan like way. In this case, the Vulkan method is more expressive and is a clear superset of the DirectX behaviour. Ignoring RenderPasses would make targeting PowerVR-style hardware (at a late date) much more difficult.</p>
+
+<p>But it seems like it will be a little difficult to make the transition to RenderPasses. It&#39;s probably going to require significant changes in the SceneEngine. But it&#39;s also a good opportunity to think about other improvements to render target management within the SceneEngine.</p>
+
+<h2 id="toc_2">Descriptors</h2>
+
+<p><em>Vulkan</em> has a slightly different way to look at binding resources and constant buffers to shaders. We have a lot of new concepts:</p>
+
+<ul>
+<li>Descriptor sets</li>
+<li>Descriptor set layouts</li>
+</ul>
+
+<p>These relate most closely to the <code>Metal::BoundUniforms</code> object in XLE.</p>
+
+<p>The descriptor set layout contains a list of all of the bindings of a shader (or set of shaders) and the descriptor sets contain the list of objects to actually bind.</p>
+
+<p>Currently, the <code>BoundUniforms</code> objects own both descriptor sets and descriptor set layouts. But I&#39;m not sure this is a great idea, mostly because we end up with just a 1:1 relationship (which seems redundant).</p>
+
+<p>Both of these relate to the &quot;binding&quot; number set in the shader. My understanding at the moment is that the binding number should be a low number, and numbers should be used &quot;mostly&quot; sequentially -- like the register binding numbers in <em>DirectX</em>.</p>
+
+<p>Since XLE binds things via string names, we still need some way to associate the string name to a particular binding number. One idea is to use the hash of some string value for the binding numbers... I haven&#39;t seen any documentation to say this is a bad idea -- but, Nevertheless, I still suspect that this is a bad idea. Near-sequential is going to be safer.</p>
+
+<p>We can choose 2 different designs for descriptor set layouts:</p>
+
+<ul>
+<li>keep different descriptor set layouts bound tightly to specific shaders
+
+<ul>
+<li>ie, each shader could have it&#39;s own layout, containing only the bindings relevant to that particular shader</li>
+</ul></li>
+<li>share descriptor set layouts broadly
+
+<ul>
+<li>so layouts may contain a superset of bindings for any given shader</li>
+</ul></li>
+</ul>
+
+<p>If we&#39;re sharing descriptor sets, we could choose to do that on a per-technique level. That would kind of make sense. Or we could do it on a global level. That is, we could just have the single huge layout for each descriptor set binding index.</p>
+
+<p>The descriptor set binding indices are similar to the &quot;bound uniforms stream index&quot; in XLE. In particular, it makes sense to have a single shared layout for the global binding stream index. This would also move us closer to a &quot;bindless&quot; approach to these things.</p>
+
+<p>However, that introduces the problem of mapping between our current string binding names at the binding indices used by the shader. Since no single shader contains all bindings, the normal method of using reflection doesn&#39;t work.</p>
+
+<p>In addition to the layout management issues, there are also issues managing the descriptor sets. Some descriptor sets have temporary data (ie, we expect it might change in a future frame). But some descriptor sets contain only static data. For example, the texture bindings of a model are set at load time and remain constant.</p>
+
+<p>For static descriptor set data, we would ideally write this once, and just reuse it every frame. That seems possible by adapting the <code>SharedStateSet</code> interfaces. But it would require a few changes.</p>
+
+<p>For temporary descriptor set data, I suspect that the simple approach of just writing every frame and then throwing it away might be fine, and it would require fewer changes.</p>
+
+<p>Also, we want to be able to attach the &quot;set&quot; layout qualifier to the GLSL code. However, there is no equivalent to this in HLSL, so no way to get it through the HLSL -&gt; GLSL approach. Maybe we can do some hacks via register bindings, but it might be awkward.</p>
+
+<p>We might possibly need to build a global table of bindings -- this table could assign the string name to binding ids, and also assign a &quot;set&quot; qualifier.</p>
+
+<p>At the moment it&#39;s not perfectly clear what&#39;s the best approach to dealing with descriptor sets. It might take some experimentation.</p>
+
+<h2 id="toc_3">Pipelines</h2>
+
+<p><em>Vulkan</em> has some support for precalculating and reusing what it calls &quot;pipelines.&quot; These are a combination of all  shader stages, the descriptor layouts and the input layouts. But they also have some render state information mixed in.</p>
+
+<p>It&#39;s another big departure from <em>DirectX</em>, because it pre-binds these objects together. Again, it&#39;s a superset of <em>DirectX</em> behaviour.</p>
+
+<p>It feels like we may have to dynamically create some pipelines during the frame with XLE. That said, for models (which should be the majority of geometry) we should be able to leverage the <code>SharedStateSet</code> code, so that these can be reused over multiple frames.</p>
+
+<p>This would mean that some draw calls would use precreated pipelines, while others would use dynamically created pipelines. I think this might be the best balance between practicality and efficiency...</p>
+
+<h2 id="toc_4">Shader constant push buffers</h2>
+
+<p>In <em>Vulkan</em>, we have a few new approaches for uploading shader constants. We still have uniform buffers (but we have a lower level interface for them). We also have &quot;push buffers&quot; which presumably use the command buffer to pass frame-by-frame data to the constant registers.</p>
+
+<p>Push buffers will be great for data that changes every frame. Uniform buffers are best for data that is retained for multiple frames, or reused in many draw calls.</p>
+
+<p>Fortunately, we also have the <code>ConstantBufferPacket</code> concept in <code>Metal::BoundUniforms</code>. This could be extended to be used with push constants. But push constants seem like they also require shader changes. That is, the maybe the shader must know if it&#39;s going to receive those constants via push constants or a uniform buffer.</p>
+
+<p>It might be a good time to rethink how to handle the LocalTransform constants for model rendering. Often, the local transform will be constant over the model&#39;s lifetime. In these cases, we might want to store the transform in a retained uniform buffer.</p>
+
+<p>But another alternative is to just use push constants. This will be required in the case of animated transforms. And maybe it could be reasonable efficient? Anyway, it might be interesting to think about.</p>
+
+<h2 id="toc_5">Image layouts</h2>
+
+<p><em>Vulkan</em> has a new &quot;image layout&quot; concept. Each image object has a specific layout and we set these asynchronously using a command on the command buffer.</p>
+
+<p>Normally, we only care about layout while we&#39;re creating the image or initializing it with data. But it&#39;s sort of architecturally awkward, because we create the object synchronously using a <code>VkDevice</code> call, but we don&#39;t set the layout until we first use it in a command buffer. That&#39;s a problem, because we usually don&#39;t know when a use is the first time.</p>
+
+<p>All our images should be initialized via buffer uploads. This might make easier to solve this efficiently, because we can add in a &quot;layout initialization&quot; command list that always get executed as part of the buffer uploads update. In this way, buffer uploads will manage layouts, and other code can just ignore it. But it is going to create some difficulties for <code>Transaction_Immediate</code> resources.</p>
+
+<h2 id="toc_6">Resource deletion</h2>
+
+<p>XLE is often lazy about retaining references to objects. In general, we&#39;re taking advantage of the way <em>DirectX11</em> keeps objects alive while they&#39;re required by the device.</p>
+
+<p>Often we allocate some object, use it for one frame, and then destroy (expecting the memory to be freed up when the GPU is finished with that frame). While might not be perfectly efficient, it is very convenient.</p>
+
+<p><em>Vulkan</em> doesn&#39;t automatically track the GPUs progress when we free an object. So we need to know when it is currently referenced by a command buffer, and when it might be used in the future (or even if it&#39;s currently being used by the GPU). This is complicated by cases with secondary command buffers (such as those used by the buffer uploads).</p>
+
+<p>So we need some new concepts for tracking GPU progress, and destroying objects when they are no longer needed.</p>
+
+<p>Likewise, some objects don&#39;t need to be destroyed, but they might need to be overwritten. This happens in systems that are built for streaming. These cases are very similar -- &quot;safe to delete&quot; is often the same as &quot;safe to overwrite.&quot;</p>
+
+<p>The majority of objects can follow a simple path that just tracks a GPU frame index. After the GPU finishes a frame, then resources associated with that frame can be destroyed.</p>
+
+<p>In some cases, the destroy might actually be a &quot;reset.&quot; For example, if we have a number of pools of temporary descriptor sets, we must track the GPU progress to know when it&#39;s safe to reset and reuse a pool.</p>
+
+<p>Some cases might be more complicated -- such as if we have resources tied to secondary command buffers that are retained over several frames. In this case, the resources must be maintained until after the command buffer is no longer used used and destroyed.</p>
+
+<h2 id="toc_7">Conclusion</h2>
+
+<p>Many of the <em>Vulkan</em> concepts are familiar to me from previous projects... So to some extent, many ideas from <em>Vulkan</em> are already built into XLE. But at the same time it&#39;s going to require some refactoring and improvements of the current code before we can use <em>Vulkan</em> very efficiently.</p>
+
+<p>While I&#39;ve been working on <em>Vulkan</em>, I&#39;ve also been improving the <code>RenderCore::Metal</code> interface. There are aspects of this interface that I&#39;ve always meant to improve -- but I&#39;ve never had the chance before. When working just with <em>DirectX</em>, it didn&#39;t really need to be very polished; but adding <em>Vulkan</em> to the mix changes that.</p>
+
+<p>Anyway, it feels like <em>Vulkan</em> is going to be around for awhile, the prototype so far has shown where the most important difficulties are going to be!</p>
+
+    </div>
+    <ul class="tag_box inline">
+      <li><i class="icon-folder-open"></i></li>
+      <li>
+        <a href="/categories#XLE-ref">XLE <span>22</span></a>
+      </li>
+    </ul>
+    <ul class="tag_box inline">
+      <li><i class="icon-tags"></i></li>
+      <li>
+        <a href="/tags#Vulkan-ref">Vulkan <span>5</span></a>
+      </li>
+      <li>
+        <a href="/tags#cross platform-ref">cross platform <span>5</span></a>
+      </li>
+    </ul>
+    <hr>
+    <div class="pagination">
+      <ul>
+          <li class="prev"><a href="/posts/vulkantips" title="Important Vulkan tips">&larr; Previous</a></li>
+
+          <li><a href="/archive">Archive</a></li>
+
+          <li class="next disabled"><a>Next &rarr;</a>
+      </ul>
+    </div>
+    <hr>
+    <div id="disqus_thread"></div>
+<script>
+    var disqus_developer = 1;
+    var disqus_shortname = 'xledev'; // required: replace example with your forum shortname
+    /* * * DON'T EDIT BELOW THIS LINE * * */
+    (function() {
+        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+        dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<a href="http://disqus.com" class="dsq-brlink">blog comments powered by <span class="logo-disqus">Disqus</span></a>
+
+  </div>
+</div>
+
+
+      </div>
+
+      <hr>
+      <div class="footer">
+        <p>&copy; XL Games 2015
+          with help from <a href="http://ruhoh.com" target="_blank" title="The Definitive Technical Blogging Framework">ruhoh</a>
+          and <a href="http://twitter.github.com/bootstrap/" target="_blank">Twitter Bootstrap</a>
+        </p>
+      </div>
+
+    </div> <!-- /container -->
+
+    <!-- Google Prettify -->
+<script src="http://cdnjs.cloudflare.com/ajax/libs/prettify/188.0.0/prettify.js"></script>
+<script>
+  var pres = document.getElementsByTagName("pre");
+  for (var i=0; i < pres.length; ++i) {
+    pres[i].className = "prettyprint linenums";
+  }
+  prettyPrint();
+</script>
+<!-- end Google Prettify -->
+    <script type="text/javascript">
+
+  var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', 'UA-71034032-1']);
+  _gaq.push(['_trackPageview']);
+  
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+
+</script>
+
+
+    
+  </body>
+</html>

@@ -4,7 +4,7 @@
     <title>XLE development blog</title>
     <description>XLE development blog</description>
     <link>http://xlgames-inc.github.io</link>
-    <pubDate>April 12, 2016</pubDate>
+    <pubDate>April 15, 2016</pubDate>
     <item>
       <title>About</title>
       <link>http://xlgames-inc.github.io/about</link>
@@ -24,6 +24,7 @@
   &lt;h2&gt;2016&lt;/h2&gt;
     &lt;h3&gt;April&lt;/h3&gt;
     &lt;ul&gt;
+      &lt;li&gt;&lt;span&gt;April 15, 2016&lt;/span&gt; &amp;raquo; &lt;a href="/posts/vulkanbigissues"&gt;Vulkan prototype - the big issues&lt;/a&gt;&lt;/li&gt;
       &lt;li&gt;&lt;span&gt;April 12, 2016&lt;/span&gt; &amp;raquo; &lt;a href="/posts/vulkantips"&gt;Important Vulkan tips&lt;/a&gt;&lt;/li&gt;
       &lt;li&gt;&lt;span&gt;April 08, 2016&lt;/span&gt; &amp;raquo; &lt;a href="/posts/vulkanprototypeslowprogress"&gt;Vulkan prototype slowly progressing&lt;/a&gt;&lt;/li&gt;
       &lt;li&gt;&lt;span&gt;April 05, 2016&lt;/span&gt; &amp;raquo; &lt;a href="/posts/vulkanshaderprototype"&gt;HLSL shader prototype with Vulkan&lt;/a&gt;&lt;/li&gt;
@@ -68,14 +69,14 @@
       <description>
 &lt;ul class="tag_box inline"&gt;
   &lt;li&gt;
-    &lt;a href="/categories#XLE-ref"&gt;XLE &lt;span&gt;21&lt;/span&gt;&lt;/a&gt;
+    &lt;a href="/categories#XLE-ref"&gt;XLE &lt;span&gt;22&lt;/span&gt;&lt;/a&gt;
   &lt;/li&gt;
   &lt;li&gt;
     &lt;a href="/categories#blog-ref"&gt;blog &lt;span&gt;1&lt;/span&gt;&lt;/a&gt;
   &lt;/li&gt;
 &lt;/ul&gt;
 
-  &lt;h3&gt;XLE (21)&lt;/h3&gt;
+  &lt;h3&gt;XLE (22)&lt;/h3&gt;
   &lt;ul&gt;
       &lt;li&gt;&lt;a href="/posts/arealightsandpbr"&gt;Area Lights with Physically Based Rendering&lt;/a&gt;&lt;/li&gt;
       &lt;li&gt;&lt;a href="/posts/assetpathscripts"&gt;Processing textures with the XLE scriptable asset path&lt;/a&gt;&lt;/li&gt;
@@ -93,6 +94,7 @@
       &lt;li&gt;&lt;a href="/posts/transmittedspecular2"&gt;Transmitted specular progress&lt;/a&gt;&lt;/li&gt;
       &lt;li&gt;&lt;a href="/posts/transmittedspecular3"&gt;Transmitted specular&lt;/a&gt;&lt;/li&gt;
       &lt;li&gt;&lt;a href="/posts/vulkan"&gt;Starting to experiment with Vulkan&lt;/a&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;a href="/posts/vulkanbigissues"&gt;Vulkan prototype - the big issues&lt;/a&gt;&lt;/li&gt;
       &lt;li&gt;&lt;a href="/posts/vulkanprototypeslowprogress"&gt;Vulkan prototype slowly progressing&lt;/a&gt;&lt;/li&gt;
       &lt;li&gt;&lt;a href="/posts/vulkanshaderprototype"&gt;HLSL shader prototype with Vulkan&lt;/a&gt;&lt;/li&gt;
       &lt;li&gt;&lt;a href="/posts/vulkantips"&gt;Important Vulkan tips&lt;/a&gt;&lt;/li&gt;
@@ -118,6 +120,7 @@
   &lt;h2&gt;2016&lt;/h2&gt;
     &lt;h3&gt;April&lt;/h3&gt;
     &lt;ul&gt;
+      &lt;li&gt;&lt;span&gt;April 15, 2016&lt;/span&gt; &amp;raquo; &lt;a href="/posts/vulkanbigissues"&gt;Vulkan prototype - the big issues&lt;/a&gt;&lt;/li&gt;
       &lt;li&gt;&lt;span&gt;April 12, 2016&lt;/span&gt; &amp;raquo; &lt;a href="/posts/vulkantips"&gt;Important Vulkan tips&lt;/a&gt;&lt;/li&gt;
       &lt;li&gt;&lt;span&gt;April 08, 2016&lt;/span&gt; &amp;raquo; &lt;a href="/posts/vulkanprototypeslowprogress"&gt;Vulkan prototype slowly progressing&lt;/a&gt;&lt;/li&gt;
       &lt;li&gt;&lt;span&gt;April 05, 2016&lt;/span&gt; &amp;raquo; &lt;a href="/posts/vulkanshaderprototype"&gt;HLSL shader prototype with Vulkan&lt;/a&gt;&lt;/li&gt;
@@ -161,6 +164,37 @@
 
 &lt;hr /&gt;
 
+&lt;div class="post"&gt;
+  &lt;h3 class="title"&gt;&lt;a href="/posts/vulkanbigissues"&gt;Vulkan prototype - the big issues&lt;/a&gt;&lt;br /&gt; &lt;span class="date"&gt;April 15, 2016&lt;/span&gt;&lt;/h3&gt;
+
+  &lt;div class="summary ellipsis"&gt;
+&lt;p&gt;I'm making more progress on the &lt;em&gt;Vulkan&lt;/em&gt; prototype. Now the SceneEngine compiles, BufferUploads works, and it's now possible to render basic geometry. Many features aren't supported. But the core rendering features (such as binding textures, compiling shaders, pushing geometry through the pipeline) have an early implementation.&lt;/p&gt;
+
+&lt;p&gt;So, while a working &lt;em&gt;Vulkan&lt;/em&gt; version is now close, I have a much better idea of what major hurdles there would be to get a really streamlined and efficient &lt;em&gt;Vulkan&lt;/em&gt; implementation!&lt;/p&gt;
+
+&lt;h2 id="toc_0"&gt;RenderPasses&lt;/h2&gt;
+
+&lt;p&gt;This is going to be the big issue. RenderPasses are a new concept in &lt;em&gt;Vulkan&lt;/em&gt; (though with heritage from &lt;em&gt;Apple Metal&lt;/em&gt; and &lt;em&gt;OpenGL&lt;/em&gt;), and not very compatible with the DirectX way of handling render targets. This is going to require some deep thought!&lt;/p&gt;
+
+&lt;p&gt;I haven't researched this thoroughly -- but this is my basic understanding of what might be happening...&lt;/p&gt;
+
+&lt;p&gt;RenderPasses seem to be fundamentally designed around PowerVR-style hardware (such as that found in IPhones and some Android hardware). Now, if I understand the situation correctly, this type of hardware doesn't need a traditional depth buffer. Instead it collates triangles as they are submitted, then splits them into buckets for tiles on the screen, and finally decomposes them into scanlines. The scanlines can be sorted using an old algorithm, so that for every pixel we know the front-most scanline.&lt;/p&gt;
+
+&lt;p&gt;The key issue here is that that we collate triangle information in the frame buffer, and do not produce a final pixel value until all triangles are finished. This requires the hardware to maintain buffers of triangle scanlines attached to the frame buffer.&lt;/p&gt;
+
+&lt;p&gt;The key problem here is this: what happens if we have render targets A and B, both of which are used in the same frame. We render to A, then to B, and then switch back to A and start rendering again?&lt;/p&gt;
+
+&lt;p&gt;In a traditional DirectX &lt;code&gt;OMSetRenderTargets&lt;/code&gt; environment, this is not a big issue. We might do this (for example) to render a reflection into target B, which appears on geometry in target A. Maybe we cause a bit of a GPU pipeline stall; but it's probably not going to be a major issue.&lt;/p&gt;
+
+&lt;p&gt;With the PowerVR-style hardware, however, it's a bigger deal. We want to continue collating triangle information in A throughout the entire frame. We don't want to separate that into 2. It would be better if A and B were actually 2 separate viewports onto the same frame buffer.&lt;/p&gt;
+
+&lt;p&gt;In other words, when we switch away from A, we kind of want to know if we will be returning to it. That's what RenderPasses are useful for. We can express to the API that A is not finished yet, and that B just contains temporary data that will eventually be used on A.&lt;/p&gt;
+&lt;/div&gt;
+
+  &lt;div class="more"&gt;
+    &lt;a href="/posts/vulkanbigissues" class="btn btn-small"&gt;read more..&lt;/a&gt;
+  &lt;/div&gt;
+&lt;/div&gt;
 &lt;div class="post"&gt;
   &lt;h3 class="title"&gt;&lt;a href="/posts/vulkantips"&gt;Important Vulkan tips&lt;/a&gt;&lt;br /&gt; &lt;span class="date"&gt;April 12, 2016&lt;/span&gt;&lt;/h3&gt;
 
@@ -285,40 +319,6 @@
     &lt;a href="/posts/vulkan" class="btn btn-small"&gt;read more..&lt;/a&gt;
   &lt;/div&gt;
 &lt;/div&gt;
-&lt;div class="post"&gt;
-  &lt;h3 class="title"&gt;&lt;a href="/posts/compareoitrans"&gt;Comparing different methods for order independent transparency&lt;/a&gt;&lt;br /&gt; &lt;span class="date"&gt;March 31, 2016&lt;/span&gt;&lt;/h3&gt;
-
-  &lt;div class="summary ellipsis"&gt;
-&lt;p&gt;There are has been a lot research on order independent transparency recently. There are a few screenshots comparing the following methods:&lt;/p&gt;
-
-&lt;ul&gt;
-&lt;li&gt;
-&lt;strong&gt;Sorted&lt;/strong&gt; -- this mode sorts back-to-front per fragment. It's very expensive, but serves as a reference.&lt;/li&gt;
-&lt;li&gt;
-&lt;strong&gt;Stochastic&lt;/strong&gt; --  as per nVidia's Stochastic Transparency research. This uses MSAA hardware to estimate the optical depth covering a given sample.&lt;/li&gt;
-&lt;li&gt;
-&lt;strong&gt;Depth weighted&lt;/strong&gt; -- as per nVidia's other white paper, "A Phenomenological Scattering Model
-for Order-Independent Transparency." This is very cheap, and uses a fixed equation based on fragment depth to weight samples.&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;&lt;strong&gt;Sorted&lt;/strong&gt;
-&lt;br&gt;&lt;img src="/assets/media/OI/Sorted.png"&gt;&lt;/p&gt;
-
-&lt;p&gt;&lt;strong&gt;Stochastic&lt;/strong&gt;
-&lt;br&gt;&lt;img src="/assets/media/OI/Stochastic.png"&gt;&lt;/p&gt;
-
-&lt;p&gt;&lt;strong&gt;Depth Weighted&lt;/strong&gt;
-&lt;br&gt;&lt;img src="/assets/media/OI/DepthWeighted.png"&gt;&lt;/p&gt;
-
-&lt;p&gt;&lt;strong&gt;Unordered&lt;/strong&gt;
-&lt;br&gt;&lt;img src="/assets/media/OI/Unordered.png"&gt;&lt;/p&gt;
-
-&lt;/div&gt;
-
-  &lt;div class="more"&gt;
-    &lt;a href="/posts/compareoitrans" class="btn btn-small"&gt;read more..&lt;/a&gt;
-  &lt;/div&gt;
-&lt;/div&gt;
 
 &lt;div class="pagination"&gt;
   &lt;ul&gt;
@@ -426,7 +426,7 @@ for Order-Independent Transparency." This is very cheap, and uses a fixed equati
     &lt;a href="/tags#Releases-ref"&gt;Releases &lt;span&gt;1&lt;/span&gt;&lt;/a&gt;
   &lt;/li&gt;
   &lt;li&gt;
-    &lt;a href="/tags#Vulkan-ref"&gt;Vulkan &lt;span&gt;4&lt;/span&gt;&lt;/a&gt;
+    &lt;a href="/tags#Vulkan-ref"&gt;Vulkan &lt;span&gt;5&lt;/span&gt;&lt;/a&gt;
   &lt;/li&gt;
   &lt;li&gt;
     &lt;a href="/tags#rendering-ref"&gt;rendering &lt;span&gt;1&lt;/span&gt;&lt;/a&gt;
@@ -435,7 +435,7 @@ for Order-Independent Transparency." This is very cheap, and uses a fixed equati
     &lt;a href="/tags#API-ref"&gt;API &lt;span&gt;1&lt;/span&gt;&lt;/a&gt;
   &lt;/li&gt;
   &lt;li&gt;
-    &lt;a href="/tags#cross platform-ref"&gt;cross platform &lt;span&gt;4&lt;/span&gt;&lt;/a&gt;
+    &lt;a href="/tags#cross platform-ref"&gt;cross platform &lt;span&gt;5&lt;/span&gt;&lt;/a&gt;
   &lt;/li&gt;
   &lt;li&gt;
     &lt;a href="/tags#SPIR-V-ref"&gt;SPIR-V &lt;span&gt;2&lt;/span&gt;&lt;/a&gt;
@@ -512,6 +512,7 @@ for Order-Independent Transparency." This is very cheap, and uses a fixed equati
     &lt;li&gt;&lt;a href="/posts/release0040"&gt;Release v0.04.0&lt;/a&gt;&lt;/li&gt;
   &lt;h3 id="Vulkan-ref"&gt;Vulkan&lt;/h3&gt;
     &lt;li&gt;&lt;a href="/posts/vulkan"&gt;Starting to experiment with Vulkan&lt;/a&gt;&lt;/li&gt;
+    &lt;li&gt;&lt;a href="/posts/vulkanbigissues"&gt;Vulkan prototype - the big issues&lt;/a&gt;&lt;/li&gt;
     &lt;li&gt;&lt;a href="/posts/vulkanprototypeslowprogress"&gt;Vulkan prototype slowly progressing&lt;/a&gt;&lt;/li&gt;
     &lt;li&gt;&lt;a href="/posts/vulkanshaderprototype"&gt;HLSL shader prototype with Vulkan&lt;/a&gt;&lt;/li&gt;
     &lt;li&gt;&lt;a href="/posts/vulkantips"&gt;Important Vulkan tips&lt;/a&gt;&lt;/li&gt;
@@ -521,6 +522,7 @@ for Order-Independent Transparency." This is very cheap, and uses a fixed equati
     &lt;li&gt;&lt;a href="/posts/vulkan"&gt;Starting to experiment with Vulkan&lt;/a&gt;&lt;/li&gt;
   &lt;h3 id="cross platform-ref"&gt;cross platform&lt;/h3&gt;
     &lt;li&gt;&lt;a href="/posts/vulkan"&gt;Starting to experiment with Vulkan&lt;/a&gt;&lt;/li&gt;
+    &lt;li&gt;&lt;a href="/posts/vulkanbigissues"&gt;Vulkan prototype - the big issues&lt;/a&gt;&lt;/li&gt;
     &lt;li&gt;&lt;a href="/posts/vulkanprototypeslowprogress"&gt;Vulkan prototype slowly progressing&lt;/a&gt;&lt;/li&gt;
     &lt;li&gt;&lt;a href="/posts/vulkanshaderprototype"&gt;HLSL shader prototype with Vulkan&lt;/a&gt;&lt;/li&gt;
     &lt;li&gt;&lt;a href="/posts/vulkantips"&gt;Important Vulkan tips&lt;/a&gt;&lt;/li&gt;

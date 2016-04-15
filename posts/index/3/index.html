@@ -51,6 +51,37 @@
         <div class="row-fluid">
   <div class="span12">
       <div class="posts">
+        <h3 class="title"><a href="/posts/transmittedspecular3">Transmitted specular</a><br/> <span class="date">February 05, 2016</span></h3>
+
+        <div class="summary ellipsis">
+<p>I've been playing with the transmitted specular implementation for IBL, and working on getting the right balance and visual impression for glass.</p>
+
+<p><br><img src="/assets/media/TransSpec/GlassSphere.png">
+<br><em>Background textures from <a href="http://www.hdrlabs.com/sibl/archive.html">http://www.hdrlabs.com/sibl/archive.html</a></em></p>
+
+<p>It's curious to think about how terms have changed over the last few years. "Specular transmission" is the term I've been using to talk about what we might have previously called "refraction mapping", and "specular IBL" is the new term for "reflection mapping." The new terms show how real-time methods are now encompassing ideas previously only used in ray tracers.</p>
+
+<h2 id="toc_0">Basic method</h2>
+
+<p>I've using the basic method from the GGX paper, <em>"Microfacet Models for Refraction through Rough Surfaces"</em> from Walter, et al. This matches our reflection implementation, of course, because the math for our reflection method is also based on that paper.</p>
+
+<p>I've been able to adapt the math to the split-term concept used for reflected specular IBL. It works just the same way; we have one lookup-table that tell us the brightness of the refraction, and a cubemap that is pre-blurred according to the shape of our lighting equation.</p>
+
+<p>See the page on <a href="improvedibl">Improved IBL</a> for more information that that split-term stuff.</p>
+
+<p>The basic principles are simple. But followed blindly, the results do not quite feel right. It turns out that specular transmission is more complicated than specular reflections. I'll talk about some of the complications involved in the implementation...</p>
+
+<h2 id="toc_1">Relationship between "specular" and index of refraction</h2>
+
+<p>It's important to remember that there is a relationship between the "specular" material parameter and the index of refraction.</p>
+
+</div>
+
+        <div class="more">
+          <a href="/posts/transmittedspecular3" class="btn btn-small">read more..</a>
+        </div>
+      </div>
+      <div class="posts">
         <h3 class="title"><a href="/posts/improvedibl">Improved IBL</a><br/> <span class="date">February 01, 2016</span></h3>
 
         <div class="summary ellipsis">
@@ -173,29 +204,6 @@ This works particularly well with shadowed directional lights and geometry using
 
         <div class="more">
           <a href="/posts/transmittedspecular" class="btn btn-small">read more..</a>
-        </div>
-      </div>
-      <div class="posts">
-        <h3 class="title"><a href="/posts/transmissionnodegraph">Transmission Node Diagram</a><br/> <span class="date">January 22, 2016</span></h3>
-
-        <div class="summary">
-<p>Here is a node diagram for the specular transmission function (BTDF) from Walter, et al, from <em>"Microfacet Models for Refraction through Rough Surfaces."</em>
-Also known as the "GGX" model (or Trowbridge-Reitz).</p>
-
-<p><br><img src="/assets/media/MaterialTool/WalterGGXTransmission.png"></p>
-
-<p>You can see how the node graph comes in handy for debugging a shader function like this. It's useful to visualize each term and see it's effects.
-For example, the "D" term of the BTDF is a node on the diagram. And we can visualize the effects of that term independent of everything else.</p>
-
-<p>In this case, the diagram saves a HLSL function, and that function is called by text-based HLSL code. This will become part of some new functionality for specular transmission through thin surfaces.</p>
-
-<p>I'll pop this in a new "experimental" branch.</p>
-
-<p>See the post from yesterday, <a href="materialtool">Material and Node Diagram Tool</a>, for more information.</p>
-</div>
-
-        <div class="more">
-          <a href="/posts/transmissionnodegraph" class="btn btn-small">read more..</a>
         </div>
       </div>
     

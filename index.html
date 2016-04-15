@@ -64,6 +64,7 @@
   <h2>2016</h2>
     <h3>April</h3>
     <ul>
+      <li><span>April 15, 2016</span> &raquo; <a href="/posts/vulkanbigissues">Vulkan prototype - the big issues</a></li>
       <li><span>April 12, 2016</span> &raquo; <a href="/posts/vulkantips">Important Vulkan tips</a></li>
       <li><span>April 08, 2016</span> &raquo; <a href="/posts/vulkanprototypeslowprogress">Vulkan prototype slowly progressing</a></li>
       <li><span>April 05, 2016</span> &raquo; <a href="/posts/vulkanshaderprototype">HLSL shader prototype with Vulkan</a></li>
@@ -107,6 +108,37 @@
 
 <hr />
 
+<div class="post">
+  <h3 class="title"><a href="/posts/vulkanbigissues">Vulkan prototype - the big issues</a><br /> <span class="date">April 15, 2016</span></h3>
+
+  <div class="summary ellipsis">
+<p>I'm making more progress on the <em>Vulkan</em> prototype. Now the SceneEngine compiles, BufferUploads works, and it's now possible to render basic geometry. Many features aren't supported. But the core rendering features (such as binding textures, compiling shaders, pushing geometry through the pipeline) have an early implementation.</p>
+
+<p>So, while a working <em>Vulkan</em> version is now close, I have a much better idea of what major hurdles there would be to get a really streamlined and efficient <em>Vulkan</em> implementation!</p>
+
+<h2 id="toc_0">RenderPasses</h2>
+
+<p>This is going to be the big issue. RenderPasses are a new concept in <em>Vulkan</em> (though with heritage from <em>Apple Metal</em> and <em>OpenGL</em>), and not very compatible with the DirectX way of handling render targets. This is going to require some deep thought!</p>
+
+<p>I haven't researched this thoroughly -- but this is my basic understanding of what might be happening...</p>
+
+<p>RenderPasses seem to be fundamentally designed around PowerVR-style hardware (such as that found in IPhones and some Android hardware). Now, if I understand the situation correctly, this type of hardware doesn't need a traditional depth buffer. Instead it collates triangles as they are submitted, then splits them into buckets for tiles on the screen, and finally decomposes them into scanlines. The scanlines can be sorted using an old algorithm, so that for every pixel we know the front-most scanline.</p>
+
+<p>The key issue here is that that we collate triangle information in the frame buffer, and do not produce a final pixel value until all triangles are finished. This requires the hardware to maintain buffers of triangle scanlines attached to the frame buffer.</p>
+
+<p>The key problem here is this: what happens if we have render targets A and B, both of which are used in the same frame. We render to A, then to B, and then switch back to A and start rendering again?</p>
+
+<p>In a traditional DirectX <code>OMSetRenderTargets</code> environment, this is not a big issue. We might do this (for example) to render a reflection into target B, which appears on geometry in target A. Maybe we cause a bit of a GPU pipeline stall; but it's probably not going to be a major issue.</p>
+
+<p>With the PowerVR-style hardware, however, it's a bigger deal. We want to continue collating triangle information in A throughout the entire frame. We don't want to separate that into 2. It would be better if A and B were actually 2 separate viewports onto the same frame buffer.</p>
+
+<p>In other words, when we switch away from A, we kind of want to know if we will be returning to it. That's what RenderPasses are useful for. We can express to the API that A is not finished yet, and that B just contains temporary data that will eventually be used on A.</p>
+</div>
+
+  <div class="more">
+    <a href="/posts/vulkanbigissues" class="btn btn-small">read more..</a>
+  </div>
+</div>
 <div class="post">
   <h3 class="title"><a href="/posts/vulkantips">Important Vulkan tips</a><br /> <span class="date">April 12, 2016</span></h3>
 
@@ -229,40 +261,6 @@
 
   <div class="more">
     <a href="/posts/vulkan" class="btn btn-small">read more..</a>
-  </div>
-</div>
-<div class="post">
-  <h3 class="title"><a href="/posts/compareoitrans">Comparing different methods for order independent transparency</a><br /> <span class="date">March 31, 2016</span></h3>
-
-  <div class="summary ellipsis">
-<p>There are has been a lot research on order independent transparency recently. There are a few screenshots comparing the following methods:</p>
-
-<ul>
-<li>
-<strong>Sorted</strong> -- this mode sorts back-to-front per fragment. It's very expensive, but serves as a reference.</li>
-<li>
-<strong>Stochastic</strong> --  as per nVidia's Stochastic Transparency research. This uses MSAA hardware to estimate the optical depth covering a given sample.</li>
-<li>
-<strong>Depth weighted</strong> -- as per nVidia's other white paper, "A Phenomenological Scattering Model
-for Order-Independent Transparency." This is very cheap, and uses a fixed equation based on fragment depth to weight samples.</li>
-</ul>
-
-<p><strong>Sorted</strong>
-<br><img src="/assets/media/OI/Sorted.png"></p>
-
-<p><strong>Stochastic</strong>
-<br><img src="/assets/media/OI/Stochastic.png"></p>
-
-<p><strong>Depth Weighted</strong>
-<br><img src="/assets/media/OI/DepthWeighted.png"></p>
-
-<p><strong>Unordered</strong>
-<br><img src="/assets/media/OI/Unordered.png"></p>
-
-</div>
-
-  <div class="more">
-    <a href="/posts/compareoitrans" class="btn btn-small">read more..</a>
   </div>
 </div>
 

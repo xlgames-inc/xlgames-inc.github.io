@@ -75,6 +75,9 @@
     <h3>April</h3>
     <ul>
       <li>
+<span>April 15, 2016</span> » <a href="/posts/vulkanbigissues">Vulkan prototype - the big issues</a>
+</li>
+      <li>
 <span>April 12, 2016</span> » <a href="/posts/vulkantips">Important Vulkan tips</a>
 </li>
       <li>
@@ -126,14 +129,14 @@
         <div class="summary ellipsis">
 <ul class="tag_box inline">
   <li>
-    <a href="/categories#XLE-ref">XLE <span>21</span></a>
+    <a href="/categories#XLE-ref">XLE <span>22</span></a>
   </li>
   <li>
     <a href="/categories#blog-ref">blog <span>1</span></a>
   </li>
 </ul>
 
-  <h3>XLE (21)</h3>
+  <h3>XLE (22)</h3>
   <ul>
       <li><a href="/posts/arealightsandpbr">Area Lights with Physically Based Rendering</a></li>
       <li><a href="/posts/assetpathscripts">Processing textures with the XLE scriptable asset path</a></li>
@@ -151,6 +154,7 @@
       <li><a href="/posts/transmittedspecular2">Transmitted specular progress</a></li>
       <li><a href="/posts/transmittedspecular3">Transmitted specular</a></li>
       <li><a href="/posts/vulkan">Starting to experiment with Vulkan</a></li>
+      <li><a href="/posts/vulkanbigissues">Vulkan prototype - the big issues</a></li>
       <li><a href="/posts/vulkanprototypeslowprogress">Vulkan prototype slowly progressing</a></li>
       <li><a href="/posts/vulkanshaderprototype">HLSL shader prototype with Vulkan</a></li>
       <li><a href="/posts/vulkantips">Important Vulkan tips</a></li>
@@ -167,27 +171,27 @@
         <h3 class="title"><a href="/">Home</a><br/> <span class="date"></span></h3>
 
         <div class="summary ellipsis">
-<p>After 1 week of playing around with Vulkan, here are 4 tips I've learned. These are maybe not very obvious (some aren't clearly documented), but I think they're important to know.</p>
+<p>I'm making more progress on the <em>Vulkan</em> prototype. Now the SceneEngine compiles, BufferUploads works, and it's now possible to render basic geometry. Many features aren't supported. But the core rendering features (such as binding textures, compiling shaders, pushing geometry through the pipeline) have an early implementation.</p>
 
-<h2 id="toc_0">1. Use buffers as staging areas to initialize images</h2>
+<p>So, while a working <em>Vulkan</em> version is now close, I have a much better idea of what major hurdles there would be to get a really streamlined and efficient <em>Vulkan</em> implementation!</p>
 
-<p>The crux of this is we need to use a function, <em>vkCmdCopyBufferToImage</em>, to implement staging images with Vulkan. It's almost impossible to do any graphics work with Vulkan without doing this -- but a first glance it might seem a bit counter-intuitive. First a bit of a background.</p>
+<h2 id="toc_0">RenderPasses</h2>
 
-<p>Vulkan images have a "tiling" property, which can be either "linear" or "optimal." This is property relates to how pixels are arranged in memory within a single mip level.</p>
+<p>This is going to be the big issue. RenderPasses are a new concept in <em>Vulkan</em> (though with heritage from <em>Apple Metal</em> and <em>OpenGL</em>), and not very compatible with the DirectX way of handling render targets. This is going to require some deep thought!</p>
 
-<p>In linear tiling, texels are arranged in row by row, column by column. So a texel's linear address follows this pattern:</p>
+<p>I haven't researched this thoroughly -- but this is my basic understanding of what might be happening...</p>
 
-<pre><code>address = (y*rowPitch) + x*bitsPerPixel/8
-</code></pre>
+<p>RenderPasses seem to be fundamentally designed around PowerVR-style hardware (such as that found in IPhones and some Android hardware). Now, if I understand the situation correctly, this type of hardware doesn't need a traditional depth buffer. Instead it collates triangles as they are submitted, then splits them into buckets for tiles on the screen, and finally decomposes them into scanlines. The scanlines can be sorted using an old algorithm, so that for every pixel we know the front-most scanline.</p>
 
-<p>When we have images on disk, we usually expect them to have this tiling.</p>
+<p>The key issue here is that that we collate triangle information in the frame buffer, and do not produce a final pixel value until all triangles are finished. This requires the hardware to maintain buffers of triangle scanlines attached to the frame buffer.</p>
 
-<p>However, this has a big problem. Texels in the same row will be near each other in memory. But texels in the same column will be quite separate in memory.</p>
+<p>The key problem here is this: what happens if we have render targets A and B, both of which are used in the same frame. We render to A, then to B, and then switch back to A and start rendering again?</p>
 
-<p>Given that images can be mapped arbitrarily on the final 2D triangles, we can't control the order in which the GPU will access the texels. So this is big issue for the memory cache.</p>
+<p>In a traditional DirectX <code>OMSetRenderTargets</code> environment, this is not a big issue. We might do this (for example) to render a reflection into target B, which appears on geometry in target A. Maybe we cause a bit of a GPU pipeline stall; but it's probably not going to be a major issue.</p>
 
-<p>So all GPUs are able to rearrange the texels into a "swizzled" order that tries to guarantee that nearby texels in 2D (or 3D) image space will be nearby in linear memory. This is called "optimal" tiling in Vulkan.</p>
+<p>With the PowerVR-style hardware, however, it's a bigger deal. We want to continue collating triangle information in A throughout the entire frame. We don't want to separate that into 2. It would be better if A and B were actually 2 separate viewports onto the same frame buffer.</p>
 
+<p>In other words, when we switch away from A, we kind of want to know if we will be returning to it. That's what RenderPasses are useful for. We can express to the API that A is not finished yet, and that B just contains temporary data that will eventually be used on A.</p>
 </div>
 
         <div class="more">

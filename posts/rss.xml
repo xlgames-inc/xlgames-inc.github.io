@@ -4,7 +4,174 @@
     <title>XLE development blog</title>
     <description>XLE development blog</description>
     <link>http://xlgames-inc.github.io</link>
-    <pubDate>April 12, 2016</pubDate>
+    <pubDate>April 15, 2016</pubDate>
+    <item>
+      <title>Vulkan prototype - the big issues</title>
+      <link>http://xlgames-inc.github.io/posts/vulkanbigissues</link>
+      <pubDate>April 15, 2016</pubDate>
+      <description>&lt;p&gt;I&amp;#39;m making more progress on the &lt;em&gt;Vulkan&lt;/em&gt; prototype. Now the SceneEngine compiles, BufferUploads works, and it&amp;#39;s now possible to render basic geometry. Many features aren&amp;#39;t supported. But the core rendering features (such as binding textures, compiling shaders, pushing geometry through the pipeline) have an early implementation.&lt;/p&gt;
+
+&lt;p&gt;So, while a working &lt;em&gt;Vulkan&lt;/em&gt; version is now close, I have a much better idea of what major hurdles there would be to get a really streamlined and efficient &lt;em&gt;Vulkan&lt;/em&gt; implementation!&lt;/p&gt;
+
+&lt;h2 id="toc_0"&gt;RenderPasses&lt;/h2&gt;
+
+&lt;p&gt;This is going to be the big issue. RenderPasses are a new concept in &lt;em&gt;Vulkan&lt;/em&gt; (though with heritage from &lt;em&gt;Apple Metal&lt;/em&gt; and &lt;em&gt;OpenGL&lt;/em&gt;), and not very compatible with the DirectX way of handling render targets. This is going to require some deep thought!&lt;/p&gt;
+
+&lt;p&gt;I haven&amp;#39;t researched this thoroughly -- but this is my basic understanding of what might be happening...&lt;/p&gt;
+
+&lt;p&gt;RenderPasses seem to be fundamentally designed around PowerVR-style hardware (such as that found in IPhones and some Android hardware). Now, if I understand the situation correctly, this type of hardware doesn&amp;#39;t need a traditional depth buffer. Instead it collates triangles as they are submitted, then splits them into buckets for tiles on the screen, and finally decomposes them into scanlines. The scanlines can be sorted using an old algorithm, so that for every pixel we know the front-most scanline.&lt;/p&gt;
+
+&lt;p&gt;The key issue here is that that we collate triangle information in the frame buffer, and do not produce a final pixel value until all triangles are finished. This requires the hardware to maintain buffers of triangle scanlines attached to the frame buffer.&lt;/p&gt;
+
+&lt;p&gt;The key problem here is this: what happens if we have render targets A and B, both of which are used in the same frame. We render to A, then to B, and then switch back to A and start rendering again?&lt;/p&gt;
+
+&lt;p&gt;In a traditional DirectX &lt;code&gt;OMSetRenderTargets&lt;/code&gt; environment, this is not a big issue. We might do this (for example) to render a reflection into target B, which appears on geometry in target A. Maybe we cause a bit of a GPU pipeline stall; but it&amp;#39;s probably not going to be a major issue.&lt;/p&gt;
+
+&lt;p&gt;With the PowerVR-style hardware, however, it&amp;#39;s a bigger deal. We want to continue collating triangle information in A throughout the entire frame. We don&amp;#39;t want to separate that into 2. It would be better if A and B were actually 2 separate viewports onto the same frame buffer.&lt;/p&gt;
+
+&lt;p&gt;In other words, when we switch away from A, we kind of want to know if we will be returning to it. That&amp;#39;s what RenderPasses are useful for. We can express to the API that A is not finished yet, and that B just contains temporary data that will eventually be used on A.&lt;/p&gt;
+
+&lt;p&gt;AMD claim on their website that this expressiveness is also useful for traditional forward rendering hardware. But it probably isn&amp;#39;t quite so significant.&lt;/p&gt;
+
+&lt;p&gt;Nevertheless, Vulkan appears to be built entirely around RenderPasses, and the interface is very different from &lt;code&gt;OMSetRenderTargets&lt;/code&gt;. So we need to figure out what to do.&lt;/p&gt;
+
+&lt;h2 id="toc_1"&gt;RenderPass integration&lt;/h2&gt;
+
+&lt;p&gt;There are 2 approaches:&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;Make RenderPasses a first-class feature of &lt;code&gt;RenderCore::Metal&lt;/code&gt;, and deprecate binding render targets
+
+&lt;ul&gt;
+&lt;li&gt;this would require all client code to change to using RenderPasses. For DirectX, the RenderPass object would just generate &lt;code&gt;OMSetRenderTarget&lt;/code&gt; calls&lt;/li&gt;
+&lt;/ul&gt;&lt;/li&gt;
+&lt;li&gt;Dynamically build simple RenderPasses when binding render targets
+
+&lt;ul&gt;
+&lt;li&gt;the client code wouldn&amp;#39;t need to change. However, the render passes generated would not be ideal. It would also require calling &lt;code&gt;VkCreateRenderPass&lt;/code&gt; and &lt;code&gt;VkCreateFramebuffer&lt;/code&gt; during the frame (which is probably not ideal)&lt;/li&gt;
+&lt;/ul&gt;&lt;/li&gt;
+&lt;li&gt;Support both RenderPasses and binding render targets
+
+&lt;ul&gt;
+&lt;li&gt;clients can choose to use either&lt;/li&gt;
+&lt;/ul&gt;&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;I&amp;#39;m encouraged to choose method one, even though it will require the most work.&lt;/p&gt;
+
+&lt;p&gt;When there are these kinds of incompatibilities between APIs, it&amp;#39;s normally best to follow the design of one of the APIs fairly closely. So, we can write Vulkan code in a DirectX-like way, or we can write DirectX code in a Vulkan like way. In this case, the Vulkan method is more expressive and is a clear superset of the DirectX behaviour. Ignoring RenderPasses would make targeting PowerVR-style hardware (at a late date) much more difficult.&lt;/p&gt;
+
+&lt;p&gt;But it seems like it will be a little difficult to make the transition to RenderPasses. It&amp;#39;s probably going to require significant changes in the SceneEngine. But it&amp;#39;s also a good opportunity to think about other improvements to render target management within the SceneEngine.&lt;/p&gt;
+
+&lt;h2 id="toc_2"&gt;Descriptors&lt;/h2&gt;
+
+&lt;p&gt;&lt;em&gt;Vulkan&lt;/em&gt; has a slightly different way to look at binding resources and constant buffers to shaders. We have a lot of new concepts:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;Descriptor sets&lt;/li&gt;
+&lt;li&gt;Descriptor set layouts&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;These relate most closely to the &lt;code&gt;Metal::BoundUniforms&lt;/code&gt; object in XLE.&lt;/p&gt;
+
+&lt;p&gt;The descriptor set layout contains a list of all of the bindings of a shader (or set of shaders) and the descriptor sets contain the list of objects to actually bind.&lt;/p&gt;
+
+&lt;p&gt;Currently, the &lt;code&gt;BoundUniforms&lt;/code&gt; objects own both descriptor sets and descriptor set layouts. But I&amp;#39;m not sure this is a great idea, mostly because we end up with just a 1:1 relationship (which seems redundant).&lt;/p&gt;
+
+&lt;p&gt;Both of these relate to the &amp;quot;binding&amp;quot; number set in the shader. My understanding at the moment is that the binding number should be a low number, and numbers should be used &amp;quot;mostly&amp;quot; sequentially -- like the register binding numbers in &lt;em&gt;DirectX&lt;/em&gt;.&lt;/p&gt;
+
+&lt;p&gt;Since XLE binds things via string names, we still need some way to associate the string name to a particular binding number. One idea is to use the hash of some string value for the binding numbers... I haven&amp;#39;t seen any documentation to say this is a bad idea -- but, Nevertheless, I still suspect that this is a bad idea. Near-sequential is going to be safer.&lt;/p&gt;
+
+&lt;p&gt;We can choose 2 different designs for descriptor set layouts:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;keep different descriptor set layouts bound tightly to specific shaders
+
+&lt;ul&gt;
+&lt;li&gt;ie, each shader could have it&amp;#39;s own layout, containing only the bindings relevant to that particular shader&lt;/li&gt;
+&lt;/ul&gt;&lt;/li&gt;
+&lt;li&gt;share descriptor set layouts broadly
+
+&lt;ul&gt;
+&lt;li&gt;so layouts may contain a superset of bindings for any given shader&lt;/li&gt;
+&lt;/ul&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;If we&amp;#39;re sharing descriptor sets, we could choose to do that on a per-technique level. That would kind of make sense. Or we could do it on a global level. That is, we could just have the single huge layout for each descriptor set binding index.&lt;/p&gt;
+
+&lt;p&gt;The descriptor set binding indices are similar to the &amp;quot;bound uniforms stream index&amp;quot; in XLE. In particular, it makes sense to have a single shared layout for the global binding stream index. This would also move us closer to a &amp;quot;bindless&amp;quot; approach to these things.&lt;/p&gt;
+
+&lt;p&gt;However, that introduces the problem of mapping between our current string binding names at the binding indices used by the shader. Since no single shader contains all bindings, the normal method of using reflection doesn&amp;#39;t work.&lt;/p&gt;
+
+&lt;p&gt;In addition to the layout management issues, there are also issues managing the descriptor sets. Some descriptor sets have temporary data (ie, we expect it might change in a future frame). But some descriptor sets contain only static data. For example, the texture bindings of a model are set at load time and remain constant.&lt;/p&gt;
+
+&lt;p&gt;For static descriptor set data, we would ideally write this once, and just reuse it every frame. That seems possible by adapting the &lt;code&gt;SharedStateSet&lt;/code&gt; interfaces. But it would require a few changes.&lt;/p&gt;
+
+&lt;p&gt;For temporary descriptor set data, I suspect that the simple approach of just writing every frame and then throwing it away might be fine, and it would require fewer changes.&lt;/p&gt;
+
+&lt;p&gt;Also, we want to be able to attach the &amp;quot;set&amp;quot; layout qualifier to the GLSL code. However, there is no equivalent to this in HLSL, so no way to get it through the HLSL -&amp;gt; GLSL approach. Maybe we can do some hacks via register bindings, but it might be awkward.&lt;/p&gt;
+
+&lt;p&gt;We might possibly need to build a global table of bindings -- this table could assign the string name to binding ids, and also assign a &amp;quot;set&amp;quot; qualifier.&lt;/p&gt;
+
+&lt;p&gt;At the moment it&amp;#39;s not perfectly clear what&amp;#39;s the best approach to dealing with descriptor sets. It might take some experimentation.&lt;/p&gt;
+
+&lt;h2 id="toc_3"&gt;Pipelines&lt;/h2&gt;
+
+&lt;p&gt;&lt;em&gt;Vulkan&lt;/em&gt; has some support for precalculating and reusing what it calls &amp;quot;pipelines.&amp;quot; These are a combination of all  shader stages, the descriptor layouts and the input layouts. But they also have some render state information mixed in.&lt;/p&gt;
+
+&lt;p&gt;It&amp;#39;s another big departure from &lt;em&gt;DirectX&lt;/em&gt;, because it pre-binds these objects together. Again, it&amp;#39;s a superset of &lt;em&gt;DirectX&lt;/em&gt; behaviour.&lt;/p&gt;
+
+&lt;p&gt;It feels like we may have to dynamically create some pipelines during the frame with XLE. That said, for models (which should be the majority of geometry) we should be able to leverage the &lt;code&gt;SharedStateSet&lt;/code&gt; code, so that these can be reused over multiple frames.&lt;/p&gt;
+
+&lt;p&gt;This would mean that some draw calls would use precreated pipelines, while others would use dynamically created pipelines. I think this might be the best balance between practicality and efficiency...&lt;/p&gt;
+
+&lt;h2 id="toc_4"&gt;Shader constant push buffers&lt;/h2&gt;
+
+&lt;p&gt;In &lt;em&gt;Vulkan&lt;/em&gt;, we have a few new approaches for uploading shader constants. We still have uniform buffers (but we have a lower level interface for them). We also have &amp;quot;push buffers&amp;quot; which presumably use the command buffer to pass frame-by-frame data to the constant registers.&lt;/p&gt;
+
+&lt;p&gt;Push buffers will be great for data that changes every frame. Uniform buffers are best for data that is retained for multiple frames, or reused in many draw calls.&lt;/p&gt;
+
+&lt;p&gt;Fortunately, we also have the &lt;code&gt;ConstantBufferPacket&lt;/code&gt; concept in &lt;code&gt;Metal::BoundUniforms&lt;/code&gt;. This could be extended to be used with push constants. But push constants seem like they also require shader changes. That is, the maybe the shader must know if it&amp;#39;s going to receive those constants via push constants or a uniform buffer.&lt;/p&gt;
+
+&lt;p&gt;It might be a good time to rethink how to handle the LocalTransform constants for model rendering. Often, the local transform will be constant over the model&amp;#39;s lifetime. In these cases, we might want to store the transform in a retained uniform buffer.&lt;/p&gt;
+
+&lt;p&gt;But another alternative is to just use push constants. This will be required in the case of animated transforms. And maybe it could be reasonable efficient? Anyway, it might be interesting to think about.&lt;/p&gt;
+
+&lt;h2 id="toc_5"&gt;Image layouts&lt;/h2&gt;
+
+&lt;p&gt;&lt;em&gt;Vulkan&lt;/em&gt; has a new &amp;quot;image layout&amp;quot; concept. Each image object has a specific layout and we set these asynchronously using a command on the command buffer.&lt;/p&gt;
+
+&lt;p&gt;Normally, we only care about layout while we&amp;#39;re creating the image or initializing it with data. But it&amp;#39;s sort of architecturally awkward, because we create the object synchronously using a &lt;code&gt;VkDevice&lt;/code&gt; call, but we don&amp;#39;t set the layout until we first use it in a command buffer. That&amp;#39;s a problem, because we usually don&amp;#39;t know when a use is the first time.&lt;/p&gt;
+
+&lt;p&gt;All our images should be initialized via buffer uploads. This might make easier to solve this efficiently, because we can add in a &amp;quot;layout initialization&amp;quot; command list that always get executed as part of the buffer uploads update. In this way, buffer uploads will manage layouts, and other code can just ignore it. But it is going to create some difficulties for &lt;code&gt;Transaction_Immediate&lt;/code&gt; resources.&lt;/p&gt;
+
+&lt;h2 id="toc_6"&gt;Resource deletion&lt;/h2&gt;
+
+&lt;p&gt;XLE is often lazy about retaining references to objects. In general, we&amp;#39;re taking advantage of the way &lt;em&gt;DirectX11&lt;/em&gt; keeps objects alive while they&amp;#39;re required by the device.&lt;/p&gt;
+
+&lt;p&gt;Often we allocate some object, use it for one frame, and then destroy (expecting the memory to be freed up when the GPU is finished with that frame). While might not be perfectly efficient, it is very convenient.&lt;/p&gt;
+
+&lt;p&gt;&lt;em&gt;Vulkan&lt;/em&gt; doesn&amp;#39;t automatically track the GPUs progress when we free an object. So we need to know when it is currently referenced by a command buffer, and when it might be used in the future (or even if it&amp;#39;s currently being used by the GPU). This is complicated by cases with secondary command buffers (such as those used by the buffer uploads).&lt;/p&gt;
+
+&lt;p&gt;So we need some new concepts for tracking GPU progress, and destroying objects when they are no longer needed.&lt;/p&gt;
+
+&lt;p&gt;Likewise, some objects don&amp;#39;t need to be destroyed, but they might need to be overwritten. This happens in systems that are built for streaming. These cases are very similar -- &amp;quot;safe to delete&amp;quot; is often the same as &amp;quot;safe to overwrite.&amp;quot;&lt;/p&gt;
+
+&lt;p&gt;The majority of objects can follow a simple path that just tracks a GPU frame index. After the GPU finishes a frame, then resources associated with that frame can be destroyed.&lt;/p&gt;
+
+&lt;p&gt;In some cases, the destroy might actually be a &amp;quot;reset.&amp;quot; For example, if we have a number of pools of temporary descriptor sets, we must track the GPU progress to know when it&amp;#39;s safe to reset and reuse a pool.&lt;/p&gt;
+
+&lt;p&gt;Some cases might be more complicated -- such as if we have resources tied to secondary command buffers that are retained over several frames. In this case, the resources must be maintained until after the command buffer is no longer used used and destroyed.&lt;/p&gt;
+
+&lt;h2 id="toc_7"&gt;Conclusion&lt;/h2&gt;
+
+&lt;p&gt;Many of the &lt;em&gt;Vulkan&lt;/em&gt; concepts are familiar to me from previous projects... So to some extent, many ideas from &lt;em&gt;Vulkan&lt;/em&gt; are already built into XLE. But at the same time it&amp;#39;s going to require some refactoring and improvements of the current code before we can use &lt;em&gt;Vulkan&lt;/em&gt; very efficiently.&lt;/p&gt;
+
+&lt;p&gt;While I&amp;#39;ve been working on &lt;em&gt;Vulkan&lt;/em&gt;, I&amp;#39;ve also been improving the &lt;code&gt;RenderCore::Metal&lt;/code&gt; interface. There are aspects of this interface that I&amp;#39;ve always meant to improve -- but I&amp;#39;ve never had the chance before. When working just with &lt;em&gt;DirectX&lt;/em&gt;, it didn&amp;#39;t really need to be very polished; but adding &lt;em&gt;Vulkan&lt;/em&gt; to the mix changes that.&lt;/p&gt;
+
+&lt;p&gt;Anyway, it feels like &lt;em&gt;Vulkan&lt;/em&gt; is going to be around for awhile, the prototype so far has shown where the most important difficulties are going to be!&lt;/p&gt;
+</description>
+    </item>
     <item>
       <title>Important Vulkan tips</title>
       <link>http://xlgames-inc.github.io/posts/vulkantips</link>
@@ -1423,105 +1590,6 @@ Make it possible to visually create shader logic. It&amp;#39;s designed for use 
 &lt;p&gt;You can use the cvar &amp;quot;LightResolveDebugging&amp;quot; to visualize the squares, intersection ellipse and representative points. Type &amp;quot;cv.LightResolveDebugging = True&amp;quot; in the IronPython window in the editor.&lt;/p&gt;
 
 &lt;p&gt;&lt;br/&gt;&lt;img src="/assets/media/RectLightImprovements/Visualization.png"&gt;&lt;/p&gt;
-</description>
-    </item>
-    <item>
-      <title>What to do first</title>
-      <link>http://xlgames-inc.github.io/posts/whattodofirst</link>
-      <pubDate>December 04, 2015</pubDate>
-      <description>&lt;p&gt;So, you&amp;#39;ve just downloaded XLE, and you&amp;#39;re wondering what to do first? Here&amp;#39;s a suggestion for the first 10 minutes:&lt;/p&gt;
-
-&lt;hr&gt;
-
-&lt;h2 id="toc_0"&gt;Startup the level editor&lt;/h2&gt;
-
-&lt;p&gt;Select the Level Editor as the startup project:
-&lt;br/&gt;&lt;img src="/assets/media/SolutionExplorerLE.png"&gt;&lt;/p&gt;
-
-&lt;p&gt;You should use the &lt;strong&gt;Debug/x64&lt;/strong&gt; or &lt;strong&gt;Release/x64&lt;/strong&gt; configuration. Though XLE works in both 32 bit and 64 bits modes, normal usage for the level editor should be in 64 bits mode.&lt;/p&gt;
-
-&lt;p&gt;If you have trouble compiling, see the &lt;a href="https://github.com/xlgames-inc/XLE/wiki/CompilingFirstSteps"&gt;Getting Started Compiling page&lt;/a&gt;.&lt;/p&gt;
-
-&lt;p&gt;Start up this application, and you should see a large 3D window and various other windows about.&lt;/p&gt;
-
-&lt;p&gt;The level editor is based on a great project from Sony WWS &lt;a href="https://github.com/SonyWWS/LevelEditor"&gt;SonyWWSLevelEditor&lt;/a&gt;.
-It has been modified to work with XLE, and some XLE specific behaviour has been added. I think this is a great example of the Open Source concept working for games developers.&lt;/p&gt;
-
-&lt;hr&gt;
-
-&lt;h2 id="toc_1"&gt;Creating an object&lt;/h2&gt;
-
-&lt;p&gt;For the first minute, the 3D window will appear black. This is because shaders are compiling in the background. They will get flushed to disk on application shutdown, so it only happens the first time.&lt;/p&gt;
-
-&lt;p&gt;Select &lt;em&gt;&amp;quot;Window/Resources&amp;quot;&lt;/em&gt; to open the resources panel. You should see the directory structure under the &amp;quot;working&amp;quot; folder. Here, you can find &lt;strong&gt;.dae&lt;/strong&gt; (Collada) files.&lt;/p&gt;
-
-&lt;p&gt;Find a dae file, and drag it into the 3D viewport (or you can drag from Windows Explorer).&lt;/p&gt;
-
-&lt;p&gt;&lt;br/&gt;&lt;img src="/assets/media/DesignView.png"&gt;&lt;/p&gt;
-
-&lt;p&gt;&lt;br/&gt;&lt;br/&gt;&lt;/p&gt;
-
-&lt;h3 id="toc_2"&gt;Collada notes&lt;/h3&gt;
-
-&lt;p&gt;XLE should support all well formatted Collada files. But unfortunately some exporters produce poorly formatted files. For example, sometimes texture names are prefixed with &lt;em&gt;&amp;quot;file://&amp;quot;&lt;/em&gt; -- this isn&amp;#39;t supported in XLE.&lt;/p&gt;
-
-&lt;p&gt;But you should be fine with the Blender Collada exporter, or the OpenCollada exporter for Max/Maya. You can also use &lt;a href="http://www.assimp.org/"&gt;Open Asset Import Library&lt;/a&gt; to convert files to Collada format.&lt;/p&gt;
-
-&lt;h3 id="toc_3"&gt;Placement documents&lt;/h3&gt;
-
-&lt;p&gt;In the level editor, the main &amp;quot;game&amp;quot; file is like a solution file in Visual Studio. It contains links to project documents under it. One type of document is a &amp;quot;placements&amp;quot; document (called a &lt;em&gt;placements cell&lt;/em&gt;). This contains a list of static objects with basic properties.&lt;/p&gt;
-
-&lt;p&gt;Normal large world games should have many placement cells. These can be arranged in a grid structure. But cells can also be overlapping, or have irregular shapes.&lt;/p&gt;
-
-&lt;p&gt;&lt;br/&gt;&lt;img src="/assets/media/DefaultPlacementCell.png"&gt;&lt;/p&gt;
-
-&lt;p&gt;&lt;br/&gt;&lt;br/&gt;&lt;/p&gt;
-
-&lt;p&gt;When you first startup the Level Editor, you get a default untitled placements document. However, you can reconfigure it by right-clicking &amp;quot;Placements&amp;quot; in the Project Lister and selecting &amp;quot;Configure placements...&amp;quot;&lt;/p&gt;
-
-&lt;hr&gt;
-
-&lt;h2 id="toc_4"&gt;Adding lighting settings&lt;/h2&gt;
-
-&lt;p&gt;Probably, you will want to play with some lighting settings next.&lt;/p&gt;
-
-&lt;p&gt;First, Find the &amp;quot;Palette&amp;quot; window (select &amp;quot;Window/Palette&amp;quot; to enable it if it isn&amp;#39;t visible).&lt;/p&gt;
-
-&lt;p&gt;Here, open up the &amp;quot;Lights&amp;quot; category. You can drag items from the &amp;quot;Palette&amp;quot; window into the &amp;quot;Project Lister&amp;quot;.&lt;/p&gt;
-
-&lt;p&gt;&lt;br/&gt;&lt;img src="/assets/media/PaletteWindow.png"&gt;&lt;/p&gt;
-
-&lt;p&gt;Drag these 4 items from the &amp;quot;Lights&amp;quot; category of the &amp;quot;Palette&amp;quot; into the &amp;quot;Project Lister&amp;quot;:&lt;/p&gt;
-
-&lt;ul&gt;
-&lt;li&gt;DirLight&lt;/li&gt;
-&lt;li&gt;AreaLight&lt;/li&gt;
-&lt;li&gt;AmbientSettings&lt;/li&gt;
-&lt;li&gt;ToneMapSettings&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;Try selecting the newly created &amp;quot;DirLight&amp;quot; in the Project Lister. You can press &amp;quot;M&amp;quot; to enable the &amp;quot;move&amp;quot; manipulator to move it around.&lt;/p&gt;
-
-&lt;p&gt;Now, find the &amp;quot;Property Editor&amp;quot; window (select &amp;quot;Window/Property Editor&amp;quot; if it is hidden).
-Here you can see all of the properties for the item. You can customize the lighting environment by playing with the settings for the 4 items you created.&lt;/p&gt;
-
-&lt;p&gt;&lt;br/&gt;&lt;img src="/assets/media/PropertyEditor.png"&gt;&lt;/p&gt;
-
-&lt;hr&gt;
-
-&lt;h2 id="toc_5"&gt;Console debugging modes&lt;/h2&gt;
-
-&lt;p&gt;Next, find the &amp;quot;IronPython&amp;quot; window (use Window/Iron Python to enable it if it is hidden).&lt;/p&gt;
-
-&lt;p&gt;Try typing &lt;strong&gt;&amp;quot;cv.DeferredDebugging = 1&amp;quot;&lt;/strong&gt;. This will enable a debugging mode. You can type &lt;strong&gt;&amp;quot;cv.DeferredDebugging = 0&amp;quot;&lt;/strong&gt; to disable it again.&lt;/p&gt;
-
-&lt;p&gt;Here, &amp;quot;cv&amp;quot; stands for &lt;em&gt;&amp;quot;console variable&amp;quot;&lt;/em&gt;.&lt;/p&gt;
-
-&lt;hr&gt;
-
-&lt;h2 id="toc_6"&gt;What about the next 10 minutes?&lt;/h2&gt;
-
-&lt;p&gt;Well, that&amp;#39;s the end of the quick introduction. The rest is up to you. Have fun!&lt;/p&gt;
 </description>
     </item>
   </channel>
