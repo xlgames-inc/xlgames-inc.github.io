@@ -4,7 +4,7 @@
     <title>XLE development blog</title>
     <description>XLE development blog</description>
     <link>http://xlgames-inc.github.io</link>
-    <pubDate>April 15, 2016</pubDate>
+    <pubDate>April 22, 2016</pubDate>
     <item>
       <title>About</title>
       <link>http://xlgames-inc.github.io/about</link>
@@ -24,6 +24,7 @@
   &lt;h2&gt;2016&lt;/h2&gt;
     &lt;h3&gt;April&lt;/h3&gt;
     &lt;ul&gt;
+      &lt;li&gt;&lt;span&gt;April 22, 2016&lt;/span&gt; &amp;raquo; &lt;a href="/posts/vulkandeclarativelightingparser"&gt;Vulkan prototype - how many separate render passes in the lighting parser?&lt;/a&gt;&lt;/li&gt;
       &lt;li&gt;&lt;span&gt;April 15, 2016&lt;/span&gt; &amp;raquo; &lt;a href="/posts/vulkanbigissues"&gt;Vulkan prototype - the big issues&lt;/a&gt;&lt;/li&gt;
       &lt;li&gt;&lt;span&gt;April 12, 2016&lt;/span&gt; &amp;raquo; &lt;a href="/posts/vulkantips"&gt;Important Vulkan tips&lt;/a&gt;&lt;/li&gt;
       &lt;li&gt;&lt;span&gt;April 08, 2016&lt;/span&gt; &amp;raquo; &lt;a href="/posts/vulkanprototypeslowprogress"&gt;Vulkan prototype slowly progressing&lt;/a&gt;&lt;/li&gt;
@@ -69,14 +70,14 @@
       <description>
 &lt;ul class="tag_box inline"&gt;
   &lt;li&gt;
-    &lt;a href="/categories#XLE-ref"&gt;XLE &lt;span&gt;22&lt;/span&gt;&lt;/a&gt;
+    &lt;a href="/categories#XLE-ref"&gt;XLE &lt;span&gt;23&lt;/span&gt;&lt;/a&gt;
   &lt;/li&gt;
   &lt;li&gt;
     &lt;a href="/categories#blog-ref"&gt;blog &lt;span&gt;1&lt;/span&gt;&lt;/a&gt;
   &lt;/li&gt;
 &lt;/ul&gt;
 
-  &lt;h3&gt;XLE (22)&lt;/h3&gt;
+  &lt;h3&gt;XLE (23)&lt;/h3&gt;
   &lt;ul&gt;
       &lt;li&gt;&lt;a href="/posts/arealightsandpbr"&gt;Area Lights with Physically Based Rendering&lt;/a&gt;&lt;/li&gt;
       &lt;li&gt;&lt;a href="/posts/assetpathscripts"&gt;Processing textures with the XLE scriptable asset path&lt;/a&gt;&lt;/li&gt;
@@ -95,6 +96,7 @@
       &lt;li&gt;&lt;a href="/posts/transmittedspecular3"&gt;Transmitted specular&lt;/a&gt;&lt;/li&gt;
       &lt;li&gt;&lt;a href="/posts/vulkan"&gt;Starting to experiment with Vulkan&lt;/a&gt;&lt;/li&gt;
       &lt;li&gt;&lt;a href="/posts/vulkanbigissues"&gt;Vulkan prototype - the big issues&lt;/a&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;a href="/posts/vulkandeclarativelightingparser"&gt;Vulkan prototype - how many separate render passes in the lighting parser?&lt;/a&gt;&lt;/li&gt;
       &lt;li&gt;&lt;a href="/posts/vulkanprototypeslowprogress"&gt;Vulkan prototype slowly progressing&lt;/a&gt;&lt;/li&gt;
       &lt;li&gt;&lt;a href="/posts/vulkanshaderprototype"&gt;HLSL shader prototype with Vulkan&lt;/a&gt;&lt;/li&gt;
       &lt;li&gt;&lt;a href="/posts/vulkantips"&gt;Important Vulkan tips&lt;/a&gt;&lt;/li&gt;
@@ -120,6 +122,7 @@
   &lt;h2&gt;2016&lt;/h2&gt;
     &lt;h3&gt;April&lt;/h3&gt;
     &lt;ul&gt;
+      &lt;li&gt;&lt;span&gt;April 22, 2016&lt;/span&gt; &amp;raquo; &lt;a href="/posts/vulkandeclarativelightingparser"&gt;Vulkan prototype - how many separate render passes in the lighting parser?&lt;/a&gt;&lt;/li&gt;
       &lt;li&gt;&lt;span&gt;April 15, 2016&lt;/span&gt; &amp;raquo; &lt;a href="/posts/vulkanbigissues"&gt;Vulkan prototype - the big issues&lt;/a&gt;&lt;/li&gt;
       &lt;li&gt;&lt;span&gt;April 12, 2016&lt;/span&gt; &amp;raquo; &lt;a href="/posts/vulkantips"&gt;Important Vulkan tips&lt;/a&gt;&lt;/li&gt;
       &lt;li&gt;&lt;span&gt;April 08, 2016&lt;/span&gt; &amp;raquo; &lt;a href="/posts/vulkanprototypeslowprogress"&gt;Vulkan prototype slowly progressing&lt;/a&gt;&lt;/li&gt;
@@ -164,6 +167,41 @@
 
 &lt;hr /&gt;
 
+&lt;div class="post"&gt;
+  &lt;h3 class="title"&gt;&lt;a href="/posts/vulkandeclarativelightingparser"&gt;Vulkan prototype - how many separate render passes in the lighting parser?&lt;/a&gt;&lt;br /&gt; &lt;span class="date"&gt;April 22, 2016&lt;/span&gt;&lt;/h3&gt;
+
+  &lt;div class="summary ellipsis"&gt;
+&lt;p&gt;The lighting parser is a set of steps (including geometry rendering and full screen passes) that occur in a similar order and configuration every frame. In some ways it is like a higher level version of a "renderpass" (or frame buffer layout). Each "subpass" in the renderpass is like a step in the lighting parser process for evaluating the frame.&lt;/p&gt;
+
+&lt;p&gt;But how do we map the lighting parser steps onto render pass subpasses? Do we want to use one single huge render pass for everything? Or a number of small passes?&lt;/p&gt;
+
+&lt;h2 id="toc_0"&gt;Declarative lighting parser&lt;/h2&gt;
+
+&lt;p&gt;Since we're using a "declarative" approach for "frame buffer layouts", we could do the same for the lighting parser. Imagine a LightingParserConfiguration object that takes a few configuration variables (related to the current platform and quality mode, and also scene features) and produces the set of steps that the lighting parser will perform.&lt;/p&gt;
+
+&lt;p&gt;We could use the &lt;code&gt;VariantFunctions&lt;/code&gt; interface for this, along with some structures to define the "attachment" inputs and outputs for each step. If we have a step (such as tonemapping) we just define the input attachments, output attachments, and temporary buffers required, and add the tone map function.&lt;/p&gt;
+
+&lt;p&gt;Then we would just need a small system that could collect all this information, and generate a &lt;code&gt;RenderCore::FrameBufferDesc&lt;/code&gt; object from it.&lt;/p&gt;
+
+&lt;p&gt;This would allow us to have a very configurable pipeline, because we could just build up the list of steps as we need them, and from there generate everything we need. In effect, we would declare everything that is going to happen in the lighting parser before hand; and then the system would automatically calculate everything that needs to happen when we call Run().&lt;/p&gt;
+
+&lt;p&gt;This could also allow us to have a single render pass for the entire lighting parser process. But is that what we really want?&lt;/p&gt;
+
+&lt;h2 id="toc_1"&gt;How many render passes?&lt;/h2&gt;
+
+&lt;p&gt;There are a few things to consider:&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;Compute shader usage&lt;/li&gt;
+&lt;li&gt;frame-to-frame variations in the render pass&lt;/li&gt;
+&lt;li&gt;parallization within the lighting parser&lt;/li&gt;
+&lt;/ol&gt;
+&lt;/div&gt;
+
+  &lt;div class="more"&gt;
+    &lt;a href="/posts/vulkandeclarativelightingparser" class="btn btn-small"&gt;read more..&lt;/a&gt;
+  &lt;/div&gt;
+&lt;/div&gt;
 &lt;div class="post"&gt;
   &lt;h3 class="title"&gt;&lt;a href="/posts/vulkanbigissues"&gt;Vulkan prototype - the big issues&lt;/a&gt;&lt;br /&gt; &lt;span class="date"&gt;April 15, 2016&lt;/span&gt;&lt;/h3&gt;
 
@@ -288,37 +326,6 @@
     &lt;a href="/posts/vulkanshaderprototype" class="btn btn-small"&gt;read more..&lt;/a&gt;
   &lt;/div&gt;
 &lt;/div&gt;
-&lt;div class="post"&gt;
-  &lt;h3 class="title"&gt;&lt;a href="/posts/vulkan"&gt;Starting to experiment with Vulkan&lt;/a&gt;&lt;br /&gt; &lt;span class="date"&gt;April 04, 2016&lt;/span&gt;&lt;/h3&gt;
-
-  &lt;div class="summary ellipsis"&gt;
-&lt;p&gt;So, it's a simple story -- boy meets API, yada, yada, yada...&lt;/p&gt;
-
-&lt;p&gt;I've started to build some initial experiments with the Vulkan API. Version 1.0 of the API was just released -- and there's an SDK from Valve (called LunarG) around.&lt;/p&gt;
-
-&lt;h2 id="toc_0"&gt;Initial impressions&lt;/h2&gt;
-
-&lt;p&gt;My first impressions are very positive! Many of the design ideals and structures of the API are familiar from my days working with consoles (particularly the Sony consoles). This type of API has not been available on open platforms (like Windows) before -- so for people who don't have experience with consoles, it might give an idea of what it's like.&lt;/p&gt;
-
-&lt;p&gt;I'm also really happy how much of the surrounding resources have been made open-source... The samples, shader compilation tool-chain, etc... It's all very effective use of github.&lt;/p&gt;
-
-&lt;p&gt;Khronos have drawn attention to how much input they've gotten from the game engine development community. And it shows in the results. This is the kind of API that an experienced engine developer wants to see.&lt;/p&gt;
-
-&lt;p&gt;I think it's also a model that is much more viable for cross platform development than anything we've seen before. OpenGL had a lot of problems, and DirectX was so tied to the Windows platform. But this feels like something that is truly viable across many platforms (including low end and high end).&lt;/p&gt;
-
-&lt;p&gt;I'm really impressed with how a third party group has managed to build an API that balances the needs of engine developers with the needs of hardware designers. I think Khronos has really shown how this kind of thing should be done -- and it seems like a good model for other APIs (sound, physics hardware, etc).&lt;/p&gt;
-
-&lt;h2 id="toc_1"&gt;Long term viability&lt;/h2&gt;
-
-&lt;p&gt;Vulkan feels like an API that could stick around for awhile. OpenGL has been on it's last legs for a long time... And DirectX always needs constant refreshes to survive. But Vulkan feels like it will be here for awhile. Due to it's cross-platform and long term viability, it's really undermined DirectX and Apple's Metal.&lt;/p&gt;
-
-&lt;p&gt;I felt the same about C++11, when I started using it. The new C++14 is a huge step forward from the old C++98 days. Many of the design patterns we C++ programmers always wanted to use are not much more viable in C++14. Stroustrup said that C++14 "completes" C++11 -- but really, I think it "completes" C++ as a whole.&lt;/p&gt;
-&lt;/div&gt;
-
-  &lt;div class="more"&gt;
-    &lt;a href="/posts/vulkan" class="btn btn-small"&gt;read more..&lt;/a&gt;
-  &lt;/div&gt;
-&lt;/div&gt;
 
 &lt;div class="pagination"&gt;
   &lt;ul&gt;
@@ -426,7 +433,7 @@
     &lt;a href="/tags#Releases-ref"&gt;Releases &lt;span&gt;1&lt;/span&gt;&lt;/a&gt;
   &lt;/li&gt;
   &lt;li&gt;
-    &lt;a href="/tags#Vulkan-ref"&gt;Vulkan &lt;span&gt;5&lt;/span&gt;&lt;/a&gt;
+    &lt;a href="/tags#Vulkan-ref"&gt;Vulkan &lt;span&gt;6&lt;/span&gt;&lt;/a&gt;
   &lt;/li&gt;
   &lt;li&gt;
     &lt;a href="/tags#rendering-ref"&gt;rendering &lt;span&gt;1&lt;/span&gt;&lt;/a&gt;
@@ -435,7 +442,7 @@
     &lt;a href="/tags#API-ref"&gt;API &lt;span&gt;1&lt;/span&gt;&lt;/a&gt;
   &lt;/li&gt;
   &lt;li&gt;
-    &lt;a href="/tags#cross platform-ref"&gt;cross platform &lt;span&gt;5&lt;/span&gt;&lt;/a&gt;
+    &lt;a href="/tags#cross platform-ref"&gt;cross platform &lt;span&gt;6&lt;/span&gt;&lt;/a&gt;
   &lt;/li&gt;
   &lt;li&gt;
     &lt;a href="/tags#SPIR-V-ref"&gt;SPIR-V &lt;span&gt;2&lt;/span&gt;&lt;/a&gt;
@@ -513,6 +520,7 @@
   &lt;h3 id="Vulkan-ref"&gt;Vulkan&lt;/h3&gt;
     &lt;li&gt;&lt;a href="/posts/vulkan"&gt;Starting to experiment with Vulkan&lt;/a&gt;&lt;/li&gt;
     &lt;li&gt;&lt;a href="/posts/vulkanbigissues"&gt;Vulkan prototype - the big issues&lt;/a&gt;&lt;/li&gt;
+    &lt;li&gt;&lt;a href="/posts/vulkandeclarativelightingparser"&gt;Vulkan prototype - how many separate render passes in the lighting parser?&lt;/a&gt;&lt;/li&gt;
     &lt;li&gt;&lt;a href="/posts/vulkanprototypeslowprogress"&gt;Vulkan prototype slowly progressing&lt;/a&gt;&lt;/li&gt;
     &lt;li&gt;&lt;a href="/posts/vulkanshaderprototype"&gt;HLSL shader prototype with Vulkan&lt;/a&gt;&lt;/li&gt;
     &lt;li&gt;&lt;a href="/posts/vulkantips"&gt;Important Vulkan tips&lt;/a&gt;&lt;/li&gt;
@@ -523,6 +531,7 @@
   &lt;h3 id="cross platform-ref"&gt;cross platform&lt;/h3&gt;
     &lt;li&gt;&lt;a href="/posts/vulkan"&gt;Starting to experiment with Vulkan&lt;/a&gt;&lt;/li&gt;
     &lt;li&gt;&lt;a href="/posts/vulkanbigissues"&gt;Vulkan prototype - the big issues&lt;/a&gt;&lt;/li&gt;
+    &lt;li&gt;&lt;a href="/posts/vulkandeclarativelightingparser"&gt;Vulkan prototype - how many separate render passes in the lighting parser?&lt;/a&gt;&lt;/li&gt;
     &lt;li&gt;&lt;a href="/posts/vulkanprototypeslowprogress"&gt;Vulkan prototype slowly progressing&lt;/a&gt;&lt;/li&gt;
     &lt;li&gt;&lt;a href="/posts/vulkanshaderprototype"&gt;HLSL shader prototype with Vulkan&lt;/a&gt;&lt;/li&gt;
     &lt;li&gt;&lt;a href="/posts/vulkantips"&gt;Important Vulkan tips&lt;/a&gt;&lt;/li&gt;

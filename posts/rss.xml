@@ -4,7 +4,95 @@
     <title>XLE development blog</title>
     <description>XLE development blog</description>
     <link>http://xlgames-inc.github.io</link>
-    <pubDate>April 15, 2016</pubDate>
+    <pubDate>April 22, 2016</pubDate>
+    <item>
+      <title>Vulkan prototype - how many separate render passes in the lighting parser?</title>
+      <link>http://xlgames-inc.github.io/posts/vulkandeclarativelightingparser</link>
+      <pubDate>April 22, 2016</pubDate>
+      <description>&lt;p&gt;The lighting parser is a set of steps (including geometry rendering and full screen passes) that occur in a similar order and configuration every frame. In some ways it is like a higher level version of a &amp;quot;renderpass&amp;quot; (or frame buffer layout). Each &amp;quot;subpass&amp;quot; in the renderpass is like a step in the lighting parser process for evaluating the frame.&lt;/p&gt;
+
+&lt;p&gt;But how do we map the lighting parser steps onto render pass subpasses? Do we want to use one single huge render pass for everything? Or a number of small passes?&lt;/p&gt;
+
+&lt;h2 id="toc_0"&gt;Declarative lighting parser&lt;/h2&gt;
+
+&lt;p&gt;Since we&amp;#39;re using a &amp;quot;declarative&amp;quot; approach for &amp;quot;frame buffer layouts&amp;quot;, we could do the same for the lighting parser. Imagine a LightingParserConfiguration object that takes a few configuration variables (related to the current platform and quality mode, and also scene features) and produces the set of steps that the lighting parser will perform.&lt;/p&gt;
+
+&lt;p&gt;We could use the &lt;code&gt;VariantFunctions&lt;/code&gt; interface for this, along with some structures to define the &amp;quot;attachment&amp;quot; inputs and outputs for each step. If we have a step (such as tonemapping) we just define the input attachments, output attachments, and temporary buffers required, and add the tone map function.&lt;/p&gt;
+
+&lt;p&gt;Then we would just need a small system that could collect all this information, and generate a &lt;code&gt;RenderCore::FrameBufferDesc&lt;/code&gt; object from it.&lt;/p&gt;
+
+&lt;p&gt;This would allow us to have a very configurable pipeline, because we could just build up the list of steps as we need them, and from there generate everything we need. In effect, we would declare everything that is going to happen in the lighting parser before hand; and then the system would automatically calculate everything that needs to happen when we call Run().&lt;/p&gt;
+
+&lt;p&gt;This could also allow us to have a single render pass for the entire lighting parser process. But is that what we really want?&lt;/p&gt;
+
+&lt;h2 id="toc_1"&gt;How many render passes?&lt;/h2&gt;
+
+&lt;p&gt;There are a few things to consider:&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;Compute shader usage&lt;/li&gt;
+&lt;li&gt;frame-to-frame variations in the render pass&lt;/li&gt;
+&lt;li&gt;parallization within the lighting parser&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;h2 id="toc_2"&gt;Compute shaders&lt;/h2&gt;
+
+&lt;p&gt;We can&amp;#39;t execute compute shaders during a render pass. &lt;code&gt;vkCmdDispatch&lt;/code&gt; can only be used outside of a render pass. This is an issue because some of our lighting parser work current uses compute shaders (such as the tone mapping) -- effectively meaning that the render pass must be split there.&lt;/p&gt;
+
+&lt;p&gt;This could be converted to pixel shaders, I guess. But it would mean that we would have to either rewrite all of the compute shader stuff, or move it to a precalculation phase before the render pass.&lt;/p&gt;
+
+&lt;p&gt;Also, sometimes we might want to call vkCmdCopyImage to duplicate a buffer. Again, it can be emulated with pixel shaders, I guess.&lt;/p&gt;
+
+&lt;h2 id="toc_3"&gt;Frame-to-frame variations&lt;/h2&gt;
+
+&lt;p&gt;We don&amp;#39;t really want the render pass to change from frame to frame, because the render pass is a parameter to Vulkan graphics pipelines. There is some flexibility for &amp;quot;compatibility&amp;quot; between render passes. However, what we don&amp;#39;t want is a situation where a change related to one subpass effects the pipelines of another subpass. In that case, it would be better to use 2 separate render passes, so that changes in one stage of the pipeline don&amp;#39;t effect other stages.&lt;/p&gt;
+
+&lt;p&gt;This could be an issue with postprocessing effects that are sometimes enabled (such as a radial blur when damaged, or refractions in water). We could always just skip a subpass by calling NextSubpass immediately, I guess. But having many optional subpasses might blunt the benefit of having a huge render pass, anyway.&lt;/p&gt;
+
+&lt;h2 id="toc_4"&gt;Parallization within the lighting parser&lt;/h2&gt;
+
+&lt;p&gt;Most of the steps in the lighting parser are not really very parallizable with respect to each other. For example, the steps before tonemapping must all be complete before tonemapping occurs, and the steps after tonemapping can&amp;#39;t begin until tonemapping ends.&lt;/p&gt;
+
+&lt;p&gt;So, in this situation, it&amp;#39;s not clear how much benefit there is in combining everything in a giant render pass.&lt;/p&gt;
+
+&lt;h2 id="toc_5"&gt;Simple lighting parser&lt;/h2&gt;
+
+&lt;p&gt;The lighting parser was originally intended to have a very simple structure involving just conditions and function calls. It represents a fundamentally procedural operation, so it makes sense to implement it as basic procedures. That seems like the clearest way to give it a clear order and structure.&lt;/p&gt;
+
+&lt;p&gt;However, moving to a more declarative pattern divorces us from that goal a little bit. That is, adding extra levels of abstraction within the lighting parser could also make it more difficult to understand and maintain.&lt;/p&gt;
+
+&lt;h2 id="toc_6"&gt;Conclusion&lt;/h2&gt;
+
+&lt;p&gt;So, all in all, it&amp;#39;s not really clear what benefit there would be to have a single huge render pass. It seems more sensible to instead use a number of smaller render passes, one for each phase of the pipeline.&lt;/p&gt;
+
+&lt;p&gt;This would probably mean a structure such as this:&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;initial opaque stuff
+
+&lt;ul&gt;
+&lt;li&gt;creating the gbuffer&lt;/li&gt;
+&lt;/ul&gt;&lt;/li&gt;
+&lt;li&gt;opaque light resolve
+
+&lt;ul&gt;
+&lt;li&gt;perform deferred lighting&lt;/li&gt;
+&lt;li&gt;ScreenSpaceReflections requires some compute shader work taking gbuffer as input and consumed during lighting resolve&lt;/li&gt;
+&lt;/ul&gt;&lt;/li&gt;
+&lt;li&gt;multiple separate render passes for translucent rendering
+
+&lt;ul&gt;
+&lt;li&gt;in here we have things like ocean rendering, ordered transparency methods, particles, etc&lt;/li&gt;
+&lt;li&gt;many of these methods require extra buffers and special requirements&lt;/li&gt;
+&lt;/ul&gt;&lt;/li&gt;
+&lt;li&gt;possibly MSAA resolve, post processing steps and tonemapping could be combined into a single render pass&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;The configurable lighting parser structure from above might still be useful for the post processing steps at the end.&lt;/p&gt;
+
+&lt;p&gt;This means that the &amp;quot;gbuffer&amp;quot; will only be an &amp;quot;attachment&amp;quot; during the very first render pass. In other passes, it can be a normal image view / shader resource.&lt;/p&gt;
+</description>
+    </item>
     <item>
       <title>Vulkan prototype - the big issues</title>
       <link>http://xlgames-inc.github.io/posts/vulkanbigissues</link>
@@ -1441,155 +1529,6 @@ Make it possible to visually create shader logic. It&amp;#39;s designed for use 
 &lt;p&gt;It might be possible to fix this with some research and a few tricks. But it&amp;#39;s not clear if that would really be useful. Rectangle lights might be most useful for things like windows, TV screens, photography reflectors, etc. In these cases we normally want the light to always go forward, anyway.&lt;/p&gt;
 
 &lt;p&gt;Plus, if we block off the extreme edges, we have some easy options for shadowing.&lt;/p&gt;
-</description>
-    </item>
-    <item>
-      <title>Working some improvements to rectangle lights</title>
-      <link>http://xlgames-inc.github.io/posts/workingonrectlights</link>
-      <pubDate>December 09, 2015</pubDate>
-      <description>&lt;p&gt;&lt;strong&gt;Post updated on 2015-12-10&lt;/strong&gt;&lt;/p&gt;
-
-&lt;p&gt;This is just some notes about some ideas I&amp;#39;ve been playing with lately. I&amp;#39;ve been thinking about some improvements to the specular highlights for rectangle lights!&lt;/p&gt;
-
-&lt;p&gt;The current implementation is based on the method by &lt;em&gt;Michal Drobot&lt;/em&gt; in &lt;strong&gt;GPU Pro 5&lt;/strong&gt;. I&amp;#39;m not going to repeat the description here (I&amp;#39;ll only give a few details) -- but I recommend buying the book and having a look! It&amp;#39;s quite a good method, and interesting read. Drobot describes a very practical method for diffuse and specular for rectangle and disc lights.&lt;/p&gt;
-
-&lt;p&gt;However, at extreme angles, the specular reflection of rectangle lights can sometimes show some distortion.&lt;/p&gt;
-
-&lt;p&gt;Here is a comparison:
-&lt;style type="text/css"&gt;
-.tg  {border-collapse:collapse;border-spacing:0;}
-.tg td{font-family:Arial, sans-serif;font-size:14px;padding:10px 5px;border-style:solid;border-width:1px;overflow:hidden;word-break:normal;}
-.tg th{font-family:Arial, sans-serif;font-size:14px;font-weight:normal;padding:10px 5px;border-style:solid;border-width:1px;overflow:hidden;word-break:normal;}
-.tg .tg-yw4l{vertical-align:top}
-&lt;/style&gt;
-&lt;table class="tg"&gt;
-  &lt;tr&gt;
-    &lt;th class="tg-yw4l"&gt;Original Method&lt;/th&gt;
-    &lt;th class="tg-yw4l"&gt;New Method&lt;/th&gt;
-  &lt;/tr&gt;
-  &lt;tr&gt;
-    &lt;td class="tg-yw4l"&gt;&lt;img src="/assets/media/RectLightImprovements/BasicRectLight.png"&gt;&lt;/td&gt;
-    &lt;td class="tg-yw4l"&gt;&lt;img src="/assets/media/RectLightImprovements/ImprovedRectLight.png"&gt;&lt;/td&gt;
-  &lt;/tr&gt;
-&lt;/table&gt;&lt;/p&gt;
-
-&lt;p&gt;It appears quite distorted here, but this is a contrived example. This is a material with high &amp;quot;roughness&amp;quot; but the geometry is completely flat. In a normal scene, flat geometry will probably have a less rough material. And in a less rough material, the distortion is much less visible.&lt;/p&gt;
-
-&lt;h2 id="toc_0"&gt;Specular Cone&lt;/h2&gt;
-
-&lt;p&gt;Part of the problem is related to how the integration across the specular highlight is performed. We can calculate a cone that represents the part of the scene that contributes most greatly to the specular for a given point. When calculating the specular for a point, we assume that everything in that cone contributes very strongly to specular, and everything outside of it doesn&amp;#39;t contribute at all.&lt;/p&gt;
-
-&lt;p&gt;This is a simplification, because really we don&amp;#39;t want a binary on/off -- we want to weight all incoming light by the BRDF. But out simplification can be quite good for many cases.&lt;/p&gt;
-
-&lt;h2 id="toc_1"&gt;Rectangle and cone intersection&lt;/h2&gt;
-
-&lt;p&gt;So, once we have our cone, we want to find how much of it is covered by the rectangle light. Ignoring shadows, we can do this by finding the intersection of the cone and the rectangle light.&lt;/p&gt;
-
-&lt;p&gt;But, of course, this is quite difficult and expensive. This is starting to go into conic sections, which are a particularly complication type of geometry.&lt;/p&gt;
-
-&lt;p&gt;So we need a simplification. Drobot describes a method that is very similar to his method for disc lights.&lt;/p&gt;
-
-&lt;p&gt;His method treats the intersection between a plane and the cone as a circle, and then further simplifies it into a square. This method works really well when the light direction is directly towards to the sample point. But on angles, the intersection should start to distort into an ellipse.&lt;/p&gt;
-
-&lt;p&gt;See, for example, this diagram from wikimedia commons:
-&lt;br/&gt;&lt;a title="By http://commons.wikimedia.org/wiki/User:Magister_Mathematicae [CC BY-SA 3.0 (http://creativecommons.org/licenses/by-sa/3.0)], via Wikimedia Commons" href="https://commons.wikimedia.org/wiki/File%3AConic_sections_small.png"&gt;&lt;img width="256" alt="Conic sections small" src="https://upload.wikimedia.org/wikipedia/commons/b/bf/Conic_sections_small.png"/&gt;&lt;/a&gt;&lt;/p&gt;
-
-&lt;p&gt;We don&amp;#39;t have to care about the parabola or hyberbola cases (because our cone is infinitely long).&lt;/p&gt;
-
-&lt;h2 id="toc_2"&gt;Ellipse estimations&lt;/h2&gt;
-
-&lt;p&gt;Our goal is to find some way to estimate the area of an intersection of that ellipse and a rectangle. And we also need to find the geometric center of that intersection.&lt;/p&gt;
-
-&lt;p&gt;&lt;br/&gt;&lt;img src="/assets/media/RectLightImprovements/LightGeoClipping.png"&gt;&lt;/p&gt;
-
-&lt;p&gt;Working with the true ellipse here is far too expensive. The method would be extremely complex. However, we can make some estimations. Also, the rectangle and the ellipse are not aligned in any easy way -- so that makes it more complex.&lt;/p&gt;
-
-&lt;p&gt;One idea is to use 2 squares, instead of one. We will place the squares near the vertices of the of the ellipse, and balance the area of the squares so that they roughly match the ellipse.&lt;/p&gt;
-
-&lt;p&gt;&lt;br/&gt;&lt;img src="/assets/media/RectLightImprovements/LightGeoClipping2.png"&gt;&lt;/p&gt;
-
-&lt;p&gt;With this method, as the ellipse widens, our simulation takes into account that widening.&lt;/p&gt;
-
-&lt;h2 id="toc_3"&gt;Flat on&lt;/h2&gt;
-
-&lt;p&gt;2 squares seems to help in the flat-on case, also.&lt;/p&gt;
-
-&lt;table class="tg"&gt;
-  &lt;tr&gt;
-    &lt;th class="tg-yw4l"&gt;Original Method&lt;/th&gt;
-    &lt;th class="tg-yw4l"&gt;New Method&lt;/th&gt;
-  &lt;/tr&gt;
-  &lt;tr&gt;
-    &lt;td class="tg-yw4l"&gt;&lt;img src="/assets/media/RectLightImprovements/BasicRectLight2.png"&gt;&lt;/td&gt;
-    &lt;td class="tg-yw4l"&gt;&lt;img src="/assets/media/RectLightImprovements/ImprovedRectLight2.png"&gt;&lt;/td&gt;
-  &lt;/tr&gt;
-&lt;/table&gt;
-
-&lt;p&gt;As you can see, improved method helps smooth out the result. The light retains it&amp;#39;s rectangular shape better.&lt;/p&gt;
-
-&lt;h2 id="toc_4"&gt;Representative point tweaks&lt;/h2&gt;
-
-&lt;p&gt;The goal of these methods is to find a quick estimate to integrating the BRDF across all angles. When we&amp;#39;re finding the intersection of the specular cone and the light, we&amp;#39;re really trying to estimate the intersection of the light geometry and the BRDF equation. If we could then find the mean of the BRDF in the intersection area, we would have a good estimate of the full integral.&lt;/p&gt;
-
-&lt;p&gt;&lt;br/&gt;&lt;img src="/assets/media/RectLightImprovements/LightGeoClipping3.png"&gt;&lt;/p&gt;
-
-&lt;p&gt;To estimate the mean, we adjust the reflection direction to find a new &amp;quot;representative point&amp;quot; for specular. As Drobot explains in his article, he was working with a phong based BRDF. However, with GGX, I&amp;#39;m finding the equation is very steep, and that small adjustments to the representative point have a huge effect on the result!&lt;/p&gt;
-
-&lt;p&gt;&lt;br/&gt;&lt;img src="/assets/media/RectLightImprovements/LightGeoClipping4.png"&gt;&lt;/p&gt;
-
-&lt;p&gt;This might be accentuated by the fact that I&amp;#39;m using a very wide angle for the specular cone. The wide angle helps give us really blurry highlights, but it makes some artifact worse.&lt;/p&gt;
-
-&lt;p&gt;So I&amp;#39;m finding that we have to be a little more conservative with the representative point. I&amp;#39;m experimenting with taking the average of the intersection center and the unmodified reflection direction.&lt;/p&gt;
-
-&lt;h2 id="toc_5"&gt;New artifacts&lt;/h2&gt;
-
-&lt;p&gt;Unfortunately, the new method can add some artifacts. Sometimes the influence of each square can separate, which can end up giving the impression of 2 separate specular highlights. This can cause some real problems if one square clipped by one side of the light, and the other square is clipped by the other side.&lt;/p&gt;
-
-&lt;p&gt;There are also some cases where the single-square method looks better, even though it may be incorrect... With a single square, the highlight will be incorrectly sharp on extreme angles. But it still looks right to the viewer.&lt;/p&gt;
-
-&lt;p&gt;Here is an example of the artifacts that can occur in some cases&lt;/p&gt;
-
-&lt;table class="tg"&gt;
-  &lt;tr&gt;
-    &lt;th class="tg-yw4l"&gt;Original Method&lt;/th&gt;
-    &lt;th class="tg-yw4l"&gt;New Method&lt;/th&gt;
-  &lt;/tr&gt;
-  &lt;tr&gt;
-    &lt;td class="tg-yw4l"&gt;&lt;img src="/assets/media/RectLightImprovements/BasicRectLightBad1.png"&gt;&lt;/td&gt;
-    &lt;td class="tg-yw4l"&gt;&lt;img src="/assets/media/RectLightImprovements/ImprovedRectLightBad1.png"&gt;&lt;/td&gt;
-  &lt;/tr&gt;
-&lt;/table&gt;
-
-&lt;p&gt;Here the rectangle keeps it&amp;#39;s shape better, but the separate effects of the 2 squares starts to become visible.&lt;/p&gt;
-
-&lt;p&gt;In a real world situation, this is unlikely to be as visible. Since this is a surface with a high &amp;quot;roughness&amp;quot; we would normally expect there to be a normal map and more geometric detail. That will serve to hide the artifacts.&lt;/p&gt;
-
-&lt;h2 id="toc_6"&gt;More screenshots&lt;/h2&gt;
-
-&lt;p&gt;Here are a few more comparison shots:&lt;/p&gt;
-
-&lt;p&gt;&lt;/style&gt;
-&lt;table class="tg"&gt;
-  &lt;tr&gt;
-    &lt;th class="tg-yw4l"&gt;Original Method&lt;/th&gt;
-    &lt;th class="tg-yw4l"&gt;New Method&lt;/th&gt;
-  &lt;/tr&gt;
-  &lt;tr&gt;
-  &lt;tr&gt;
-    &lt;td class="tg-yw4l"&gt;&lt;img src="/assets/media/RectLightImprovements/BasicRectLight3.png"&gt;&lt;/td&gt;
-    &lt;td class="tg-yw4l"&gt;&lt;img src="/assets/media/RectLightImprovements/ImprovedRectLight3.png"&gt;&lt;/td&gt;
-  &lt;/tr&gt;
-  &lt;tr&gt;
-    &lt;td class="tg-yw4l"&gt;&lt;img src="/assets/media/RectLightImprovements/BasicRectLight4.png"&gt;&lt;/td&gt;
-    &lt;td class="tg-yw4l"&gt;&lt;img src="/assets/media/RectLightImprovements/ImprovedRectLight4.png"&gt;&lt;/td&gt;
-  &lt;/tr&gt;
-&lt;/table&gt;&lt;/p&gt;
-
-&lt;h2 id="toc_7"&gt;In-engine visualization&lt;/h2&gt;
-
-&lt;p&gt;You can use the cvar &amp;quot;LightResolveDebugging&amp;quot; to visualize the squares, intersection ellipse and representative points. Type &amp;quot;cv.LightResolveDebugging = True&amp;quot; in the IronPython window in the editor.&lt;/p&gt;
-
-&lt;p&gt;&lt;br/&gt;&lt;img src="/assets/media/RectLightImprovements/Visualization.png"&gt;&lt;/p&gt;
 </description>
     </item>
   </channel>

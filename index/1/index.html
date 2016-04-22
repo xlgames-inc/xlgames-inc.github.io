@@ -75,6 +75,9 @@
     <h3>April</h3>
     <ul>
       <li>
+<span>April 22, 2016</span> » <a href="/posts/vulkandeclarativelightingparser">Vulkan prototype - how many separate render passes in the lighting parser?</a>
+</li>
+      <li>
 <span>April 15, 2016</span> » <a href="/posts/vulkanbigissues">Vulkan prototype - the big issues</a>
 </li>
       <li>
@@ -109,15 +112,7 @@
 </li>
     </ul>
     <h3>February</h3>
-    <ul>
-      <li>
-<span>February 05, 2016</span> » <a href="/posts/transmittedspecular3">Transmitted specular</a>
-</li>
-      <li>
-<span>February 01, 2016</span> » <a href="/posts/improvedibl">Improved IBL</a>
-</li>
-    </ul>
-</div>
+    </div>
 
         <div class="more">
           <a href="/archive" class="btn btn-small">read more..</a>
@@ -129,14 +124,14 @@
         <div class="summary ellipsis">
 <ul class="tag_box inline">
   <li>
-    <a href="/categories#XLE-ref">XLE <span>22</span></a>
+    <a href="/categories#XLE-ref">XLE <span>23</span></a>
   </li>
   <li>
     <a href="/categories#blog-ref">blog <span>1</span></a>
   </li>
 </ul>
 
-  <h3>XLE (22)</h3>
+  <h3>XLE (23)</h3>
   <ul>
       <li><a href="/posts/arealightsandpbr">Area Lights with Physically Based Rendering</a></li>
       <li><a href="/posts/assetpathscripts">Processing textures with the XLE scriptable asset path</a></li>
@@ -155,6 +150,7 @@
       <li><a href="/posts/transmittedspecular3">Transmitted specular</a></li>
       <li><a href="/posts/vulkan">Starting to experiment with Vulkan</a></li>
       <li><a href="/posts/vulkanbigissues">Vulkan prototype - the big issues</a></li>
+      <li><a href="/posts/vulkandeclarativelightingparser">Vulkan prototype - how many separate render passes in the lighting parser?</a></li>
       <li><a href="/posts/vulkanprototypeslowprogress">Vulkan prototype slowly progressing</a></li>
       <li><a href="/posts/vulkanshaderprototype">HLSL shader prototype with Vulkan</a></li>
       <li><a href="/posts/vulkantips">Important Vulkan tips</a></li>
@@ -171,27 +167,31 @@
         <h3 class="title"><a href="/">Home</a><br/> <span class="date"></span></h3>
 
         <div class="summary ellipsis">
-<p>I'm making more progress on the <em>Vulkan</em> prototype. Now the SceneEngine compiles, BufferUploads works, and it's now possible to render basic geometry. Many features aren't supported. But the core rendering features (such as binding textures, compiling shaders, pushing geometry through the pipeline) have an early implementation.</p>
+<p>The lighting parser is a set of steps (including geometry rendering and full screen passes) that occur in a similar order and configuration every frame. In some ways it is like a higher level version of a "renderpass" (or frame buffer layout). Each "subpass" in the renderpass is like a step in the lighting parser process for evaluating the frame.</p>
 
-<p>So, while a working <em>Vulkan</em> version is now close, I have a much better idea of what major hurdles there would be to get a really streamlined and efficient <em>Vulkan</em> implementation!</p>
+<p>But how do we map the lighting parser steps onto render pass subpasses? Do we want to use one single huge render pass for everything? Or a number of small passes?</p>
 
-<h2 id="toc_0">RenderPasses</h2>
+<h2 id="toc_0">Declarative lighting parser</h2>
 
-<p>This is going to be the big issue. RenderPasses are a new concept in <em>Vulkan</em> (though with heritage from <em>Apple Metal</em> and <em>OpenGL</em>), and not very compatible with the DirectX way of handling render targets. This is going to require some deep thought!</p>
+<p>Since we're using a "declarative" approach for "frame buffer layouts", we could do the same for the lighting parser. Imagine a LightingParserConfiguration object that takes a few configuration variables (related to the current platform and quality mode, and also scene features) and produces the set of steps that the lighting parser will perform.</p>
 
-<p>I haven't researched this thoroughly -- but this is my basic understanding of what might be happening...</p>
+<p>We could use the <code>VariantFunctions</code> interface for this, along with some structures to define the "attachment" inputs and outputs for each step. If we have a step (such as tonemapping) we just define the input attachments, output attachments, and temporary buffers required, and add the tone map function.</p>
 
-<p>RenderPasses seem to be fundamentally designed around PowerVR-style hardware (such as that found in IPhones and some Android hardware). Now, if I understand the situation correctly, this type of hardware doesn't need a traditional depth buffer. Instead it collates triangles as they are submitted, then splits them into buckets for tiles on the screen, and finally decomposes them into scanlines. The scanlines can be sorted using an old algorithm, so that for every pixel we know the front-most scanline.</p>
+<p>Then we would just need a small system that could collect all this information, and generate a <code>RenderCore::FrameBufferDesc</code> object from it.</p>
 
-<p>The key issue here is that that we collate triangle information in the frame buffer, and do not produce a final pixel value until all triangles are finished. This requires the hardware to maintain buffers of triangle scanlines attached to the frame buffer.</p>
+<p>This would allow us to have a very configurable pipeline, because we could just build up the list of steps as we need them, and from there generate everything we need. In effect, we would declare everything that is going to happen in the lighting parser before hand; and then the system would automatically calculate everything that needs to happen when we call Run().</p>
 
-<p>The key problem here is this: what happens if we have render targets A and B, both of which are used in the same frame. We render to A, then to B, and then switch back to A and start rendering again?</p>
+<p>This could also allow us to have a single render pass for the entire lighting parser process. But is that what we really want?</p>
 
-<p>In a traditional DirectX <code>OMSetRenderTargets</code> environment, this is not a big issue. We might do this (for example) to render a reflection into target B, which appears on geometry in target A. Maybe we cause a bit of a GPU pipeline stall; but it's probably not going to be a major issue.</p>
+<h2 id="toc_1">How many render passes?</h2>
 
-<p>With the PowerVR-style hardware, however, it's a bigger deal. We want to continue collating triangle information in A throughout the entire frame. We don't want to separate that into 2. It would be better if A and B were actually 2 separate viewports onto the same frame buffer.</p>
+<p>There are a few things to consider:</p>
 
-<p>In other words, when we switch away from A, we kind of want to know if we will be returning to it. That's what RenderPasses are useful for. We can express to the API that A is not finished yet, and that B just contains temporary data that will eventually be used on A.</p>
+<ol>
+<li>Compute shader usage</li>
+<li>frame-to-frame variations in the render pass</li>
+<li>parallization within the lighting parser</li>
+</ol>
 </div>
 
         <div class="more">
