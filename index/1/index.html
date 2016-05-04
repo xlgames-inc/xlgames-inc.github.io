@@ -72,6 +72,12 @@
 
         <div class="summary ellipsis">
   <h2>2016</h2>
+    <h3>May</h3>
+    <ul>
+      <li>
+<span>May 04, 2016</span> » <a href="/posts/vulkanmoreprogress">Vulkan latest progress -- core lighting working</a>
+</li>
+    </ul>
     <h3>April</h3>
     <ul>
       <li>
@@ -111,8 +117,7 @@
 <span>March 14, 2016</span> » <a href="/posts/newtoolfeatures">Latest Tool Features</a>
 </li>
     </ul>
-    <h3>February</h3>
-    </div>
+</div>
 
         <div class="more">
           <a href="/archive" class="btn btn-small">read more..</a>
@@ -124,14 +129,14 @@
         <div class="summary ellipsis">
 <ul class="tag_box inline">
   <li>
-    <a href="/categories#XLE-ref">XLE <span>23</span></a>
+    <a href="/categories#XLE-ref">XLE <span>24</span></a>
   </li>
   <li>
     <a href="/categories#blog-ref">blog <span>1</span></a>
   </li>
 </ul>
 
-  <h3>XLE (23)</h3>
+  <h3>XLE (24)</h3>
   <ul>
       <li><a href="/posts/arealightsandpbr">Area Lights with Physically Based Rendering</a></li>
       <li><a href="/posts/assetpathscripts">Processing textures with the XLE scriptable asset path</a></li>
@@ -151,6 +156,7 @@
       <li><a href="/posts/vulkan">Starting to experiment with Vulkan</a></li>
       <li><a href="/posts/vulkanbigissues">Vulkan prototype - the big issues</a></li>
       <li><a href="/posts/vulkandeclarativelightingparser">Vulkan prototype - how many separate render passes in the lighting parser?</a></li>
+      <li><a href="/posts/vulkanmoreprogress">Vulkan latest progress -- core lighting working</a></li>
       <li><a href="/posts/vulkanprototypeslowprogress">Vulkan prototype slowly progressing</a></li>
       <li><a href="/posts/vulkanshaderprototype">HLSL shader prototype with Vulkan</a></li>
       <li><a href="/posts/vulkantips">Important Vulkan tips</a></li>
@@ -167,31 +173,27 @@
         <h3 class="title"><a href="/">Home</a><br/> <span class="date"></span></h3>
 
         <div class="summary ellipsis">
-<p>The lighting parser is a set of steps (including geometry rendering and full screen passes) that occur in a similar order and configuration every frame. In some ways it is like a higher level version of a "renderpass" (or frame buffer layout). Each "subpass" in the renderpass is like a step in the lighting parser process for evaluating the frame.</p>
+<p>The Vulkan build is steadily getting more and more functionality. Now the core rendering pipeline in SceneEngine is working -- which means we can have deferred lighting, shadows, IBL, tonemapping, etc. Simple scene should render correctly now. But there are some inefficiencies and issues (see below).</p>
 
-<p>But how do we map the lighting parser steps onto render pass subpasses? Do we want to use one single huge render pass for everything? Or a number of small passes?</p>
+<p>Unfortunately the DirectX11 version isn't working at the moment. This is all in the "experimental" branch.</p>
 
-<h2 id="toc_0">Declarative lighting parser</h2>
+<h2 id="toc_0">Declarative render passes</h2>
 
-<p>Since we're using a "declarative" approach for "frame buffer layouts", we could do the same for the lighting parser. Imagine a LightingParserConfiguration object that takes a few configuration variables (related to the current platform and quality mode, and also scene features) and produces the set of steps that the lighting parser will perform.</p>
+<p>Tone-mapping now works, and it was a good prototype for the "declarative" render pass model. This allows us to specify render passes and render targets required using a "description" structure. The system will do some caching and correlate request to resources, creating and binding as necessary.</p>
 
-<p>We could use the <code>VariantFunctions</code> interface for this, along with some structures to define the "attachment" inputs and outputs for each step. If we have a step (such as tonemapping) we just define the input attachments, output attachments, and temporary buffers required, and add the tone map function.</p>
+<p>There is some overhead with this design because it involves doing some per-frame hash and lookups as we go along. It's not as efficient as (for example) just pre-creating all of the frame buffer / render pass objects in a configure step. However, this design is maybe a little more flexible and easier to tie into existing scene engine code. In effect, we're building a new layer that is just one step more abstract from the underlying Vulkan objects.</p>
 
-<p>Then we would just need a small system that could collect all this information, and generate a <code>RenderCore::FrameBufferDesc</code> object from it.</p>
+<p>I've pushed some of the "busy-work" (like declaring subpass dependencies) down into the RenderCore::Metal layer. This makes the interface easier to use... But the downside is that my abstraction is not expressive enough for some unusual cases. For example, I came across a cases where we want to bind the "depth &amp; stencil" aspects of a depth texture in one subpass; and in the second subpass only the "stencil" aspect is bound. This apparently needs a dependency... But it's just really inconvenient with this interface.</p>
 
-<p>This would allow us to have a very configurable pipeline, because we could just build up the list of steps as we need them, and from there generate everything we need. In effect, we would declare everything that is going to happen in the lighting parser before hand; and then the system would automatically calculate everything that needs to happen when we call Run().</p>
+<p>I've also build a concept called "named resources" into the Metal::DeviceContext. This allows us to get TextureViews for  attachments from the device context. It feels out of place because it's an operation that doesn't involve the hardware, but there doesn't seem to be any better way to handle this case.</p>
 
-<p>This could also allow us to have a single render pass for the entire lighting parser process. But is that what we really want?</p>
+<p>Fundamentally we want to define attachments FrameBufferDesc objects, so that we can later refer to them again by binding id. It would be better if some of this functionality was in the RenderCore::Techniques library... But it would be just too much hassle to split it better Techniques and Metal.</p>
 
-<h2 id="toc_1">How many render passes?</h2>
+<p>Anyway, it's working now in Vulkan. However, I still haven't got to the caching and reuse part. And it also needs to be implemented for DirectX11, also!</p>
 
-<p>There are a few things to consider:</p>
+<h2 id="toc_1">Compute shader work!</h2>
 
-<ol>
-<li>Compute shader usage</li>
-<li>frame-to-frame variations in the render pass</li>
-<li>parallization within the lighting parser</li>
-</ol>
+<p>I added in support for the compute pipeline. It actually was pretty easy. I decided to switch some of the tonemapping code from pixel shaders to compute shaders -- because this seems to be more natural in Vulkan. Working with viewports and render targets is much more complex in Vulkan than DirectX11.</p>
 </div>
 
         <div class="more">

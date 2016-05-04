@@ -4,7 +4,68 @@
     <title>XLE development blog</title>
     <description>XLE development blog</description>
     <link>http://xlgames-inc.github.io</link>
-    <pubDate>April 22, 2016</pubDate>
+    <pubDate>May 04, 2016</pubDate>
+    <item>
+      <title>Vulkan latest progress -- core lighting working</title>
+      <link>http://xlgames-inc.github.io/posts/vulkanmoreprogress</link>
+      <pubDate>May 04, 2016</pubDate>
+      <description>&lt;p&gt;The Vulkan build is steadily getting more and more functionality. Now the core rendering pipeline in SceneEngine is working -- which means we can have deferred lighting, shadows, IBL, tonemapping, etc. Simple scene should render correctly now. But there are some inefficiencies and issues (see below).&lt;/p&gt;
+
+&lt;p&gt;Unfortunately the DirectX11 version isn&amp;#39;t working at the moment. This is all in the &amp;quot;experimental&amp;quot; branch.&lt;/p&gt;
+
+&lt;h2 id="toc_0"&gt;Declarative render passes&lt;/h2&gt;
+
+&lt;p&gt;Tone-mapping now works, and it was a good prototype for the &amp;quot;declarative&amp;quot; render pass model. This allows us to specify render passes and render targets required using a &amp;quot;description&amp;quot; structure. The system will do some caching and correlate request to resources, creating and binding as necessary.&lt;/p&gt;
+
+&lt;p&gt;There is some overhead with this design because it involves doing some per-frame hash and lookups as we go along. It&amp;#39;s not as efficient as (for example) just pre-creating all of the frame buffer / render pass objects in a configure step. However, this design is maybe a little more flexible and easier to tie into existing scene engine code. In effect, we&amp;#39;re building a new layer that is just one step more abstract from the underlying Vulkan objects.&lt;/p&gt;
+
+&lt;p&gt;I&amp;#39;ve pushed some of the &amp;quot;busy-work&amp;quot; (like declaring subpass dependencies) down into the RenderCore::Metal layer. This makes the interface easier to use... But the downside is that my abstraction is not expressive enough for some unusual cases. For example, I came across a cases where we want to bind the &amp;quot;depth &amp;amp; stencil&amp;quot; aspects of a depth texture in one subpass; and in the second subpass only the &amp;quot;stencil&amp;quot; aspect is bound. This apparently needs a dependency... But it&amp;#39;s just really inconvenient with this interface.&lt;/p&gt;
+
+&lt;p&gt;I&amp;#39;ve also build a concept called &amp;quot;named resources&amp;quot; into the Metal::DeviceContext. This allows us to get TextureViews for  attachments from the device context. It feels out of place because it&amp;#39;s an operation that doesn&amp;#39;t involve the hardware, but there doesn&amp;#39;t seem to be any better way to handle this case.&lt;/p&gt;
+
+&lt;p&gt;Fundamentally we want to define attachments FrameBufferDesc objects, so that we can later refer to them again by binding id. It would be better if some of this functionality was in the RenderCore::Techniques library... But it would be just too much hassle to split it better Techniques and Metal.&lt;/p&gt;
+
+&lt;p&gt;Anyway, it&amp;#39;s working now in Vulkan. However, I still haven&amp;#39;t got to the caching and reuse part. And it also needs to be implemented for DirectX11, also!&lt;/p&gt;
+
+&lt;h2 id="toc_1"&gt;Compute shader work!&lt;/h2&gt;
+
+&lt;p&gt;I added in support for the compute pipeline. It actually was pretty easy. I decided to switch some of the tonemapping code from pixel shaders to compute shaders -- because this seems to be more natural in Vulkan. Working with viewports and render targets is much more complex in Vulkan than DirectX11.&lt;/p&gt;
+
+&lt;h2 id="toc_2"&gt;Render state objects working &amp;amp; dynamic pipeline objects&lt;/h2&gt;
+
+&lt;p&gt;Now all of the render state objects (like BlendState, SamplerState, etc) work. However all of the &amp;quot;pipeline objects&amp;quot; are dynamically created as needed. Vulkan allows these to be pre-calculated and optimised and load time. This is pretty smart, because a lot of that render state information can just become shader instructions and combined into the shader code.&lt;/p&gt;
+
+&lt;p&gt;I think the SharedStateSet techniques might be able to precalculate pipeline objects. But a lot of pipeline objects will have to be dynamically created like this. But perhaps I can use the &amp;quot;inheritance&amp;quot; stuff in pipeline objects to calculate some stuff earlier (for example, in ShaderPrograms).&lt;/p&gt;
+
+&lt;p&gt;For the moment, pipeline objects are just created and recreated like crazy!&lt;/p&gt;
+
+&lt;h2 id="toc_3"&gt;Separated Samplers and Textures in HLSLCrossCompiler&lt;/h2&gt;
+
+&lt;p&gt;I found that GL_KHR_vulkan_glsl added support for separate Sampler and Texture objects to GLSL. So I added support for this to the HLSLCrossCompiler! This is a huge help, because otherwise it would be a hassle to work around the standard HLSL model of separate objects.&lt;/p&gt;
+
+&lt;h2 id="toc_4"&gt;Many fixes in HLSLCrossCompiler&lt;/h2&gt;
+
+&lt;p&gt;As I go through, I&amp;#39;m finding issues in the HLSLCrossCompiler. It&amp;#39;s quite strange because the compiler supports so many instructions and modes... But they there are certain things that are just incorrect. In particular, I&amp;#39;ve had some fixes to certain swizzle operations, and made some fixes dealing with constant buffers.&lt;/p&gt;
+
+&lt;p&gt;It&amp;#39;s really quite fascinating because this cross compiler path works so well for so many shaders... I&amp;#39;m really using a lot of HLSL features in XLE, and I&amp;#39;m often happily surprised by the cross compiler just &amp;quot;figuring it out.&amp;quot; But then suddenly some shader will use an instruction in a slightly different way, and everything falls apart.&lt;/p&gt;
+
+&lt;p&gt;Anyway, it&amp;#39;s getting more reliable as I go along.&lt;/p&gt;
+
+&lt;h2 id="toc_5"&gt;Better model for descriptor sets&lt;/h2&gt;
+
+&lt;p&gt;I finally settled on a much better model for descriptor sets. I borrowed some ideas from the DirectX12 &amp;quot;root signatures&amp;quot; -- these allow us to creating a mapping between the linear register mapping in HLSL (eg, register(t2), register(b3), etc) and a system of descriptor sets and binding points.&lt;/p&gt;
+
+&lt;p&gt;So I&amp;#39;ve re-purposed that idea for XLE. The root signatures actually also defines the &amp;quot;descriptor set layouts.&amp;quot; This allows us to create a few global layouts, and reuse them for all shaders. This seems to be the best way.&lt;/p&gt;
+
+&lt;p&gt;We have 4 descriptor sets available; I&amp;#39;m using one for BoundUniforms, one for &amp;quot;dynamic&amp;quot; bindings (not-BoundUniforms) and one for global resources that remain bound the entire frame. And so there&amp;#39;s one left over; maybe it will be used for input attachments.&lt;/p&gt;
+
+&lt;p&gt;There&amp;#39;s still some thrashing that can occur. But this design seems reasonable. I may expand the interface for BoundUniform that will allow for every efficient use.&lt;/p&gt;
+
+&lt;h2 id="toc_6"&gt;More to come...&lt;/h2&gt;
+
+&lt;p&gt;So it&amp;#39;s working! But there&amp;#39;s still a lot to come. Some things got broke while changing things, and there&amp;#39;s still a lot of perform improvements to make. But it&amp;#39;s looking ok so far.&lt;/p&gt;
+</description>
+    </item>
     <item>
       <title>Vulkan prototype - how many separate render passes in the lighting parser?</title>
       <link>http://xlgames-inc.github.io/posts/vulkandeclarativelightingparser</link>
@@ -1472,64 +1533,6 @@ Make it possible to visually create shader logic. It&amp;#39;s designed for use 
       <link>http://xlgames-inc.github.io/posts/functionlinkedshaders</link>
       <pubDate>December 16, 2015</pubDate>
       <description>Stitching shaders together at runtime to deal with shader configuration explosion</description>
-    </item>
-    <item>
-      <title>Rectangle Light diffuse vs 3DS Max</title>
-      <link>http://xlgames-inc.github.io/posts/rectlightdiffuse</link>
-      <pubDate>December 11, 2015</pubDate>
-      <description>&lt;p&gt;Just a quick note on rectangle light diffuse. In XLE, rectangle lights are slightly different from the default rectangle lights in 3DS Max.&lt;/p&gt;
-
-&lt;style type="text/css"&gt;
-.tg  {border-collapse:collapse;border-spacing:0;}
-.tg td{font-family:Arial, sans-serif;font-size:14px;padding:10px 5px;border-style:solid;border-width:1px;overflow:hidden;word-break:normal;}
-.tg th{font-family:Arial, sans-serif;font-size:14px;font-weight:normal;padding:10px 5px;border-style:solid;border-width:1px;overflow:hidden;word-break:normal;}
-.tg .tg-yw4l{vertical-align:top}
-&lt;/style&gt;
-
-&lt;table class="tg"&gt;
-  &lt;tr&gt;
-    &lt;th class="tg-yw4l"&gt;XLE lights&lt;/th&gt;
-    &lt;th class="tg-yw4l"&gt;3DS Max lights (Quicksilver renderer)&lt;/th&gt;
-  &lt;/tr&gt;
-  &lt;tr&gt;
-    &lt;td class="tg-yw4l"&gt;&lt;img src="/assets/media/RectLightDiffuse/XLELightDiag.png"&gt;&lt;/td&gt;
-    &lt;td class="tg-yw4l"&gt;&lt;img src="/assets/media/RectLightDiffuse/MaxLightDiag.png"&gt;&lt;/td&gt;
-  &lt;/tr&gt;
-  &lt;tr&gt;
-    &lt;td class="tg-yw4l"&gt;&lt;img src="/assets/media/RectLightDiffuse/XLEDefault.png"&gt;&lt;/td&gt;
-    &lt;td class="tg-yw4l"&gt;&lt;img src="/assets/media/RectLightDiffuse/MaxComparison.png"&gt;&lt;/td&gt;
-  &lt;/tr&gt;
-&lt;/table&gt;
-
-&lt;p&gt;XLE rectangle lights emit light mostly in the forward direction (and a reduced amount sideways). But in the 3DS Max Quicksilver renderer, rectangle lights emit light in all direction.&lt;/p&gt;
-
-&lt;h2 id="toc_0"&gt;Edge cases&lt;/h2&gt;
-
-&lt;p&gt;This is partially because the method we&amp;#39;re using for diffuse doesn&amp;#39;t work well on extreme angles. In the above example, the light plane and the &lt;strong&gt;top&lt;/strong&gt;/&lt;strong&gt;bottom&lt;/strong&gt;/&lt;strong&gt;left&lt;/strong&gt;/&lt;strong&gt;right&lt;/strong&gt; walls are actually perpendicular.&lt;/p&gt;
-
-&lt;p&gt;This causes weird problems right on the edges.&lt;/p&gt;
-
-&lt;table class="tg"&gt;
-  &lt;tr&gt;
-    &lt;th class="tg-yw4l"&gt;XLE emulating 3DS Max&lt;/th&gt;
-    &lt;th class="tg-yw4l"&gt;3DS Max lights (Quicksilver Renderer)&lt;/th&gt;
-  &lt;/tr&gt;
-  &lt;tr&gt;
-    &lt;td class="tg-yw4l"&gt;&lt;img src="/assets/media/RectLightDiffuse/XLEEmulateMax.png"&gt;&lt;/td&gt;
-    &lt;td class="tg-yw4l"&gt;&lt;img src="/assets/media/RectLightDiffuse/MaxComparison.png"&gt;&lt;/td&gt;
-  &lt;/tr&gt;
-&lt;/table&gt;
-
-&lt;p&gt;In the above example, the left and right walls look fine. But the top and bottom walls are missing their highlight. This is because the light is quite tall. A square light might be fine.&lt;/p&gt;
-
-&lt;p&gt;But you can see that, in general, the 3DS Max result and the XLE result is quite similar.&lt;/p&gt;
-
-&lt;h2 id="toc_1"&gt;Practical uses&lt;/h2&gt;
-
-&lt;p&gt;It might be possible to fix this with some research and a few tricks. But it&amp;#39;s not clear if that would really be useful. Rectangle lights might be most useful for things like windows, TV screens, photography reflectors, etc. In these cases we normally want the light to always go forward, anyway.&lt;/p&gt;
-
-&lt;p&gt;Plus, if we block off the extreme edges, we have some easy options for shadowing.&lt;/p&gt;
-</description>
     </item>
   </channel>
 </rss>

@@ -1,0 +1,215 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Vulkan latest progress -- core lighting working</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="author" content="XL Games">
+
+    <!-- Le HTML5 shim, for IE6-8 support of HTML elements -->
+    <!--[if lt IE 9]>
+      <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+
+    <!-- Le styles -->
+<link href='/assets/stylesheets/bootstrap.min-93b47f97c3444c4711853ed5140d82a1.css' type='text/css' rel='stylesheet' media='all'>
+<link href='/assets/stylesheets/style-1dcb1d39791f3457afa56d279fcf0945.css' type='text/css' rel='stylesheet' media='all'>
+<link href='/assets/stylesheets/google_prettify/sons-of-obsidian-5e05343fd0c18e0a05231023b643245c.css' type='text/css' rel='stylesheet' media='all'>
+    <!-- Le fav and touch icons -->
+  <!-- Update these with your own images
+    <link rel="shortcut icon" href="images/favicon.ico">
+    <link rel="apple-touch-icon" href="images/apple-touch-icon.png">
+    <link rel="apple-touch-icon" sizes="72x72" href="images/apple-touch-icon-72x72.png">
+    <link rel="apple-touch-icon" sizes="114x114" href="images/apple-touch-icon-114x114.png">
+  -->
+  </head>
+
+  <body>
+
+    <div class="navbar">
+      <div class="navbar-inner">
+        <div class="container-narrow">
+          <a class="brand" href="/">XLE development blog</a>
+          <ul class="nav">
+              
+                <li><a href="/tags">Tags</a></li>
+              
+              
+                <li><a href="/archive">Archive</a></li>
+              
+              
+                <li><a href="/about">About</a></li>
+              
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="container-narrow">
+
+      <div class="content">
+        
+<div class="page-header">
+  <h1>Vulkan latest progress -- core lighting working </h1>
+</div>
+
+<div class="row-fluid post-full">
+  <div class="span12">
+    <div class="date">
+      <span>May 04, 2016</strong>
+    </div>
+    <div class="content">
+      <p>The Vulkan build is steadily getting more and more functionality. Now the core rendering pipeline in SceneEngine is working -- which means we can have deferred lighting, shadows, IBL, tonemapping, etc. Simple scene should render correctly now. But there are some inefficiencies and issues (see below).</p>
+
+<p>Unfortunately the DirectX11 version isn&#39;t working at the moment. This is all in the &quot;experimental&quot; branch.</p>
+
+<h2 id="toc_0">Declarative render passes</h2>
+
+<p>Tone-mapping now works, and it was a good prototype for the &quot;declarative&quot; render pass model. This allows us to specify render passes and render targets required using a &quot;description&quot; structure. The system will do some caching and correlate request to resources, creating and binding as necessary.</p>
+
+<p>There is some overhead with this design because it involves doing some per-frame hash and lookups as we go along. It&#39;s not as efficient as (for example) just pre-creating all of the frame buffer / render pass objects in a configure step. However, this design is maybe a little more flexible and easier to tie into existing scene engine code. In effect, we&#39;re building a new layer that is just one step more abstract from the underlying Vulkan objects.</p>
+
+<p>I&#39;ve pushed some of the &quot;busy-work&quot; (like declaring subpass dependencies) down into the RenderCore::Metal layer. This makes the interface easier to use... But the downside is that my abstraction is not expressive enough for some unusual cases. For example, I came across a cases where we want to bind the &quot;depth &amp; stencil&quot; aspects of a depth texture in one subpass; and in the second subpass only the &quot;stencil&quot; aspect is bound. This apparently needs a dependency... But it&#39;s just really inconvenient with this interface.</p>
+
+<p>I&#39;ve also build a concept called &quot;named resources&quot; into the Metal::DeviceContext. This allows us to get TextureViews for  attachments from the device context. It feels out of place because it&#39;s an operation that doesn&#39;t involve the hardware, but there doesn&#39;t seem to be any better way to handle this case.</p>
+
+<p>Fundamentally we want to define attachments FrameBufferDesc objects, so that we can later refer to them again by binding id. It would be better if some of this functionality was in the RenderCore::Techniques library... But it would be just too much hassle to split it better Techniques and Metal.</p>
+
+<p>Anyway, it&#39;s working now in Vulkan. However, I still haven&#39;t got to the caching and reuse part. And it also needs to be implemented for DirectX11, also!</p>
+
+<h2 id="toc_1">Compute shader work!</h2>
+
+<p>I added in support for the compute pipeline. It actually was pretty easy. I decided to switch some of the tonemapping code from pixel shaders to compute shaders -- because this seems to be more natural in Vulkan. Working with viewports and render targets is much more complex in Vulkan than DirectX11.</p>
+
+<h2 id="toc_2">Render state objects working &amp; dynamic pipeline objects</h2>
+
+<p>Now all of the render state objects (like BlendState, SamplerState, etc) work. However all of the &quot;pipeline objects&quot; are dynamically created as needed. Vulkan allows these to be pre-calculated and optimised and load time. This is pretty smart, because a lot of that render state information can just become shader instructions and combined into the shader code.</p>
+
+<p>I think the SharedStateSet techniques might be able to precalculate pipeline objects. But a lot of pipeline objects will have to be dynamically created like this. But perhaps I can use the &quot;inheritance&quot; stuff in pipeline objects to calculate some stuff earlier (for example, in ShaderPrograms).</p>
+
+<p>For the moment, pipeline objects are just created and recreated like crazy!</p>
+
+<h2 id="toc_3">Separated Samplers and Textures in HLSLCrossCompiler</h2>
+
+<p>I found that GL_KHR_vulkan_glsl added support for separate Sampler and Texture objects to GLSL. So I added support for this to the HLSLCrossCompiler! This is a huge help, because otherwise it would be a hassle to work around the standard HLSL model of separate objects.</p>
+
+<h2 id="toc_4">Many fixes in HLSLCrossCompiler</h2>
+
+<p>As I go through, I&#39;m finding issues in the HLSLCrossCompiler. It&#39;s quite strange because the compiler supports so many instructions and modes... But they there are certain things that are just incorrect. In particular, I&#39;ve had some fixes to certain swizzle operations, and made some fixes dealing with constant buffers.</p>
+
+<p>It&#39;s really quite fascinating because this cross compiler path works so well for so many shaders... I&#39;m really using a lot of HLSL features in XLE, and I&#39;m often happily surprised by the cross compiler just &quot;figuring it out.&quot; But then suddenly some shader will use an instruction in a slightly different way, and everything falls apart.</p>
+
+<p>Anyway, it&#39;s getting more reliable as I go along.</p>
+
+<h2 id="toc_5">Better model for descriptor sets</h2>
+
+<p>I finally settled on a much better model for descriptor sets. I borrowed some ideas from the DirectX12 &quot;root signatures&quot; -- these allow us to creating a mapping between the linear register mapping in HLSL (eg, register(t2), register(b3), etc) and a system of descriptor sets and binding points.</p>
+
+<p>So I&#39;ve re-purposed that idea for XLE. The root signatures actually also defines the &quot;descriptor set layouts.&quot; This allows us to create a few global layouts, and reuse them for all shaders. This seems to be the best way.</p>
+
+<p>We have 4 descriptor sets available; I&#39;m using one for BoundUniforms, one for &quot;dynamic&quot; bindings (not-BoundUniforms) and one for global resources that remain bound the entire frame. And so there&#39;s one left over; maybe it will be used for input attachments.</p>
+
+<p>There&#39;s still some thrashing that can occur. But this design seems reasonable. I may expand the interface for BoundUniform that will allow for every efficient use.</p>
+
+<h2 id="toc_6">More to come...</h2>
+
+<p>So it&#39;s working! But there&#39;s still a lot to come. Some things got broke while changing things, and there&#39;s still a lot of perform improvements to make. But it&#39;s looking ok so far.</p>
+
+    </div>
+    <ul class="tag_box inline">
+      <li><i class="icon-folder-open"></i></li>
+      <li>
+        <a href="/categories#XLE-ref">XLE <span>24</span></a>
+      </li>
+    </ul>
+    <ul class="tag_box inline">
+      <li><i class="icon-tags"></i></li>
+      <li>
+        <a href="/tags#Vulkan-ref">Vulkan <span>7</span></a>
+      </li>
+      <li>
+        <a href="/tags#lighting-ref">lighting <span>1</span></a>
+      </li>
+      <li>
+        <a href="/tags#cross platform-ref">cross platform <span>7</span></a>
+      </li>
+      <li>
+        <a href="/tags#shaders-ref">shaders <span>2</span></a>
+      </li>
+      <li>
+        <a href="/tags#HLSL-ref">HLSL <span>2</span></a>
+      </li>
+      <li>
+        <a href="/tags#SPIR-V-ref">SPIR-V <span>3</span></a>
+      </li>
+    </ul>
+    <hr>
+    <div class="pagination">
+      <ul>
+          <li class="prev"><a href="/posts/vulkandeclarativelightingparser" title="Vulkan prototype - how many separate render passes in the lighting parser?">&larr; Previous</a></li>
+
+          <li><a href="/archive">Archive</a></li>
+
+          <li class="next disabled"><a>Next &rarr;</a>
+      </ul>
+    </div>
+    <hr>
+    <div id="disqus_thread"></div>
+<script>
+    var disqus_developer = 1;
+    var disqus_shortname = 'xledev'; // required: replace example with your forum shortname
+    /* * * DON'T EDIT BELOW THIS LINE * * */
+    (function() {
+        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+        dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<a href="http://disqus.com" class="dsq-brlink">blog comments powered by <span class="logo-disqus">Disqus</span></a>
+
+  </div>
+</div>
+
+
+      </div>
+
+      <hr>
+      <div class="footer">
+        <p>&copy; XL Games 2015
+          with help from <a href="http://ruhoh.com" target="_blank" title="The Definitive Technical Blogging Framework">ruhoh</a>
+          and <a href="http://twitter.github.com/bootstrap/" target="_blank">Twitter Bootstrap</a>
+        </p>
+      </div>
+
+    </div> <!-- /container -->
+
+    <!-- Google Prettify -->
+<script src="http://cdnjs.cloudflare.com/ajax/libs/prettify/188.0.0/prettify.js"></script>
+<script>
+  var pres = document.getElementsByTagName("pre");
+  for (var i=0; i < pres.length; ++i) {
+    pres[i].className = "prettyprint linenums";
+  }
+  prettyPrint();
+</script>
+<!-- end Google Prettify -->
+    <script type="text/javascript">
+
+  var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', 'UA-71034032-1']);
+  _gaq.push(['_trackPageview']);
+  
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+
+</script>
+
+
+    
+  </body>
+</html>

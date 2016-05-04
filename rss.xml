@@ -4,7 +4,7 @@
     <title>XLE development blog</title>
     <description>XLE development blog</description>
     <link>http://xlgames-inc.github.io</link>
-    <pubDate>April 22, 2016</pubDate>
+    <pubDate>May 04, 2016</pubDate>
     <item>
       <title>About</title>
       <link>http://xlgames-inc.github.io/about</link>
@@ -22,6 +22,10 @@
       <link>http://xlgames-inc.github.io/archive</link>
       <description>
   &lt;h2&gt;2016&lt;/h2&gt;
+    &lt;h3&gt;May&lt;/h3&gt;
+    &lt;ul&gt;
+      &lt;li&gt;&lt;span&gt;May 04, 2016&lt;/span&gt; &amp;raquo; &lt;a href="/posts/vulkanmoreprogress"&gt;Vulkan latest progress -- core lighting working&lt;/a&gt;&lt;/li&gt;
+    &lt;/ul&gt;
     &lt;h3&gt;April&lt;/h3&gt;
     &lt;ul&gt;
       &lt;li&gt;&lt;span&gt;April 22, 2016&lt;/span&gt; &amp;raquo; &lt;a href="/posts/vulkandeclarativelightingparser"&gt;Vulkan prototype - how many separate render passes in the lighting parser?&lt;/a&gt;&lt;/li&gt;
@@ -70,14 +74,14 @@
       <description>
 &lt;ul class="tag_box inline"&gt;
   &lt;li&gt;
-    &lt;a href="/categories#XLE-ref"&gt;XLE &lt;span&gt;23&lt;/span&gt;&lt;/a&gt;
+    &lt;a href="/categories#XLE-ref"&gt;XLE &lt;span&gt;24&lt;/span&gt;&lt;/a&gt;
   &lt;/li&gt;
   &lt;li&gt;
     &lt;a href="/categories#blog-ref"&gt;blog &lt;span&gt;1&lt;/span&gt;&lt;/a&gt;
   &lt;/li&gt;
 &lt;/ul&gt;
 
-  &lt;h3&gt;XLE (23)&lt;/h3&gt;
+  &lt;h3&gt;XLE (24)&lt;/h3&gt;
   &lt;ul&gt;
       &lt;li&gt;&lt;a href="/posts/arealightsandpbr"&gt;Area Lights with Physically Based Rendering&lt;/a&gt;&lt;/li&gt;
       &lt;li&gt;&lt;a href="/posts/assetpathscripts"&gt;Processing textures with the XLE scriptable asset path&lt;/a&gt;&lt;/li&gt;
@@ -97,6 +101,7 @@
       &lt;li&gt;&lt;a href="/posts/vulkan"&gt;Starting to experiment with Vulkan&lt;/a&gt;&lt;/li&gt;
       &lt;li&gt;&lt;a href="/posts/vulkanbigissues"&gt;Vulkan prototype - the big issues&lt;/a&gt;&lt;/li&gt;
       &lt;li&gt;&lt;a href="/posts/vulkandeclarativelightingparser"&gt;Vulkan prototype - how many separate render passes in the lighting parser?&lt;/a&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;a href="/posts/vulkanmoreprogress"&gt;Vulkan latest progress -- core lighting working&lt;/a&gt;&lt;/li&gt;
       &lt;li&gt;&lt;a href="/posts/vulkanprototypeslowprogress"&gt;Vulkan prototype slowly progressing&lt;/a&gt;&lt;/li&gt;
       &lt;li&gt;&lt;a href="/posts/vulkanshaderprototype"&gt;HLSL shader prototype with Vulkan&lt;/a&gt;&lt;/li&gt;
       &lt;li&gt;&lt;a href="/posts/vulkantips"&gt;Important Vulkan tips&lt;/a&gt;&lt;/li&gt;
@@ -120,6 +125,10 @@
 &lt;p&gt;Dev team contact: &lt;a href="mailto:xle@xlgames.com"&gt;xle@xlgames.com&lt;/a&gt; (in English or Korean)&lt;/p&gt;
 
   &lt;h2&gt;2016&lt;/h2&gt;
+    &lt;h3&gt;May&lt;/h3&gt;
+    &lt;ul&gt;
+      &lt;li&gt;&lt;span&gt;May 04, 2016&lt;/span&gt; &amp;raquo; &lt;a href="/posts/vulkanmoreprogress"&gt;Vulkan latest progress -- core lighting working&lt;/a&gt;&lt;/li&gt;
+    &lt;/ul&gt;
     &lt;h3&gt;April&lt;/h3&gt;
     &lt;ul&gt;
       &lt;li&gt;&lt;span&gt;April 22, 2016&lt;/span&gt; &amp;raquo; &lt;a href="/posts/vulkandeclarativelightingparser"&gt;Vulkan prototype - how many separate render passes in the lighting parser?&lt;/a&gt;&lt;/li&gt;
@@ -167,6 +176,37 @@
 
 &lt;hr /&gt;
 
+&lt;div class="post"&gt;
+  &lt;h3 class="title"&gt;&lt;a href="/posts/vulkanmoreprogress"&gt;Vulkan latest progress -- core lighting working&lt;/a&gt;&lt;br /&gt; &lt;span class="date"&gt;May 04, 2016&lt;/span&gt;&lt;/h3&gt;
+
+  &lt;div class="summary ellipsis"&gt;
+&lt;p&gt;The Vulkan build is steadily getting more and more functionality. Now the core rendering pipeline in SceneEngine is working -- which means we can have deferred lighting, shadows, IBL, tonemapping, etc. Simple scene should render correctly now. But there are some inefficiencies and issues (see below).&lt;/p&gt;
+
+&lt;p&gt;Unfortunately the DirectX11 version isn't working at the moment. This is all in the "experimental" branch.&lt;/p&gt;
+
+&lt;h2 id="toc_0"&gt;Declarative render passes&lt;/h2&gt;
+
+&lt;p&gt;Tone-mapping now works, and it was a good prototype for the "declarative" render pass model. This allows us to specify render passes and render targets required using a "description" structure. The system will do some caching and correlate request to resources, creating and binding as necessary.&lt;/p&gt;
+
+&lt;p&gt;There is some overhead with this design because it involves doing some per-frame hash and lookups as we go along. It's not as efficient as (for example) just pre-creating all of the frame buffer / render pass objects in a configure step. However, this design is maybe a little more flexible and easier to tie into existing scene engine code. In effect, we're building a new layer that is just one step more abstract from the underlying Vulkan objects.&lt;/p&gt;
+
+&lt;p&gt;I've pushed some of the "busy-work" (like declaring subpass dependencies) down into the RenderCore::Metal layer. This makes the interface easier to use... But the downside is that my abstraction is not expressive enough for some unusual cases. For example, I came across a cases where we want to bind the "depth &amp;amp; stencil" aspects of a depth texture in one subpass; and in the second subpass only the "stencil" aspect is bound. This apparently needs a dependency... But it's just really inconvenient with this interface.&lt;/p&gt;
+
+&lt;p&gt;I've also build a concept called "named resources" into the Metal::DeviceContext. This allows us to get TextureViews for  attachments from the device context. It feels out of place because it's an operation that doesn't involve the hardware, but there doesn't seem to be any better way to handle this case.&lt;/p&gt;
+
+&lt;p&gt;Fundamentally we want to define attachments FrameBufferDesc objects, so that we can later refer to them again by binding id. It would be better if some of this functionality was in the RenderCore::Techniques library... But it would be just too much hassle to split it better Techniques and Metal.&lt;/p&gt;
+
+&lt;p&gt;Anyway, it's working now in Vulkan. However, I still haven't got to the caching and reuse part. And it also needs to be implemented for DirectX11, also!&lt;/p&gt;
+
+&lt;h2 id="toc_1"&gt;Compute shader work!&lt;/h2&gt;
+
+&lt;p&gt;I added in support for the compute pipeline. It actually was pretty easy. I decided to switch some of the tonemapping code from pixel shaders to compute shaders -- because this seems to be more natural in Vulkan. Working with viewports and render targets is much more complex in Vulkan than DirectX11.&lt;/p&gt;
+&lt;/div&gt;
+
+  &lt;div class="more"&gt;
+    &lt;a href="/posts/vulkanmoreprogress" class="btn btn-small"&gt;read more..&lt;/a&gt;
+  &lt;/div&gt;
+&lt;/div&gt;
 &lt;div class="post"&gt;
   &lt;h3 class="title"&gt;&lt;a href="/posts/vulkandeclarativelightingparser"&gt;Vulkan prototype - how many separate render passes in the lighting parser?&lt;/a&gt;&lt;br /&gt; &lt;span class="date"&gt;April 22, 2016&lt;/span&gt;&lt;/h3&gt;
 
@@ -295,37 +335,6 @@
     &lt;a href="/posts/vulkanprototypeslowprogress" class="btn btn-small"&gt;read more..&lt;/a&gt;
   &lt;/div&gt;
 &lt;/div&gt;
-&lt;div class="post"&gt;
-  &lt;h3 class="title"&gt;&lt;a href="/posts/vulkanshaderprototype"&gt;HLSL shader prototype with Vulkan&lt;/a&gt;&lt;br /&gt; &lt;span class="date"&gt;April 05, 2016&lt;/span&gt;&lt;/h3&gt;
-
-  &lt;div class="summary ellipsis"&gt;
-&lt;p&gt;As part of the Vulkan prototype, I'm experimenting with compiling HLSL shaders to SPIR-V.&lt;/p&gt;
-
-&lt;p&gt;The Vulkan API doesn't have a high level shader language attached. Instead, it works with a new intermediate bytecode format, called SPIR-V. This works with the LLVM compiler system, so in theory we plug in different front ends to allow various high level languages to compile to SPIR-V.&lt;/p&gt;
-
-&lt;p&gt;That sounds great for the future... But right now, there doesn't seem to be a great path for generating the SPIR-V bytecode.&lt;/p&gt;
-
-&lt;p&gt;All of the XLE shaders are HLSL... So how do we use them with Vulkan? Let's consider the options.&lt;/p&gt;
-
-&lt;h2 id="toc_0"&gt;Preprocessor framework&lt;/h2&gt;
-
-&lt;p&gt;One option is to convert the shader code to GLSL using a preprocessor framework. HLSL and GLSL are closely related... But they vary significantly in the way the shader interface is declared (eg, shader resources, vertex elements, built in values, etc).&lt;/p&gt;
-
-&lt;p&gt;We can get around this by using a system of preprocessor macros and complex #includes. We would end up with native HLSL and GLSL code that does the same thing. The core shader code that does the math and lighting (etc) should be fairly compatible between languages... It's just the interface that is an issue.&lt;/p&gt;
-
-&lt;p&gt;However this kind of approach it's a bit awkward, and difficult maintain in the long term. And it might mean dropping support for some of the more unusual D3D features I'm using (such as for dynamic linking).&lt;/p&gt;
-
-&lt;p&gt;Also, it looks like GLSL might not be around a very long time. It could possibly go the way of OpenGL in the medium term. So it doesn't make sense to invest a lot of time into GLSL, just to have to be replaced with something else later.&lt;/p&gt;
-
-&lt;h2 id="toc_1"&gt;Cross compile&lt;/h2&gt;
-
-&lt;p&gt;Another option is to try to convert the HLSL output to SPIR-V by way of a cross compiler.&lt;/p&gt;
-&lt;/div&gt;
-
-  &lt;div class="more"&gt;
-    &lt;a href="/posts/vulkanshaderprototype" class="btn btn-small"&gt;read more..&lt;/a&gt;
-  &lt;/div&gt;
-&lt;/div&gt;
 
 &lt;div class="pagination"&gt;
   &lt;ul&gt;
@@ -433,7 +442,7 @@
     &lt;a href="/tags#Releases-ref"&gt;Releases &lt;span&gt;1&lt;/span&gt;&lt;/a&gt;
   &lt;/li&gt;
   &lt;li&gt;
-    &lt;a href="/tags#Vulkan-ref"&gt;Vulkan &lt;span&gt;6&lt;/span&gt;&lt;/a&gt;
+    &lt;a href="/tags#Vulkan-ref"&gt;Vulkan &lt;span&gt;7&lt;/span&gt;&lt;/a&gt;
   &lt;/li&gt;
   &lt;li&gt;
     &lt;a href="/tags#rendering-ref"&gt;rendering &lt;span&gt;1&lt;/span&gt;&lt;/a&gt;
@@ -442,16 +451,19 @@
     &lt;a href="/tags#API-ref"&gt;API &lt;span&gt;1&lt;/span&gt;&lt;/a&gt;
   &lt;/li&gt;
   &lt;li&gt;
-    &lt;a href="/tags#cross platform-ref"&gt;cross platform &lt;span&gt;6&lt;/span&gt;&lt;/a&gt;
+    &lt;a href="/tags#cross platform-ref"&gt;cross platform &lt;span&gt;7&lt;/span&gt;&lt;/a&gt;
   &lt;/li&gt;
   &lt;li&gt;
-    &lt;a href="/tags#SPIR-V-ref"&gt;SPIR-V &lt;span&gt;2&lt;/span&gt;&lt;/a&gt;
+    &lt;a href="/tags#lighting-ref"&gt;lighting &lt;span&gt;1&lt;/span&gt;&lt;/a&gt;
   &lt;/li&gt;
   &lt;li&gt;
-    &lt;a href="/tags#shaders-ref"&gt;shaders &lt;span&gt;1&lt;/span&gt;&lt;/a&gt;
+    &lt;a href="/tags#shaders-ref"&gt;shaders &lt;span&gt;2&lt;/span&gt;&lt;/a&gt;
   &lt;/li&gt;
   &lt;li&gt;
-    &lt;a href="/tags#HLSL-ref"&gt;HLSL &lt;span&gt;1&lt;/span&gt;&lt;/a&gt;
+    &lt;a href="/tags#HLSL-ref"&gt;HLSL &lt;span&gt;2&lt;/span&gt;&lt;/a&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;a href="/tags#SPIR-V-ref"&gt;SPIR-V &lt;span&gt;3&lt;/span&gt;&lt;/a&gt;
   &lt;/li&gt;
 &lt;/ul&gt;
 
@@ -521,6 +533,7 @@
     &lt;li&gt;&lt;a href="/posts/vulkan"&gt;Starting to experiment with Vulkan&lt;/a&gt;&lt;/li&gt;
     &lt;li&gt;&lt;a href="/posts/vulkanbigissues"&gt;Vulkan prototype - the big issues&lt;/a&gt;&lt;/li&gt;
     &lt;li&gt;&lt;a href="/posts/vulkandeclarativelightingparser"&gt;Vulkan prototype - how many separate render passes in the lighting parser?&lt;/a&gt;&lt;/li&gt;
+    &lt;li&gt;&lt;a href="/posts/vulkanmoreprogress"&gt;Vulkan latest progress -- core lighting working&lt;/a&gt;&lt;/li&gt;
     &lt;li&gt;&lt;a href="/posts/vulkanprototypeslowprogress"&gt;Vulkan prototype slowly progressing&lt;/a&gt;&lt;/li&gt;
     &lt;li&gt;&lt;a href="/posts/vulkanshaderprototype"&gt;HLSL shader prototype with Vulkan&lt;/a&gt;&lt;/li&gt;
     &lt;li&gt;&lt;a href="/posts/vulkantips"&gt;Important Vulkan tips&lt;/a&gt;&lt;/li&gt;
@@ -532,15 +545,21 @@
     &lt;li&gt;&lt;a href="/posts/vulkan"&gt;Starting to experiment with Vulkan&lt;/a&gt;&lt;/li&gt;
     &lt;li&gt;&lt;a href="/posts/vulkanbigissues"&gt;Vulkan prototype - the big issues&lt;/a&gt;&lt;/li&gt;
     &lt;li&gt;&lt;a href="/posts/vulkandeclarativelightingparser"&gt;Vulkan prototype - how many separate render passes in the lighting parser?&lt;/a&gt;&lt;/li&gt;
+    &lt;li&gt;&lt;a href="/posts/vulkanmoreprogress"&gt;Vulkan latest progress -- core lighting working&lt;/a&gt;&lt;/li&gt;
     &lt;li&gt;&lt;a href="/posts/vulkanprototypeslowprogress"&gt;Vulkan prototype slowly progressing&lt;/a&gt;&lt;/li&gt;
     &lt;li&gt;&lt;a href="/posts/vulkanshaderprototype"&gt;HLSL shader prototype with Vulkan&lt;/a&gt;&lt;/li&gt;
     &lt;li&gt;&lt;a href="/posts/vulkantips"&gt;Important Vulkan tips&lt;/a&gt;&lt;/li&gt;
-  &lt;h3 id="SPIR-V-ref"&gt;SPIR-V&lt;/h3&gt;
-    &lt;li&gt;&lt;a href="/posts/vulkanprototypeslowprogress"&gt;Vulkan prototype slowly progressing&lt;/a&gt;&lt;/li&gt;
-    &lt;li&gt;&lt;a href="/posts/vulkanshaderprototype"&gt;HLSL shader prototype with Vulkan&lt;/a&gt;&lt;/li&gt;
+  &lt;h3 id="lighting-ref"&gt;lighting&lt;/h3&gt;
+    &lt;li&gt;&lt;a href="/posts/vulkanmoreprogress"&gt;Vulkan latest progress -- core lighting working&lt;/a&gt;&lt;/li&gt;
   &lt;h3 id="shaders-ref"&gt;shaders&lt;/h3&gt;
+    &lt;li&gt;&lt;a href="/posts/vulkanmoreprogress"&gt;Vulkan latest progress -- core lighting working&lt;/a&gt;&lt;/li&gt;
     &lt;li&gt;&lt;a href="/posts/vulkanshaderprototype"&gt;HLSL shader prototype with Vulkan&lt;/a&gt;&lt;/li&gt;
   &lt;h3 id="HLSL-ref"&gt;HLSL&lt;/h3&gt;
+    &lt;li&gt;&lt;a href="/posts/vulkanmoreprogress"&gt;Vulkan latest progress -- core lighting working&lt;/a&gt;&lt;/li&gt;
+    &lt;li&gt;&lt;a href="/posts/vulkanshaderprototype"&gt;HLSL shader prototype with Vulkan&lt;/a&gt;&lt;/li&gt;
+  &lt;h3 id="SPIR-V-ref"&gt;SPIR-V&lt;/h3&gt;
+    &lt;li&gt;&lt;a href="/posts/vulkanmoreprogress"&gt;Vulkan latest progress -- core lighting working&lt;/a&gt;&lt;/li&gt;
+    &lt;li&gt;&lt;a href="/posts/vulkanprototypeslowprogress"&gt;Vulkan prototype slowly progressing&lt;/a&gt;&lt;/li&gt;
     &lt;li&gt;&lt;a href="/posts/vulkanshaderprototype"&gt;HLSL shader prototype with Vulkan&lt;/a&gt;&lt;/li&gt;
  
 </description>

@@ -51,6 +51,37 @@
         <div class="row-fluid">
   <div class="span12">
       <div class="posts">
+        <h3 class="title"><a href="/posts/vulkanmoreprogress">Vulkan latest progress -- core lighting working</a><br/> <span class="date">May 04, 2016</span></h3>
+
+        <div class="summary ellipsis">
+<p>The Vulkan build is steadily getting more and more functionality. Now the core rendering pipeline in SceneEngine is working -- which means we can have deferred lighting, shadows, IBL, tonemapping, etc. Simple scene should render correctly now. But there are some inefficiencies and issues (see below).</p>
+
+<p>Unfortunately the DirectX11 version isn't working at the moment. This is all in the "experimental" branch.</p>
+
+<h2 id="toc_0">Declarative render passes</h2>
+
+<p>Tone-mapping now works, and it was a good prototype for the "declarative" render pass model. This allows us to specify render passes and render targets required using a "description" structure. The system will do some caching and correlate request to resources, creating and binding as necessary.</p>
+
+<p>There is some overhead with this design because it involves doing some per-frame hash and lookups as we go along. It's not as efficient as (for example) just pre-creating all of the frame buffer / render pass objects in a configure step. However, this design is maybe a little more flexible and easier to tie into existing scene engine code. In effect, we're building a new layer that is just one step more abstract from the underlying Vulkan objects.</p>
+
+<p>I've pushed some of the "busy-work" (like declaring subpass dependencies) down into the RenderCore::Metal layer. This makes the interface easier to use... But the downside is that my abstraction is not expressive enough for some unusual cases. For example, I came across a cases where we want to bind the "depth &amp; stencil" aspects of a depth texture in one subpass; and in the second subpass only the "stencil" aspect is bound. This apparently needs a dependency... But it's just really inconvenient with this interface.</p>
+
+<p>I've also build a concept called "named resources" into the Metal::DeviceContext. This allows us to get TextureViews for  attachments from the device context. It feels out of place because it's an operation that doesn't involve the hardware, but there doesn't seem to be any better way to handle this case.</p>
+
+<p>Fundamentally we want to define attachments FrameBufferDesc objects, so that we can later refer to them again by binding id. It would be better if some of this functionality was in the RenderCore::Techniques library... But it would be just too much hassle to split it better Techniques and Metal.</p>
+
+<p>Anyway, it's working now in Vulkan. However, I still haven't got to the caching and reuse part. And it also needs to be implemented for DirectX11, also!</p>
+
+<h2 id="toc_1">Compute shader work!</h2>
+
+<p>I added in support for the compute pipeline. It actually was pretty easy. I decided to switch some of the tonemapping code from pixel shaders to compute shaders -- because this seems to be more natural in Vulkan. Working with viewports and render targets is much more complex in Vulkan than DirectX11.</p>
+</div>
+
+        <div class="more">
+          <a href="/posts/vulkanmoreprogress" class="btn btn-small">read more..</a>
+        </div>
+      </div>
+      <div class="posts">
         <h3 class="title"><a href="/posts/vulkandeclarativelightingparser">Vulkan prototype - how many separate render passes in the lighting parser?</a><br/> <span class="date">April 22, 2016</span></h3>
 
         <div class="summary ellipsis">
@@ -176,37 +207,6 @@
 
         <div class="more">
           <a href="/posts/vulkanprototypeslowprogress" class="btn btn-small">read more..</a>
-        </div>
-      </div>
-      <div class="posts">
-        <h3 class="title"><a href="/posts/vulkanshaderprototype">HLSL shader prototype with Vulkan</a><br/> <span class="date">April 05, 2016</span></h3>
-
-        <div class="summary ellipsis">
-<p>As part of the Vulkan prototype, I'm experimenting with compiling HLSL shaders to SPIR-V.</p>
-
-<p>The Vulkan API doesn't have a high level shader language attached. Instead, it works with a new intermediate bytecode format, called SPIR-V. This works with the LLVM compiler system, so in theory we plug in different front ends to allow various high level languages to compile to SPIR-V.</p>
-
-<p>That sounds great for the future... But right now, there doesn't seem to be a great path for generating the SPIR-V bytecode.</p>
-
-<p>All of the XLE shaders are HLSL... So how do we use them with Vulkan? Let's consider the options.</p>
-
-<h2 id="toc_0">Preprocessor framework</h2>
-
-<p>One option is to convert the shader code to GLSL using a preprocessor framework. HLSL and GLSL are closely related... But they vary significantly in the way the shader interface is declared (eg, shader resources, vertex elements, built in values, etc).</p>
-
-<p>We can get around this by using a system of preprocessor macros and complex #includes. We would end up with native HLSL and GLSL code that does the same thing. The core shader code that does the math and lighting (etc) should be fairly compatible between languages... It's just the interface that is an issue.</p>
-
-<p>However this kind of approach it's a bit awkward, and difficult maintain in the long term. And it might mean dropping support for some of the more unusual D3D features I'm using (such as for dynamic linking).</p>
-
-<p>Also, it looks like GLSL might not be around a very long time. It could possibly go the way of OpenGL in the medium term. So it doesn't make sense to invest a lot of time into GLSL, just to have to be replaced with something else later.</p>
-
-<h2 id="toc_1">Cross compile</h2>
-
-<p>Another option is to try to convert the HLSL output to SPIR-V by way of a cross compiler.</p>
-</div>
-
-        <div class="more">
-          <a href="/posts/vulkanshaderprototype" class="btn btn-small">read more..</a>
         </div>
       </div>
     
