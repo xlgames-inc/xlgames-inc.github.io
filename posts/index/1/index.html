@@ -51,6 +51,70 @@
         <div class="row-fluid">
   <div class="span12">
       <div class="posts">
+        <h3 class="title"><a href="/posts/juneupdate">Latest Update</a><br/> <span class="date">June 19, 2016</span></h3>
+
+        <div class="summary ellipsis">
+<p>Work is still continuing on XLE! Over the last few weeks, I've have been very distracted by other priorities. I'm likely to be somewhat busy and distracted during for a few more weeks until things return to a more normal situation.
+However, I'm still finding time to work on XLE, and make some improvements and fixes!</p>
+
+<p>Lately, my focus has been on <strong>Vulkan</strong> support (in the <em>experimental</em> branch). Vulkan is looking more and more stable and reliable, and the HLSL -&gt; SPIR-V path is working really well now!
+However, there are still some big things I want to improve on:</p>
+
+<ul>
+<li>Improved interface for BoundUniforms, that can allow for precreation of descriptor sets during loading phases</li>
+<li>Improved interface for Metal::ConstantBuffer and temporary vertex/index buffers that would rely on a single large circular device buffer</li>
+<li>Pre-create graphics pipelines when using <code>SharedStateSet</code> (eg, when rendering <code>RenderCore::Assets::ModelRenderer</code>)
+
+<ul>
+<li><em>(this might also involve a better solution for the render state resolver objects used by materials)</em></li>
+</ul>
+</li>
+<li>Fix triangle hit-test supported used by the tools (which is complicated by the render pass concept and requires stream output support)</li>
+<li>Tessellation support for terrain rendering</li>
+<li>Integration of MSAA resolve for Vulkan</li>
+</ul>
+
+<p>With these changes, we should start to see much more efficient results with the Vulkan pipeline. Some SceneEngine features won't work immediately, but otherwise we will be getting very good Vulkan results, while also retaining the DirectX compatibility! </p>
+
+</div>
+
+        <div class="more">
+          <a href="/posts/juneupdate" class="btn btn-small">read more..</a>
+        </div>
+      </div>
+      <div class="posts">
+        <h3 class="title"><a href="/posts/metallayerrefactoring">Vulkan prototype - metal layer refactoring</a><br/> <span class="date">May 09, 2016</span></h3>
+
+        <div class="summary ellipsis">
+<p>XLE has a thin layer over the underlying graphics API called "Metal". This was originally built for DirectX11 and OpenGLES. But over time it became more DirectX-focused. Part of the goal of building in Vulkan support was to provide a basis for refactoring and improving the metal layer.</p>
+
+<p>The goals for this layer are simple:
+- compile time polymorphism between underlying graphics APIs
+ - not link time or run time. We know the target during compilation of client code
+- "leaky" abstraction layer
+ - meaning that most client code is independent of the underlying graphics API
+ - but the underlying objects are still accessible, so client code can write API-specific code when needed
+- very thin, minimal overhead
+ - for example, many DeviceContext methods get inlined into client code, meaning that performance is similar to using the underlying API directly</p>
+
+<p>To make this kind of layer work, we need to find abstractions that work well for all target APIs. Usually this means finding abstractions that are great for one API, and pretty good for other APIs. That can be tricky, particularly as APIs are changing and evolving over time.</p>
+
+<h2 id="toc_0">Descriptor Set concept</h2>
+
+<p>Ideally we want the concept of "descriptor sets" to exist in the metal API somewhere. There are two reasons for this:</p>
+
+<ol>
+<li>Clean up the DeviceContext interface so there are fewer BindXX(...) methods</li>
+<li>pre-cook permanent descriptor sets using BoundUniforms (or otherwise), so that they can be reused frame to frame</li>
+</ol>
+
+</div>
+
+        <div class="more">
+          <a href="/posts/metallayerrefactoring" class="btn btn-small">read more..</a>
+        </div>
+      </div>
+      <div class="posts">
         <h3 class="title"><a href="/posts/vulkanmoreprogress">Vulkan latest progress -- core lighting working</a><br/> <span class="date">May 04, 2016</span></h3>
 
         <div class="summary ellipsis">
@@ -147,68 +211,6 @@
           <a href="/posts/vulkanbigissues" class="btn btn-small">read more..</a>
         </div>
       </div>
-      <div class="posts">
-        <h3 class="title"><a href="/posts/vulkantips">Important Vulkan tips</a><br/> <span class="date">April 12, 2016</span></h3>
-
-        <div class="summary ellipsis">
-<p>After 1 week of playing around with Vulkan, here are 4 tips I've learned. These are maybe not very obvious (some aren't clearly documented), but I think they're important to know.</p>
-
-<h2 id="toc_0">1. Use buffers as staging areas to initialize images</h2>
-
-<p>The crux of this is we need to use a function, <em>vkCmdCopyBufferToImage</em>, to implement staging images with Vulkan. It's almost impossible to do any graphics work with Vulkan without doing this -- but a first glance it might seem a bit counter-intuitive. First a bit of a background.</p>
-
-<p>Vulkan images have a "tiling" property, which can be either "linear" or "optimal." This is property relates to how pixels are arranged in memory within a single mip level.</p>
-
-<p>In linear tiling, texels are arranged in row by row, column by column. So a texel's linear address follows this pattern:</p>
-
-<pre><code>address = (y*rowPitch) + x*bitsPerPixel/8
-</code></pre>
-
-<p>When we have images on disk, we usually expect them to have this tiling.</p>
-
-<p>However, this has a big problem. Texels in the same row will be near each other in memory. But texels in the same column will be quite separate in memory.</p>
-
-<p>Given that images can be mapped arbitrarily on the final 2D triangles, we can't control the order in which the GPU will access the texels. So this is big issue for the memory cache.</p>
-
-<p>So all GPUs are able to rearrange the texels into a "swizzled" order that tries to guarantee that nearby texels in 2D (or 3D) image space will be nearby in linear memory. This is called "optimal" tiling in Vulkan.</p>
-
-</div>
-
-        <div class="more">
-          <a href="/posts/vulkantips" class="btn btn-small">read more..</a>
-        </div>
-      </div>
-      <div class="posts">
-        <h3 class="title"><a href="/posts/vulkanprototypeslowprogress">Vulkan prototype slowly progressing</a><br/> <span class="date">April 08, 2016</span></h3>
-
-        <div class="summary ellipsis">
-<p>So, the Vulkan prototype is progress... But I'm running into many problems working with the drivers and the associated tools. Here's some examples of the problems I'm finding.</p>
-
-<h2 id="toc_0">RenderDoc crashing</h2>
-
-<p>RenderDoc is the best tool for debugging Vulkan at the moment... But every time I tried to capture a log, it just crashed! The crash report didn't contain any useful information. All I could do was guess at the problem.</p>
-
-<p>Fortunately, RenderDoc has one really great feature... It's open-source! So, I just downloaded the code and ran from Visual Studio (it compiled first time).</p>
-
-<p>RenderDoc is still very unstable for Vulkan. But now that I have my own compiled version, that's not really a big issue. I can just debug any crashes and make changes as required. All of the other GPU debugging tools I've ever used (PIX, console tools, GPA, nsight, etc) have been unstable, as well. But they were all closed source. So whenever I got an error, my only choices were to either use another debugging, or guess at the problem. With this in mind, (open-source + very unstable) is probably better than (closed-source + mostly stable).</p>
-
-<p>My issue was related to "binding" decorations in SPIR-V. RenderDoc requires that all resources have binding decorations. I found this was also an issue for run-time XLE code. Even though the GLSL compiler is capable of generating SPIR-V code without binding decorations, it seems like all practical uses require them.</p>
-
-<p>My shaders weren't getting "bindings" for any resources, and this was the cause of RenderDoc's crashes!</p>
-
-<h2 id="toc_1">HLSL cross compiler and "bindings"</h2>
-
-<p>Part of the issue is related to the HLSL cross compiler. In some cases, the cross compiler can attach "location" values, but it never attaches "binding" values for textures or constant buffers.</p>
-
-<p>Fortunately, the HLSL cross compiler is also open-source... So I can create a fork with the modifications I need. That seems to be required in this case. I could try to attach the binding information later in the pipeline (eg, by modifying the output GLSL, or by inserting instructions into the SPIR-V bytecode)... But changing and improving the cross compiler seems like the best option.</p>
-
-<p>We ideally also want to specify the "descriptor set" in the GLSL code. Unfortunately, HLSL 5 doesn't have an equivalent concept. That is going to require some more effort.</p>
-</div>
-
-        <div class="more">
-          <a href="/posts/vulkanprototypeslowprogress" class="btn btn-small">read more..</a>
-        </div>
-      </div>
     
     <div class="pagination">
       <ul>
@@ -217,6 +219,7 @@
           <li><a href="/posts/index/3">3</a></li>
           <li><a href="/posts/index/4">4</a></li>
           <li><a href="/posts/index/5">5</a></li>
+          <li><a href="/posts/index/6">6</a></li>
       </ul>
     </div>
   </div>

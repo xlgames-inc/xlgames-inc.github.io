@@ -4,7 +4,7 @@
     <title>XLE development blog</title>
     <description>XLE development blog</description>
     <link>http://xlgames-inc.github.io</link>
-    <pubDate>May 04, 2016</pubDate>
+    <pubDate>June 19, 2016</pubDate>
     <item>
       <title>About</title>
       <link>http://xlgames-inc.github.io/about</link>
@@ -22,8 +22,13 @@
       <link>http://xlgames-inc.github.io/archive</link>
       <description>
   &lt;h2&gt;2016&lt;/h2&gt;
+    &lt;h3&gt;June&lt;/h3&gt;
+    &lt;ul&gt;
+      &lt;li&gt;&lt;span&gt;June 19, 2016&lt;/span&gt; &amp;raquo; &lt;a href="/posts/juneupdate"&gt;Latest Update&lt;/a&gt;&lt;/li&gt;
+    &lt;/ul&gt;
     &lt;h3&gt;May&lt;/h3&gt;
     &lt;ul&gt;
+      &lt;li&gt;&lt;span&gt;May 09, 2016&lt;/span&gt; &amp;raquo; &lt;a href="/posts/metallayerrefactoring"&gt;Vulkan prototype - metal layer refactoring&lt;/a&gt;&lt;/li&gt;
       &lt;li&gt;&lt;span&gt;May 04, 2016&lt;/span&gt; &amp;raquo; &lt;a href="/posts/vulkanmoreprogress"&gt;Vulkan latest progress -- core lighting working&lt;/a&gt;&lt;/li&gt;
     &lt;/ul&gt;
     &lt;h3&gt;April&lt;/h3&gt;
@@ -74,14 +79,14 @@
       <description>
 &lt;ul class="tag_box inline"&gt;
   &lt;li&gt;
-    &lt;a href="/categories#XLE-ref"&gt;XLE &lt;span&gt;24&lt;/span&gt;&lt;/a&gt;
+    &lt;a href="/categories#XLE-ref"&gt;XLE &lt;span&gt;26&lt;/span&gt;&lt;/a&gt;
   &lt;/li&gt;
   &lt;li&gt;
     &lt;a href="/categories#blog-ref"&gt;blog &lt;span&gt;1&lt;/span&gt;&lt;/a&gt;
   &lt;/li&gt;
 &lt;/ul&gt;
 
-  &lt;h3&gt;XLE (24)&lt;/h3&gt;
+  &lt;h3&gt;XLE (26)&lt;/h3&gt;
   &lt;ul&gt;
       &lt;li&gt;&lt;a href="/posts/arealightsandpbr"&gt;Area Lights with Physically Based Rendering&lt;/a&gt;&lt;/li&gt;
       &lt;li&gt;&lt;a href="/posts/assetpathscripts"&gt;Processing textures with the XLE scriptable asset path&lt;/a&gt;&lt;/li&gt;
@@ -90,7 +95,9 @@
       &lt;li&gt;&lt;a href="/posts/envshots"&gt;Environment Rendering Screenshots&lt;/a&gt;&lt;/li&gt;
       &lt;li&gt;&lt;a href="/posts/functionlinkedshaders"&gt;Dynamic Function Linking Graph for Shaders&lt;/a&gt;&lt;/li&gt;
       &lt;li&gt;&lt;a href="/posts/improvedibl"&gt;Improved IBL&lt;/a&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;a href="/posts/juneupdate"&gt;Latest Update&lt;/a&gt;&lt;/li&gt;
       &lt;li&gt;&lt;a href="/posts/materialtool"&gt;Material and Node Diagram Tool&lt;/a&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;a href="/posts/metallayerrefactoring"&gt;Vulkan prototype - metal layer refactoring&lt;/a&gt;&lt;/li&gt;
       &lt;li&gt;&lt;a href="/posts/newtoolfeatures"&gt;Latest Tool Features&lt;/a&gt;&lt;/li&gt;
       &lt;li&gt;&lt;a href="/posts/rectlightdiffuse"&gt;Rectangle Light diffuse vs 3DS Max&lt;/a&gt;&lt;/li&gt;
       &lt;li&gt;&lt;a href="/posts/release0040"&gt;Release v0.04.0&lt;/a&gt;&lt;/li&gt;
@@ -125,8 +132,13 @@
 &lt;p&gt;Dev team contact: &lt;a href="mailto:xle@xlgames.com"&gt;xle@xlgames.com&lt;/a&gt; (in English or Korean)&lt;/p&gt;
 
   &lt;h2&gt;2016&lt;/h2&gt;
+    &lt;h3&gt;June&lt;/h3&gt;
+    &lt;ul&gt;
+      &lt;li&gt;&lt;span&gt;June 19, 2016&lt;/span&gt; &amp;raquo; &lt;a href="/posts/juneupdate"&gt;Latest Update&lt;/a&gt;&lt;/li&gt;
+    &lt;/ul&gt;
     &lt;h3&gt;May&lt;/h3&gt;
     &lt;ul&gt;
+      &lt;li&gt;&lt;span&gt;May 09, 2016&lt;/span&gt; &amp;raquo; &lt;a href="/posts/metallayerrefactoring"&gt;Vulkan prototype - metal layer refactoring&lt;/a&gt;&lt;/li&gt;
       &lt;li&gt;&lt;span&gt;May 04, 2016&lt;/span&gt; &amp;raquo; &lt;a href="/posts/vulkanmoreprogress"&gt;Vulkan latest progress -- core lighting working&lt;/a&gt;&lt;/li&gt;
     &lt;/ul&gt;
     &lt;h3&gt;April&lt;/h3&gt;
@@ -176,6 +188,70 @@
 
 &lt;hr /&gt;
 
+&lt;div class="post"&gt;
+  &lt;h3 class="title"&gt;&lt;a href="/posts/juneupdate"&gt;Latest Update&lt;/a&gt;&lt;br /&gt; &lt;span class="date"&gt;June 19, 2016&lt;/span&gt;&lt;/h3&gt;
+
+  &lt;div class="summary ellipsis"&gt;
+&lt;p&gt;Work is still continuing on XLE! Over the last few weeks, I've have been very distracted by other priorities. I'm likely to be somewhat busy and distracted during for a few more weeks until things return to a more normal situation.
+However, I'm still finding time to work on XLE, and make some improvements and fixes!&lt;/p&gt;
+
+&lt;p&gt;Lately, my focus has been on &lt;strong&gt;Vulkan&lt;/strong&gt; support (in the &lt;em&gt;experimental&lt;/em&gt; branch). Vulkan is looking more and more stable and reliable, and the HLSL -&amp;gt; SPIR-V path is working really well now!
+However, there are still some big things I want to improve on:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;Improved interface for BoundUniforms, that can allow for precreation of descriptor sets during loading phases&lt;/li&gt;
+&lt;li&gt;Improved interface for Metal::ConstantBuffer and temporary vertex/index buffers that would rely on a single large circular device buffer&lt;/li&gt;
+&lt;li&gt;Pre-create graphics pipelines when using &lt;code&gt;SharedStateSet&lt;/code&gt; (eg, when rendering &lt;code&gt;RenderCore::Assets::ModelRenderer&lt;/code&gt;)
+
+&lt;ul&gt;
+&lt;li&gt;&lt;em&gt;(this might also involve a better solution for the render state resolver objects used by materials)&lt;/em&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;Fix triangle hit-test supported used by the tools (which is complicated by the render pass concept and requires stream output support)&lt;/li&gt;
+&lt;li&gt;Tessellation support for terrain rendering&lt;/li&gt;
+&lt;li&gt;Integration of MSAA resolve for Vulkan&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;With these changes, we should start to see much more efficient results with the Vulkan pipeline. Some SceneEngine features won't work immediately, but otherwise we will be getting very good Vulkan results, while also retaining the DirectX compatibility! &lt;/p&gt;
+
+&lt;/div&gt;
+
+  &lt;div class="more"&gt;
+    &lt;a href="/posts/juneupdate" class="btn btn-small"&gt;read more..&lt;/a&gt;
+  &lt;/div&gt;
+&lt;/div&gt;
+&lt;div class="post"&gt;
+  &lt;h3 class="title"&gt;&lt;a href="/posts/metallayerrefactoring"&gt;Vulkan prototype - metal layer refactoring&lt;/a&gt;&lt;br /&gt; &lt;span class="date"&gt;May 09, 2016&lt;/span&gt;&lt;/h3&gt;
+
+  &lt;div class="summary ellipsis"&gt;
+&lt;p&gt;XLE has a thin layer over the underlying graphics API called "Metal". This was originally built for DirectX11 and OpenGLES. But over time it became more DirectX-focused. Part of the goal of building in Vulkan support was to provide a basis for refactoring and improving the metal layer.&lt;/p&gt;
+
+&lt;p&gt;The goals for this layer are simple:
+- compile time polymorphism between underlying graphics APIs
+ - not link time or run time. We know the target during compilation of client code
+- "leaky" abstraction layer
+ - meaning that most client code is independent of the underlying graphics API
+ - but the underlying objects are still accessible, so client code can write API-specific code when needed
+- very thin, minimal overhead
+ - for example, many DeviceContext methods get inlined into client code, meaning that performance is similar to using the underlying API directly&lt;/p&gt;
+
+&lt;p&gt;To make this kind of layer work, we need to find abstractions that work well for all target APIs. Usually this means finding abstractions that are great for one API, and pretty good for other APIs. That can be tricky, particularly as APIs are changing and evolving over time.&lt;/p&gt;
+
+&lt;h2 id="toc_0"&gt;Descriptor Set concept&lt;/h2&gt;
+
+&lt;p&gt;Ideally we want the concept of "descriptor sets" to exist in the metal API somewhere. There are two reasons for this:&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;Clean up the DeviceContext interface so there are fewer BindXX(...) methods&lt;/li&gt;
+&lt;li&gt;pre-cook permanent descriptor sets using BoundUniforms (or otherwise), so that they can be reused frame to frame&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;/div&gt;
+
+  &lt;div class="more"&gt;
+    &lt;a href="/posts/metallayerrefactoring" class="btn btn-small"&gt;read more..&lt;/a&gt;
+  &lt;/div&gt;
+&lt;/div&gt;
 &lt;div class="post"&gt;
   &lt;h3 class="title"&gt;&lt;a href="/posts/vulkanmoreprogress"&gt;Vulkan latest progress -- core lighting working&lt;/a&gt;&lt;br /&gt; &lt;span class="date"&gt;May 04, 2016&lt;/span&gt;&lt;/h3&gt;
 
@@ -273,68 +349,6 @@
     &lt;a href="/posts/vulkanbigissues" class="btn btn-small"&gt;read more..&lt;/a&gt;
   &lt;/div&gt;
 &lt;/div&gt;
-&lt;div class="post"&gt;
-  &lt;h3 class="title"&gt;&lt;a href="/posts/vulkantips"&gt;Important Vulkan tips&lt;/a&gt;&lt;br /&gt; &lt;span class="date"&gt;April 12, 2016&lt;/span&gt;&lt;/h3&gt;
-
-  &lt;div class="summary ellipsis"&gt;
-&lt;p&gt;After 1 week of playing around with Vulkan, here are 4 tips I've learned. These are maybe not very obvious (some aren't clearly documented), but I think they're important to know.&lt;/p&gt;
-
-&lt;h2 id="toc_0"&gt;1. Use buffers as staging areas to initialize images&lt;/h2&gt;
-
-&lt;p&gt;The crux of this is we need to use a function, &lt;em&gt;vkCmdCopyBufferToImage&lt;/em&gt;, to implement staging images with Vulkan. It's almost impossible to do any graphics work with Vulkan without doing this -- but a first glance it might seem a bit counter-intuitive. First a bit of a background.&lt;/p&gt;
-
-&lt;p&gt;Vulkan images have a "tiling" property, which can be either "linear" or "optimal." This is property relates to how pixels are arranged in memory within a single mip level.&lt;/p&gt;
-
-&lt;p&gt;In linear tiling, texels are arranged in row by row, column by column. So a texel's linear address follows this pattern:&lt;/p&gt;
-
-&lt;pre&gt;&lt;code&gt;address = (y*rowPitch) + x*bitsPerPixel/8
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;When we have images on disk, we usually expect them to have this tiling.&lt;/p&gt;
-
-&lt;p&gt;However, this has a big problem. Texels in the same row will be near each other in memory. But texels in the same column will be quite separate in memory.&lt;/p&gt;
-
-&lt;p&gt;Given that images can be mapped arbitrarily on the final 2D triangles, we can't control the order in which the GPU will access the texels. So this is big issue for the memory cache.&lt;/p&gt;
-
-&lt;p&gt;So all GPUs are able to rearrange the texels into a "swizzled" order that tries to guarantee that nearby texels in 2D (or 3D) image space will be nearby in linear memory. This is called "optimal" tiling in Vulkan.&lt;/p&gt;
-
-&lt;/div&gt;
-
-  &lt;div class="more"&gt;
-    &lt;a href="/posts/vulkantips" class="btn btn-small"&gt;read more..&lt;/a&gt;
-  &lt;/div&gt;
-&lt;/div&gt;
-&lt;div class="post"&gt;
-  &lt;h3 class="title"&gt;&lt;a href="/posts/vulkanprototypeslowprogress"&gt;Vulkan prototype slowly progressing&lt;/a&gt;&lt;br /&gt; &lt;span class="date"&gt;April 08, 2016&lt;/span&gt;&lt;/h3&gt;
-
-  &lt;div class="summary ellipsis"&gt;
-&lt;p&gt;So, the Vulkan prototype is progress... But I'm running into many problems working with the drivers and the associated tools. Here's some examples of the problems I'm finding.&lt;/p&gt;
-
-&lt;h2 id="toc_0"&gt;RenderDoc crashing&lt;/h2&gt;
-
-&lt;p&gt;RenderDoc is the best tool for debugging Vulkan at the moment... But every time I tried to capture a log, it just crashed! The crash report didn't contain any useful information. All I could do was guess at the problem.&lt;/p&gt;
-
-&lt;p&gt;Fortunately, RenderDoc has one really great feature... It's open-source! So, I just downloaded the code and ran from Visual Studio (it compiled first time).&lt;/p&gt;
-
-&lt;p&gt;RenderDoc is still very unstable for Vulkan. But now that I have my own compiled version, that's not really a big issue. I can just debug any crashes and make changes as required. All of the other GPU debugging tools I've ever used (PIX, console tools, GPA, nsight, etc) have been unstable, as well. But they were all closed source. So whenever I got an error, my only choices were to either use another debugging, or guess at the problem. With this in mind, (open-source + very unstable) is probably better than (closed-source + mostly stable).&lt;/p&gt;
-
-&lt;p&gt;My issue was related to "binding" decorations in SPIR-V. RenderDoc requires that all resources have binding decorations. I found this was also an issue for run-time XLE code. Even though the GLSL compiler is capable of generating SPIR-V code without binding decorations, it seems like all practical uses require them.&lt;/p&gt;
-
-&lt;p&gt;My shaders weren't getting "bindings" for any resources, and this was the cause of RenderDoc's crashes!&lt;/p&gt;
-
-&lt;h2 id="toc_1"&gt;HLSL cross compiler and "bindings"&lt;/h2&gt;
-
-&lt;p&gt;Part of the issue is related to the HLSL cross compiler. In some cases, the cross compiler can attach "location" values, but it never attaches "binding" values for textures or constant buffers.&lt;/p&gt;
-
-&lt;p&gt;Fortunately, the HLSL cross compiler is also open-source... So I can create a fork with the modifications I need. That seems to be required in this case. I could try to attach the binding information later in the pipeline (eg, by modifying the output GLSL, or by inserting instructions into the SPIR-V bytecode)... But changing and improving the cross compiler seems like the best option.&lt;/p&gt;
-
-&lt;p&gt;We ideally also want to specify the "descriptor set" in the GLSL code. Unfortunately, HLSL 5 doesn't have an equivalent concept. That is going to require some more effort.&lt;/p&gt;
-&lt;/div&gt;
-
-  &lt;div class="more"&gt;
-    &lt;a href="/posts/vulkanprototypeslowprogress" class="btn btn-small"&gt;read more..&lt;/a&gt;
-  &lt;/div&gt;
-&lt;/div&gt;
 
 &lt;div class="pagination"&gt;
   &lt;ul&gt;
@@ -343,6 +357,7 @@
       &lt;li&gt;&lt;a href="/posts/index/3"&gt;3&lt;/a&gt;&lt;/li&gt;
       &lt;li&gt;&lt;a href="/posts/index/4"&gt;4&lt;/a&gt;&lt;/li&gt;
       &lt;li&gt;&lt;a href="/posts/index/5"&gt;5&lt;/a&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;a href="/posts/index/6"&gt;6&lt;/a&gt;&lt;/li&gt;
   &lt;/ul&gt;
 &lt;/div&gt;
 </description>
@@ -430,10 +445,19 @@
     &lt;a href="/tags#GGX-ref"&gt;GGX &lt;span&gt;4&lt;/span&gt;&lt;/a&gt;
   &lt;/li&gt;
   &lt;li&gt;
+    &lt;a href="/tags#Vulkan-ref"&gt;Vulkan &lt;span&gt;9&lt;/span&gt;&lt;/a&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
     &lt;a href="/tags#MaterialTool-ref"&gt;MaterialTool &lt;span&gt;2&lt;/span&gt;&lt;/a&gt;
   &lt;/li&gt;
   &lt;li&gt;
     &lt;a href="/tags#Shaders-ref"&gt;Shaders &lt;span&gt;2&lt;/span&gt;&lt;/a&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;a href="/tags#cross platform-ref"&gt;cross platform &lt;span&gt;8&lt;/span&gt;&lt;/a&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;a href="/tags#Metal-ref"&gt;Metal &lt;span&gt;1&lt;/span&gt;&lt;/a&gt;
   &lt;/li&gt;
   &lt;li&gt;
     &lt;a href="/tags#RectangleLights-ref"&gt;RectangleLights &lt;span&gt;2&lt;/span&gt;&lt;/a&gt;
@@ -442,16 +466,10 @@
     &lt;a href="/tags#Releases-ref"&gt;Releases &lt;span&gt;1&lt;/span&gt;&lt;/a&gt;
   &lt;/li&gt;
   &lt;li&gt;
-    &lt;a href="/tags#Vulkan-ref"&gt;Vulkan &lt;span&gt;7&lt;/span&gt;&lt;/a&gt;
-  &lt;/li&gt;
-  &lt;li&gt;
     &lt;a href="/tags#rendering-ref"&gt;rendering &lt;span&gt;1&lt;/span&gt;&lt;/a&gt;
   &lt;/li&gt;
   &lt;li&gt;
     &lt;a href="/tags#API-ref"&gt;API &lt;span&gt;1&lt;/span&gt;&lt;/a&gt;
-  &lt;/li&gt;
-  &lt;li&gt;
-    &lt;a href="/tags#cross platform-ref"&gt;cross platform &lt;span&gt;7&lt;/span&gt;&lt;/a&gt;
   &lt;/li&gt;
   &lt;li&gt;
     &lt;a href="/tags#lighting-ref"&gt;lighting &lt;span&gt;1&lt;/span&gt;&lt;/a&gt;
@@ -518,37 +536,42 @@
     &lt;li&gt;&lt;a href="/posts/transmittedspecular"&gt;Transmitted specular&lt;/a&gt;&lt;/li&gt;
     &lt;li&gt;&lt;a href="/posts/transmittedspecular2"&gt;Transmitted specular progress&lt;/a&gt;&lt;/li&gt;
     &lt;li&gt;&lt;a href="/posts/transmittedspecular3"&gt;Transmitted specular&lt;/a&gt;&lt;/li&gt;
+  &lt;h3 id="Vulkan-ref"&gt;Vulkan&lt;/h3&gt;
+    &lt;li&gt;&lt;a href="/posts/juneupdate"&gt;Latest Update&lt;/a&gt;&lt;/li&gt;
+    &lt;li&gt;&lt;a href="/posts/metallayerrefactoring"&gt;Vulkan prototype - metal layer refactoring&lt;/a&gt;&lt;/li&gt;
+    &lt;li&gt;&lt;a href="/posts/vulkan"&gt;Starting to experiment with Vulkan&lt;/a&gt;&lt;/li&gt;
+    &lt;li&gt;&lt;a href="/posts/vulkanbigissues"&gt;Vulkan prototype - the big issues&lt;/a&gt;&lt;/li&gt;
+    &lt;li&gt;&lt;a href="/posts/vulkandeclarativelightingparser"&gt;Vulkan prototype - how many separate render passes in the lighting parser?&lt;/a&gt;&lt;/li&gt;
+    &lt;li&gt;&lt;a href="/posts/vulkanmoreprogress"&gt;Vulkan latest progress -- core lighting working&lt;/a&gt;&lt;/li&gt;
+    &lt;li&gt;&lt;a href="/posts/vulkanprototypeslowprogress"&gt;Vulkan prototype slowly progressing&lt;/a&gt;&lt;/li&gt;
+    &lt;li&gt;&lt;a href="/posts/vulkanshaderprototype"&gt;HLSL shader prototype with Vulkan&lt;/a&gt;&lt;/li&gt;
+    &lt;li&gt;&lt;a href="/posts/vulkantips"&gt;Important Vulkan tips&lt;/a&gt;&lt;/li&gt;
   &lt;h3 id="MaterialTool-ref"&gt;MaterialTool&lt;/h3&gt;
     &lt;li&gt;&lt;a href="/posts/materialtool"&gt;Material and Node Diagram Tool&lt;/a&gt;&lt;/li&gt;
     &lt;li&gt;&lt;a href="/posts/transmissionnodegraph"&gt;Transmission Node Diagram&lt;/a&gt;&lt;/li&gt;
   &lt;h3 id="Shaders-ref"&gt;Shaders&lt;/h3&gt;
     &lt;li&gt;&lt;a href="/posts/materialtool"&gt;Material and Node Diagram Tool&lt;/a&gt;&lt;/li&gt;
     &lt;li&gt;&lt;a href="/posts/transmissionnodegraph"&gt;Transmission Node Diagram&lt;/a&gt;&lt;/li&gt;
+  &lt;h3 id="cross platform-ref"&gt;cross platform&lt;/h3&gt;
+    &lt;li&gt;&lt;a href="/posts/metallayerrefactoring"&gt;Vulkan prototype - metal layer refactoring&lt;/a&gt;&lt;/li&gt;
+    &lt;li&gt;&lt;a href="/posts/vulkan"&gt;Starting to experiment with Vulkan&lt;/a&gt;&lt;/li&gt;
+    &lt;li&gt;&lt;a href="/posts/vulkanbigissues"&gt;Vulkan prototype - the big issues&lt;/a&gt;&lt;/li&gt;
+    &lt;li&gt;&lt;a href="/posts/vulkandeclarativelightingparser"&gt;Vulkan prototype - how many separate render passes in the lighting parser?&lt;/a&gt;&lt;/li&gt;
+    &lt;li&gt;&lt;a href="/posts/vulkanmoreprogress"&gt;Vulkan latest progress -- core lighting working&lt;/a&gt;&lt;/li&gt;
+    &lt;li&gt;&lt;a href="/posts/vulkanprototypeslowprogress"&gt;Vulkan prototype slowly progressing&lt;/a&gt;&lt;/li&gt;
+    &lt;li&gt;&lt;a href="/posts/vulkanshaderprototype"&gt;HLSL shader prototype with Vulkan&lt;/a&gt;&lt;/li&gt;
+    &lt;li&gt;&lt;a href="/posts/vulkantips"&gt;Important Vulkan tips&lt;/a&gt;&lt;/li&gt;
+  &lt;h3 id="Metal-ref"&gt;Metal&lt;/h3&gt;
+    &lt;li&gt;&lt;a href="/posts/metallayerrefactoring"&gt;Vulkan prototype - metal layer refactoring&lt;/a&gt;&lt;/li&gt;
   &lt;h3 id="RectangleLights-ref"&gt;RectangleLights&lt;/h3&gt;
     &lt;li&gt;&lt;a href="/posts/rectlightdiffuse"&gt;Rectangle Light diffuse vs 3DS Max&lt;/a&gt;&lt;/li&gt;
     &lt;li&gt;&lt;a href="/posts/workingonrectlights"&gt;Working some improvements to rectangle lights&lt;/a&gt;&lt;/li&gt;
   &lt;h3 id="Releases-ref"&gt;Releases&lt;/h3&gt;
     &lt;li&gt;&lt;a href="/posts/release0040"&gt;Release v0.04.0&lt;/a&gt;&lt;/li&gt;
-  &lt;h3 id="Vulkan-ref"&gt;Vulkan&lt;/h3&gt;
-    &lt;li&gt;&lt;a href="/posts/vulkan"&gt;Starting to experiment with Vulkan&lt;/a&gt;&lt;/li&gt;
-    &lt;li&gt;&lt;a href="/posts/vulkanbigissues"&gt;Vulkan prototype - the big issues&lt;/a&gt;&lt;/li&gt;
-    &lt;li&gt;&lt;a href="/posts/vulkandeclarativelightingparser"&gt;Vulkan prototype - how many separate render passes in the lighting parser?&lt;/a&gt;&lt;/li&gt;
-    &lt;li&gt;&lt;a href="/posts/vulkanmoreprogress"&gt;Vulkan latest progress -- core lighting working&lt;/a&gt;&lt;/li&gt;
-    &lt;li&gt;&lt;a href="/posts/vulkanprototypeslowprogress"&gt;Vulkan prototype slowly progressing&lt;/a&gt;&lt;/li&gt;
-    &lt;li&gt;&lt;a href="/posts/vulkanshaderprototype"&gt;HLSL shader prototype with Vulkan&lt;/a&gt;&lt;/li&gt;
-    &lt;li&gt;&lt;a href="/posts/vulkantips"&gt;Important Vulkan tips&lt;/a&gt;&lt;/li&gt;
   &lt;h3 id="rendering-ref"&gt;rendering&lt;/h3&gt;
     &lt;li&gt;&lt;a href="/posts/vulkan"&gt;Starting to experiment with Vulkan&lt;/a&gt;&lt;/li&gt;
   &lt;h3 id="API-ref"&gt;API&lt;/h3&gt;
     &lt;li&gt;&lt;a href="/posts/vulkan"&gt;Starting to experiment with Vulkan&lt;/a&gt;&lt;/li&gt;
-  &lt;h3 id="cross platform-ref"&gt;cross platform&lt;/h3&gt;
-    &lt;li&gt;&lt;a href="/posts/vulkan"&gt;Starting to experiment with Vulkan&lt;/a&gt;&lt;/li&gt;
-    &lt;li&gt;&lt;a href="/posts/vulkanbigissues"&gt;Vulkan prototype - the big issues&lt;/a&gt;&lt;/li&gt;
-    &lt;li&gt;&lt;a href="/posts/vulkandeclarativelightingparser"&gt;Vulkan prototype - how many separate render passes in the lighting parser?&lt;/a&gt;&lt;/li&gt;
-    &lt;li&gt;&lt;a href="/posts/vulkanmoreprogress"&gt;Vulkan latest progress -- core lighting working&lt;/a&gt;&lt;/li&gt;
-    &lt;li&gt;&lt;a href="/posts/vulkanprototypeslowprogress"&gt;Vulkan prototype slowly progressing&lt;/a&gt;&lt;/li&gt;
-    &lt;li&gt;&lt;a href="/posts/vulkanshaderprototype"&gt;HLSL shader prototype with Vulkan&lt;/a&gt;&lt;/li&gt;
-    &lt;li&gt;&lt;a href="/posts/vulkantips"&gt;Important Vulkan tips&lt;/a&gt;&lt;/li&gt;
   &lt;h3 id="lighting-ref"&gt;lighting&lt;/h3&gt;
     &lt;li&gt;&lt;a href="/posts/vulkanmoreprogress"&gt;Vulkan latest progress -- core lighting working&lt;/a&gt;&lt;/li&gt;
   &lt;h3 id="shaders-ref"&gt;shaders&lt;/h3&gt;

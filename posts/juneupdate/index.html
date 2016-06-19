@@ -2,7 +2,7 @@
 <html lang="en">
   <head>
     <meta charset="utf-8">
-    <title>Environment Rendering Screenshots</title>
+    <title>Latest Update</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="author" content="XL Games">
 
@@ -50,44 +50,52 @@
       <div class="content">
         
 <div class="page-header">
-  <h1>Environment Rendering Screenshots </h1>
+  <h1>Latest Update </h1>
 </div>
 
 <div class="row-fluid post-full">
   <div class="span12">
     <div class="date">
-      <span>March 30, 2016</strong>
+      <span>June 19, 2016</strong>
     </div>
     <div class="content">
-      <p>Here are a few screenshots of environment rendering in XLE. I don&#39;t have a lot of art I can take screenshots of, so I can&#39;t show a very polished scene... But you can see some of the rendering features.</p>
+      <p>Work is still continuing on XLE! Over the last few weeks, I&#39;ve have been very distracted by other priorities. I&#39;m likely to be somewhat busy and distracted during for a few more weeks until things return to a more normal situation.
+However, I&#39;m still finding time to work on XLE, and make some improvements and fixes!</p>
 
-<p>Look for:</p>
+<p>Lately, my focus has been on <strong>Vulkan</strong> support (in the <em>experimental</em> branch). Vulkan is looking more and more stable and reliable, and the HLSL -&gt; SPIR-V path is working really well now!
+However, there are still some big things I want to improve on:</p>
 
 <ul>
-<li>shallow water surface animation</li>
-<li>order independent blending for foliage</li>
-<li>volumetric fog (&amp; related effects)</li>
-<li>dynamic imposters for distant trees</li>
-<li>high res terrain geometry</li>
-<li>terrain decoration spawn</li>
-<li>&quot;contact hardening&quot; shadows</li>
-<li>infinite terrain shadows</li>
+<li>Improved interface for BoundUniforms, that can allow for precreation of descriptor sets during loading phases</li>
+<li>Improved interface for Metal::ConstantBuffer and temporary vertex/index buffers that would rely on a single large circular device buffer</li>
+<li>Pre-create graphics pipelines when using <code>SharedStateSet</code> (eg, when rendering <code>RenderCore::Assets::ModelRenderer</code>)
+
+<ul>
+<li><em>(this might also involve a better solution for the render state resolver objects used by materials)</em></li>
+</ul></li>
+<li>Fix triangle hit-test supported used by the tools (which is complicated by the render pass concept and requires stream output support)</li>
+<li>Tessellation support for terrain rendering</li>
+<li>Integration of MSAA resolve for Vulkan</li>
 </ul>
 
-<p>(see <a href="../first/index.html">older screenshots here</a>)</p>
+<p>With these changes, we should start to see much more efficient results with the Vulkan pipeline. Some SceneEngine features won&#39;t work immediately, but otherwise we will be getting very good Vulkan results, while also retaining the DirectX compatibility! </p>
 
-<p><br/><img src="/assets/media/EnvShots/shot47.jpg">
-<br/><img src="/assets/media/EnvShots/shot50.jpg">
-<br/><img src="/assets/media/EnvShots/shot52.jpg">
-<br/><img src="/assets/media/EnvShots/shot55.jpg">
-<br/><img src="/assets/media/EnvShots/shot57.jpg">
-<br/><img src="/assets/media/EnvShots/shot58.jpg">
-<br/><img src="/assets/media/EnvShots/shot65.jpg"></p>
+<p>Lately, there have been many cool improvements related to Vulkan, including:</p>
 
-<p>Here&#39;s a shot of a turbulent ocean (though the indoor environment reflections are weird!). The ocean animation is dynamically calculated on the GPU, and can simulate both small waves on a calm ocean surface and turbulant large waves.
-<br/><img src="/assets/media/EnvShots/shot83.jpg"></p>
+<ul>
+<li>Lots of improvements to the HLSLcc cross compiler that coverts HLSL -&gt; GLSL (which becomes SPIR-V)
 
-<p><em>(some of the sky textures in these screenshots are from <a href="http://www.hdrlabs.com/sibl/archive.html">sIBL Archive</a>)</em></p>
+<ul>
+<li>this is now working for almost all shaders, and adds support for many HLSL features that previously weren&#39;t well supported by the HLSLcc project</li>
+</ul></li>
+<li>Support for using Vulkan within the GUI tools!</li>
+<li>Properly tracking GPU progress for object destruction, allowing full descynronisation of CPU and GPU</li>
+<li>Support for event pools, and the GPUProfiler</li>
+<li>Reduction of dependencies on the RenderCore::Metal project by projects that should be gfx-api agnostic</li>
+<li>Core lighting support including IBL and shadows</li>
+</ul>
+
+<p>Please keep checking back regularly for the latest updates!</p>
 
     </div>
     <ul class="tag_box inline">
@@ -99,17 +107,17 @@
     <ul class="tag_box inline">
       <li><i class="icon-tags"></i></li>
       <li>
-        <a href="/tags#Screenshots-ref">Screenshots <span>1</span></a>
+        <a href="/tags#Vulkan-ref">Vulkan <span>9</span></a>
       </li>
     </ul>
     <hr>
     <div class="pagination">
       <ul>
-          <li class="prev"><a href="/posts/release0040" title="Release v0.04.0">&larr; Previous</a></li>
+          <li class="prev"><a href="/posts/metallayerrefactoring" title="Vulkan prototype - metal layer refactoring">&larr; Previous</a></li>
 
           <li><a href="/archive">Archive</a></li>
 
-          <li class="next"><a href="/posts/compareoitrans" title="Comparing different methods for order independent transparency">Next &rarr;</a></li>
+          <li class="next disabled"><a>Next &rarr;</a>
       </ul>
     </div>
     <hr>

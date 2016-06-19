@@ -1,0 +1,192 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Vulkan prototype - metal layer refactoring</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="author" content="XL Games">
+
+    <!-- Le HTML5 shim, for IE6-8 support of HTML elements -->
+    <!--[if lt IE 9]>
+      <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+
+    <!-- Le styles -->
+<link href='/assets/stylesheets/bootstrap.min-93b47f97c3444c4711853ed5140d82a1.css' type='text/css' rel='stylesheet' media='all'>
+<link href='/assets/stylesheets/style-1dcb1d39791f3457afa56d279fcf0945.css' type='text/css' rel='stylesheet' media='all'>
+<link href='/assets/stylesheets/google_prettify/sons-of-obsidian-5e05343fd0c18e0a05231023b643245c.css' type='text/css' rel='stylesheet' media='all'>
+    <!-- Le fav and touch icons -->
+  <!-- Update these with your own images
+    <link rel="shortcut icon" href="images/favicon.ico">
+    <link rel="apple-touch-icon" href="images/apple-touch-icon.png">
+    <link rel="apple-touch-icon" sizes="72x72" href="images/apple-touch-icon-72x72.png">
+    <link rel="apple-touch-icon" sizes="114x114" href="images/apple-touch-icon-114x114.png">
+  -->
+  </head>
+
+  <body>
+
+    <div class="navbar">
+      <div class="navbar-inner">
+        <div class="container-narrow">
+          <a class="brand" href="/">XLE development blog</a>
+          <ul class="nav">
+              
+                <li><a href="/tags">Tags</a></li>
+              
+              
+                <li><a href="/archive">Archive</a></li>
+              
+              
+                <li><a href="/about">About</a></li>
+              
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="container-narrow">
+
+      <div class="content">
+        
+<div class="page-header">
+  <h1>Vulkan prototype - metal layer refactoring </h1>
+</div>
+
+<div class="row-fluid post-full">
+  <div class="span12">
+    <div class="date">
+      <span>May 09, 2016</strong>
+    </div>
+    <div class="content">
+      <p>XLE has a thin layer over the underlying graphics API called &quot;Metal&quot;. This was originally built for DirectX11 and OpenGLES. But over time it became more DirectX-focused. Part of the goal of building in Vulkan support was to provide a basis for refactoring and improving the metal layer.</p>
+
+<p>The goals for this layer are simple:
+- compile time polymorphism between underlying graphics APIs
+ - not link time or run time. We know the target during compilation of client code
+- &quot;leaky&quot; abstraction layer
+ - meaning that most client code is independent of the underlying graphics API
+ - but the underlying objects are still accessible, so client code can write API-specific code when needed
+- very thin, minimal overhead
+ - for example, many DeviceContext methods get inlined into client code, meaning that performance is similar to using the underlying API directly</p>
+
+<p>To make this kind of layer work, we need to find abstractions that work well for all target APIs. Usually this means finding abstractions that are great for one API, and pretty good for other APIs. That can be tricky, particularly as APIs are changing and evolving over time.</p>
+
+<h2 id="toc_0">Descriptor Set concept</h2>
+
+<p>Ideally we want the concept of &quot;descriptor sets&quot; to exist in the metal API somewhere. There are two reasons for this:</p>
+
+<ol>
+<li>Clean up the DeviceContext interface so there are fewer BindXX(...) methods</li>
+<li>pre-cook permanent descriptor sets using BoundUniforms (or otherwise), so that they can be reused frame to frame</li>
+</ol>
+
+<p>DirectX11 has no concept of descriptor sets, though, so this could be a bit awkward. There are a couple of tricky problems</p>
+
+<h3 id="toc_1">Sharing descriptors across shader stages</h3>
+
+<p>In modern APIs, we can bind a descriptor set to multiple shader stages; meaning that binding a resource one can make it accessible to multiple shaders. However, DirectX11 strictly separates the stages so that we explicitly bind only to a single stage.</p>
+
+<p>So how to we create a single solution that handles both these cases?</p>
+
+<p>One option is to expand the &quot;root signature&quot; concept. This defines a set of virtual binding points, which can be redirected to the true underlying binding points. The virtual binding points can know which shader stages they apply to -- and so can calls the appropriate underlying binding functions.</p>
+
+<p>This might have some long-term advantages because it also allows us to abstract the C++ code completely from the true binding points expressed in the shader files. There&#39;s a little extra overhead, but maybe it&#39;s not a huge issue.</p>
+
+<p>That would be a great solution for &quot;frame-global&quot; or long-term bindings. It would also be great for our few global SamplerState objects (which can easily become immutable in Vulkan, and handled automatically in DirectX).</p>
+
+<p>But for short-term dynamic bindings, it may not be great. Often we&#39;re just binding one or two resources or constant buffers to the first few binding points, and using them for a single draw call. For this, we might need something different.</p>
+
+<p>If the &quot;dynamic&quot; descriptor set in Vulkan was very large, we could more easily have separate binding points for resources that are shared between stages, and those that are used only in one. However, currently we need to keep this descriptor set small because we need to write to all binding points, regardless of whether they are used or not. If a shader accesses an unused descriptor, we will get a device-lost error.</p>
+
+<p>This could be made better by calculating a mask of the used slots in the dynamic descriptor set for each shader. This would allow us to make better decisions about when to write to this dynamic descriptor set. Most draw calls don&#39;t need this dynamic set (it&#39;s mostly required by procedurally driven effects, and less important for data driven geometry like models), and this approach should reduce the overhead in the most common cases.</p>
+
+    </div>
+    <ul class="tag_box inline">
+      <li><i class="icon-folder-open"></i></li>
+      <li>
+        <a href="/categories#XLE-ref">XLE <span>26</span></a>
+      </li>
+    </ul>
+    <ul class="tag_box inline">
+      <li><i class="icon-tags"></i></li>
+      <li>
+        <a href="/tags#Vulkan-ref">Vulkan <span>9</span></a>
+      </li>
+      <li>
+        <a href="/tags#cross platform-ref">cross platform <span>8</span></a>
+      </li>
+      <li>
+        <a href="/tags#Metal-ref">Metal <span>1</span></a>
+      </li>
+    </ul>
+    <hr>
+    <div class="pagination">
+      <ul>
+          <li class="prev"><a href="/posts/vulkanmoreprogress" title="Vulkan latest progress -- core lighting working">&larr; Previous</a></li>
+
+          <li><a href="/archive">Archive</a></li>
+
+          <li class="next"><a href="/posts/juneupdate" title="Latest Update">Next &rarr;</a></li>
+      </ul>
+    </div>
+    <hr>
+    <div id="disqus_thread"></div>
+<script>
+    var disqus_developer = 1;
+    var disqus_shortname = 'xledev'; // required: replace example with your forum shortname
+    /* * * DON'T EDIT BELOW THIS LINE * * */
+    (function() {
+        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+        dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<a href="http://disqus.com" class="dsq-brlink">blog comments powered by <span class="logo-disqus">Disqus</span></a>
+
+  </div>
+</div>
+
+
+      </div>
+
+      <hr>
+      <div class="footer">
+        <p>&copy; XL Games 2015
+          with help from <a href="http://ruhoh.com" target="_blank" title="The Definitive Technical Blogging Framework">ruhoh</a>
+          and <a href="http://twitter.github.com/bootstrap/" target="_blank">Twitter Bootstrap</a>
+        </p>
+      </div>
+
+    </div> <!-- /container -->
+
+    <!-- Google Prettify -->
+<script src="http://cdnjs.cloudflare.com/ajax/libs/prettify/188.0.0/prettify.js"></script>
+<script>
+  var pres = document.getElementsByTagName("pre");
+  for (var i=0; i < pres.length; ++i) {
+    pres[i].className = "prettyprint linenums";
+  }
+  prettyPrint();
+</script>
+<!-- end Google Prettify -->
+    <script type="text/javascript">
+
+  var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', 'UA-71034032-1']);
+  _gaq.push(['_trackPageview']);
+  
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+
+</script>
+
+
+    
+  </body>
+</html>
