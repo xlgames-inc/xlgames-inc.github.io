@@ -4,7 +4,7 @@
     <title>XLE development blog</title>
     <description>XLE development blog</description>
     <link>http://xlgames-inc.github.io</link>
-    <pubDate>June 19, 2016</pubDate>
+    <pubDate>January 02, 2017</pubDate>
     <item>
       <title>About</title>
       <link>http://xlgames-inc.github.io/about</link>
@@ -22,6 +22,10 @@
       <link>http://xlgames-inc.github.io/archive</link>
       <description>
   &lt;h2&gt;2016&lt;/h2&gt;
+    &lt;h3&gt;December&lt;/h3&gt;
+    &lt;ul&gt;
+      &lt;li&gt;&lt;span&gt;December 27, 2016&lt;/span&gt; &amp;raquo; &lt;a href="/posts/sphericalharmonics0"&gt;Spherical Harmonics and applications in real time graphics&lt;/a&gt;&lt;/li&gt;
+    &lt;/ul&gt;
     &lt;h3&gt;June&lt;/h3&gt;
     &lt;ul&gt;
       &lt;li&gt;&lt;span&gt;June 19, 2016&lt;/span&gt; &amp;raquo; &lt;a href="/posts/juneupdate"&gt;Latest Update&lt;/a&gt;&lt;/li&gt;
@@ -84,6 +88,9 @@
   &lt;li&gt;
     &lt;a href="/categories#blog-ref"&gt;blog &lt;span&gt;1&lt;/span&gt;&lt;/a&gt;
   &lt;/li&gt;
+  &lt;li&gt;
+    &lt;a href="/categories#Misc-ref"&gt;Misc &lt;span&gt;1&lt;/span&gt;&lt;/a&gt;
+  &lt;/li&gt;
 &lt;/ul&gt;
 
   &lt;h3&gt;XLE (26)&lt;/h3&gt;
@@ -119,6 +126,10 @@
   &lt;ul&gt;
       &lt;li&gt;&lt;a href="/posts/first"&gt;First post&lt;/a&gt;&lt;/li&gt;
   &lt;/ul&gt;
+  &lt;h3&gt;Misc (1)&lt;/h3&gt;
+  &lt;ul&gt;
+      &lt;li&gt;&lt;a href="/posts/sphericalharmonics0"&gt;Spherical Harmonics and applications in real time graphics&lt;/a&gt;&lt;/li&gt;
+  &lt;/ul&gt;
 </description>
     </item>
     <item>
@@ -132,6 +143,10 @@
 &lt;p&gt;Dev team contact: &lt;a href="mailto:xle@xlgames.com"&gt;xle@xlgames.com&lt;/a&gt; (in English or Korean)&lt;/p&gt;
 
   &lt;h2&gt;2016&lt;/h2&gt;
+    &lt;h3&gt;December&lt;/h3&gt;
+    &lt;ul&gt;
+      &lt;li&gt;&lt;span&gt;December 27, 2016&lt;/span&gt; &amp;raquo; &lt;a href="/posts/sphericalharmonics0"&gt;Spherical Harmonics and applications in real time graphics&lt;/a&gt;&lt;/li&gt;
+    &lt;/ul&gt;
     &lt;h3&gt;June&lt;/h3&gt;
     &lt;ul&gt;
       &lt;li&gt;&lt;span&gt;June 19, 2016&lt;/span&gt; &amp;raquo; &lt;a href="/posts/juneupdate"&gt;Latest Update&lt;/a&gt;&lt;/li&gt;
@@ -188,6 +203,37 @@
 
 &lt;hr /&gt;
 
+&lt;div class="post"&gt;
+  &lt;h3 class="title"&gt;&lt;a href="/posts/sphericalharmonics0"&gt;Spherical Harmonics and applications in real time graphics&lt;/a&gt;&lt;br /&gt; &lt;span class="date"&gt;December 27, 2016&lt;/span&gt;&lt;/h3&gt;
+
+  &lt;div class="summary ellipsis"&gt;
+&lt;p&gt;Yikes; it's been awhile since my last update!&lt;/p&gt;
+
+&lt;p&gt;I wanted to share a little bit of information from a technique I've recently been working on for an unrelated project. The technique uses a series of equations called "spherical harmonics" for extremely efficient high quality diffuse environment illumination.&lt;/p&gt;
+
+&lt;p&gt;This is a technique that started to become popular maybe around 15 years ago -- possibly because of its usefulness on low power hardware. It fell out of favour for awhile, I was never entirely clear why. I got some good value from it back then, and I hope to get more good value from the technique now; so perhaps it's time for spherical harmonic's star to come around again?&lt;/p&gt;
+
+&lt;p&gt;There's a fair amount of information about spherical harmonics on the internet, but some of can be a little dense. There seems to be lack of information on how to take the first few steps in applying this math to the graphics domain (for example, for diffuse environment lighting). So I'll try to keep this page approachable for graphics programmers, while also linking off to some of the more dense and abstract stuff later on. And I'll focus specifically on how I'm using this math for graphics, how I've used it in the past, and how I'd like that to grow in the future.&lt;/p&gt;
+
+&lt;h2 id="toc_0"&gt;What are spherical harmonics&lt;/h2&gt;
+
+&lt;p&gt;The "spherical harmonics" are a series of equations that we'll use to compress lighting information greatly. The easiest way to understand them is to start with something simpler and analogous -- and that is cubic splines.&lt;/p&gt;
+
+&lt;p&gt;Splines are a method of describing a curve through space with a finite number of points (or points and tangents). Even though the curve is defined by a finite number of parameters, the result is effectively an infinite number of points. To define the curve, we need equations of the form:&lt;/p&gt;
+
+&lt;p&gt;&lt;br&gt;&lt;img src="/assets/media/SphericalHarmonics/basic_spline.png"&gt;
+&lt;br&gt;&lt;/p&gt;
+
+&lt;p&gt;Where &lt;strong&gt;t&lt;/strong&gt; is the distance along the spline (usually between 0 and 1) and &lt;strong&gt;x&lt;/strong&gt;, &lt;strong&gt;y&lt;/strong&gt; &amp;amp; &lt;strong&gt;z&lt;/strong&gt; are cartesian coordinates.
+In the case of cubic splines, the functions &lt;strong&gt;f&lt;/strong&gt;, &lt;strong&gt;h&lt;/strong&gt; and &lt;strong&gt;g&lt;/strong&gt; are cubic polynomials. If you've used Bezier splines before, you may be familiar with a way to express these polynomials using a form called a &lt;em&gt;"Bernstein polynomial"&lt;/em&gt;.&lt;/p&gt;
+
+&lt;h3 id="toc_1"&gt;Bernstein basis&lt;/h3&gt;
+&lt;/div&gt;
+
+  &lt;div class="more"&gt;
+    &lt;a href="/posts/sphericalharmonics0" class="btn btn-small"&gt;read more..&lt;/a&gt;
+  &lt;/div&gt;
+&lt;/div&gt;
 &lt;div class="post"&gt;
   &lt;h3 class="title"&gt;&lt;a href="/posts/juneupdate"&gt;Latest Update&lt;/a&gt;&lt;br /&gt; &lt;span class="date"&gt;June 19, 2016&lt;/span&gt;&lt;/h3&gt;
 
@@ -318,37 +364,6 @@ However, there are still some big things I want to improve on:&lt;/p&gt;
     &lt;a href="/posts/vulkandeclarativelightingparser" class="btn btn-small"&gt;read more..&lt;/a&gt;
   &lt;/div&gt;
 &lt;/div&gt;
-&lt;div class="post"&gt;
-  &lt;h3 class="title"&gt;&lt;a href="/posts/vulkanbigissues"&gt;Vulkan prototype - the big issues&lt;/a&gt;&lt;br /&gt; &lt;span class="date"&gt;April 15, 2016&lt;/span&gt;&lt;/h3&gt;
-
-  &lt;div class="summary ellipsis"&gt;
-&lt;p&gt;I'm making more progress on the &lt;em&gt;Vulkan&lt;/em&gt; prototype. Now the SceneEngine compiles, BufferUploads works, and it's now possible to render basic geometry. Many features aren't supported. But the core rendering features (such as binding textures, compiling shaders, pushing geometry through the pipeline) have an early implementation.&lt;/p&gt;
-
-&lt;p&gt;So, while a working &lt;em&gt;Vulkan&lt;/em&gt; version is now close, I have a much better idea of what major hurdles there would be to get a really streamlined and efficient &lt;em&gt;Vulkan&lt;/em&gt; implementation!&lt;/p&gt;
-
-&lt;h2 id="toc_0"&gt;RenderPasses&lt;/h2&gt;
-
-&lt;p&gt;This is going to be the big issue. RenderPasses are a new concept in &lt;em&gt;Vulkan&lt;/em&gt; (though with heritage from &lt;em&gt;Apple Metal&lt;/em&gt; and &lt;em&gt;OpenGL&lt;/em&gt;), and not very compatible with the DirectX way of handling render targets. This is going to require some deep thought!&lt;/p&gt;
-
-&lt;p&gt;I haven't researched this thoroughly -- but this is my basic understanding of what might be happening...&lt;/p&gt;
-
-&lt;p&gt;RenderPasses seem to be fundamentally designed around PowerVR-style hardware (such as that found in IPhones and some Android hardware). Now, if I understand the situation correctly, this type of hardware doesn't need a traditional depth buffer. Instead it collates triangles as they are submitted, then splits them into buckets for tiles on the screen, and finally decomposes them into scanlines. The scanlines can be sorted using an old algorithm, so that for every pixel we know the front-most scanline.&lt;/p&gt;
-
-&lt;p&gt;The key issue here is that that we collate triangle information in the frame buffer, and do not produce a final pixel value until all triangles are finished. This requires the hardware to maintain buffers of triangle scanlines attached to the frame buffer.&lt;/p&gt;
-
-&lt;p&gt;The key problem here is this: what happens if we have render targets A and B, both of which are used in the same frame. We render to A, then to B, and then switch back to A and start rendering again?&lt;/p&gt;
-
-&lt;p&gt;In a traditional DirectX &lt;code&gt;OMSetRenderTargets&lt;/code&gt; environment, this is not a big issue. We might do this (for example) to render a reflection into target B, which appears on geometry in target A. Maybe we cause a bit of a GPU pipeline stall; but it's probably not going to be a major issue.&lt;/p&gt;
-
-&lt;p&gt;With the PowerVR-style hardware, however, it's a bigger deal. We want to continue collating triangle information in A throughout the entire frame. We don't want to separate that into 2. It would be better if A and B were actually 2 separate viewports onto the same frame buffer.&lt;/p&gt;
-
-&lt;p&gt;In other words, when we switch away from A, we kind of want to know if we will be returning to it. That's what RenderPasses are useful for. We can express to the API that A is not finished yet, and that B just contains temporary data that will eventually be used on A.&lt;/p&gt;
-&lt;/div&gt;
-
-  &lt;div class="more"&gt;
-    &lt;a href="/posts/vulkanbigissues" class="btn btn-small"&gt;read more..&lt;/a&gt;
-  &lt;/div&gt;
-&lt;/div&gt;
 
 &lt;div class="pagination"&gt;
   &lt;ul&gt;
@@ -466,6 +481,9 @@ However, there are still some big things I want to improve on:&lt;/p&gt;
     &lt;a href="/tags#Releases-ref"&gt;Releases &lt;span&gt;1&lt;/span&gt;&lt;/a&gt;
   &lt;/li&gt;
   &lt;li&gt;
+    &lt;a href="/tags#SphericalHarmonics-ref"&gt;SphericalHarmonics &lt;span&gt;1&lt;/span&gt;&lt;/a&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
     &lt;a href="/tags#rendering-ref"&gt;rendering &lt;span&gt;1&lt;/span&gt;&lt;/a&gt;
   &lt;/li&gt;
   &lt;li&gt;
@@ -568,6 +586,8 @@ However, there are still some big things I want to improve on:&lt;/p&gt;
     &lt;li&gt;&lt;a href="/posts/workingonrectlights"&gt;Working some improvements to rectangle lights&lt;/a&gt;&lt;/li&gt;
   &lt;h3 id="Releases-ref"&gt;Releases&lt;/h3&gt;
     &lt;li&gt;&lt;a href="/posts/release0040"&gt;Release v0.04.0&lt;/a&gt;&lt;/li&gt;
+  &lt;h3 id="SphericalHarmonics-ref"&gt;SphericalHarmonics&lt;/h3&gt;
+    &lt;li&gt;&lt;a href="/posts/sphericalharmonics0"&gt;Spherical Harmonics and applications in real time graphics&lt;/a&gt;&lt;/li&gt;
   &lt;h3 id="rendering-ref"&gt;rendering&lt;/h3&gt;
     &lt;li&gt;&lt;a href="/posts/vulkan"&gt;Starting to experiment with Vulkan&lt;/a&gt;&lt;/li&gt;
   &lt;h3 id="API-ref"&gt;API&lt;/h3&gt;

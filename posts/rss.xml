@@ -4,7 +4,174 @@
     <title>XLE development blog</title>
     <description>XLE development blog</description>
     <link>http://xlgames-inc.github.io</link>
-    <pubDate>June 19, 2016</pubDate>
+    <pubDate>January 02, 2017</pubDate>
+    <item>
+      <title>Spherical Harmonics and applications in real time graphics</title>
+      <link>http://xlgames-inc.github.io/posts/sphericalharmonics0</link>
+      <pubDate>December 27, 2016</pubDate>
+      <description>&lt;p&gt;Yikes; it&amp;#39;s been awhile since my last update!&lt;/p&gt;
+
+&lt;p&gt;I wanted to share a little bit of information from a technique I&amp;#39;ve recently been working on for an unrelated project. The technique uses a series of equations called &amp;quot;spherical harmonics&amp;quot; for extremely efficient high quality diffuse environment illumination.&lt;/p&gt;
+
+&lt;p&gt;This is a technique that started to become popular maybe around 15 years ago -- possibly because of its usefulness on low power hardware. It fell out of favour for awhile, I was never entirely clear why. I got some good value from it back then, and I hope to get more good value from the technique now; so perhaps it&amp;#39;s time for spherical harmonic&amp;#39;s star to come around again?&lt;/p&gt;
+
+&lt;p&gt;There&amp;#39;s a fair amount of information about spherical harmonics on the internet, but some of can be a little dense. There seems to be lack of information on how to take the first few steps in applying this math to the graphics domain (for example, for diffuse environment lighting). So I&amp;#39;ll try to keep this page approachable for graphics programmers, while also linking off to some of the more dense and abstract stuff later on. And I&amp;#39;ll focus specifically on how I&amp;#39;m using this math for graphics, how I&amp;#39;ve used it in the past, and how I&amp;#39;d like that to grow in the future.&lt;/p&gt;
+
+&lt;h2 id="toc_0"&gt;What are spherical harmonics&lt;/h2&gt;
+
+&lt;p&gt;The &amp;quot;spherical harmonics&amp;quot; are a series of equations that we&amp;#39;ll use to compress lighting information greatly. The easiest way to understand them is to start with something simpler and analogous -- and that is cubic splines.&lt;/p&gt;
+
+&lt;p&gt;Splines are a method of describing a curve through space with a finite number of points (or points and tangents). Even though the curve is defined by a finite number of parameters, the result is effectively an infinite number of points. To define the curve, we need equations of the form:&lt;/p&gt;
+
+&lt;p&gt;&lt;br/&gt;&lt;img src="/assets/media/SphericalHarmonics/basic_spline.png"&gt;
+&lt;br/&gt;&lt;/p&gt;
+
+&lt;p&gt;Where &lt;strong&gt;t&lt;/strong&gt; is the distance along the spline (usually between 0 and 1) and &lt;strong&gt;x&lt;/strong&gt;, &lt;strong&gt;y&lt;/strong&gt; &amp;amp; &lt;strong&gt;z&lt;/strong&gt; are cartesian coordinates.
+In the case of cubic splines, the functions &lt;strong&gt;f&lt;/strong&gt;, &lt;strong&gt;h&lt;/strong&gt; and &lt;strong&gt;g&lt;/strong&gt; are cubic polynomials. If you&amp;#39;ve used Bezier splines before, you may be familiar with a way to express these polynomials using a form called a &lt;em&gt;&amp;quot;Bernstein polynomial&amp;quot;&lt;/em&gt;.&lt;/p&gt;
+
+&lt;h3 id="toc_1"&gt;Bernstein basis&lt;/h3&gt;
+
+&lt;p&gt;Imagine the folowing 4 equations:
+&lt;br/&gt;&lt;img src="https://upload.wikimedia.org/wikipedia/commons/8/80/Bezier_basis.svg"&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;em&gt;By Ben FrantzDale (Graphed in Matplotlib.) [GFDL (&lt;a href="http://www.gnu.org/copyleft/fdl.html"&gt;http://www.gnu.org/copyleft/fdl.html&lt;/a&gt;) or CC BY-SA 4.0-3.0-2.5-2.0-1.0 (&lt;a href="http://creativecommons.org/licenses/by-sa/4.0-3.0-2.5-2.0-1.0)"&gt;http://creativecommons.org/licenses/by-sa/4.0-3.0-2.5-2.0-1.0)&lt;/a&gt;], via Wikimedia Commons&lt;/em&gt;&lt;/p&gt;
+
+&lt;p&gt;These are the Bernstein basis functions (&lt;strong&gt;B0()&lt;/strong&gt;, &lt;strong&gt;B1()&lt;/strong&gt;, &lt;strong&gt;B2()&lt;/strong&gt;, &lt;strong&gt;B3()&lt;/strong&gt;).
+Using these functions, we can express a cubic polynomial in this form:
+&lt;br/&gt;&lt;img src="/assets/media/SphericalHarmonics/bernsteinbasis.png"&gt;&lt;/p&gt;
+
+&lt;p&gt;Where &lt;strong&gt;w0&lt;/strong&gt;, &lt;strong&gt;w1&lt;/strong&gt;, &lt;strong&gt;w2&lt;/strong&gt; &amp;amp; &lt;strong&gt;w3&lt;/strong&gt; are constant weights. The four weight values will determine the shape of the curve we get. This is the important thing -- the Bernstein basis functions are defined so that we get any cubic polynomial function, just by changing the 4 weight values. And the four weight values provide a convenient way to express a spline (alternatively we can do similar things with other basis functions -- like the &lt;em&gt;Hermite basis&lt;/em&gt;, or for different types of equations, the &lt;em&gt;Fourier basis&lt;/em&gt;).&lt;/p&gt;
+
+&lt;p&gt;When dealing with cubic polynormals, we use 4 Bernstein basis equations; but the equations are defined for any degree polynomials. So, for example, if we were working with 5th degree polynomials, then we could calculate 6 associated Bernstein basis functions.&lt;/p&gt;
+
+&lt;h3 id="toc_2"&gt;SH basis&lt;/h3&gt;
+
+&lt;p&gt;But we want to know how this relates to spherical harmonics! &lt;em&gt;(But the interested might want to diverge off to Wolfram &amp;amp; Wikipedia: &lt;a href="http://mathworld.wolfram.com/BernsteinPolynomial.html"&gt;http://mathworld.wolfram.com/BernsteinPolynomial.html&lt;/a&gt;, &lt;a href="https://en.wikipedia.org/wiki/B%C3%A9zier_curve"&gt;https://en.wikipedia.org/wiki/B%C3%A9zier_curve&lt;/a&gt;)&lt;/em&gt;.&lt;/p&gt;
+
+&lt;p&gt;It turns out that the &amp;quot;spherical harmonics&amp;quot; are actually a series of equations which are a little bit similar to the Bernstein basis functions (&amp;quot;harmonic&amp;quot; being just a name for a certain kind of equation). But the spherical harmonics are special because they are defined for a very specific type of data. And that is values that are defined across the surface of a sphere...&lt;/p&gt;
+
+&lt;p&gt;Above, we used Bernstein basis functions to express polynomials. But the type of function that can be expressed using spherical harmonics looks a little like this:
+&lt;br/&gt;&lt;img src="/assets/media/SphericalHarmonics/spherical_function.png"&gt;&lt;/p&gt;
+
+&lt;p&gt;Here, &lt;strong&gt;theta&lt;/strong&gt; and &lt;strong&gt;phi&lt;/strong&gt; are spherical coordinates. Also note that another way to express the spherical coordinates &lt;strong&gt;theta&lt;/strong&gt; and &lt;strong&gt;phi&lt;/strong&gt; is by using a unit length vector!&lt;/p&gt;
+
+&lt;h2 id="toc_3"&gt;Simplest application in graphics&lt;/h2&gt;
+
+&lt;p&gt;So why is this type of equation useful? Well, there&amp;#39;s another common construct in graphics that represents values stored over the surface of sphere -- that is a &lt;em&gt;cubemap&lt;/em&gt;.&lt;/p&gt;
+
+&lt;p&gt;When we use a cubemap for the background sky in a shader, we probably have a line of shader code a little like this:
+&lt;code&gt;
+float3 skyColor = MySkyCubeMap.Sample(MySampler, unitLengthVector.xyz).rgb;
+&lt;/code&gt;&lt;/p&gt;
+
+&lt;p&gt;For any given direction, the cubemap will give us a colour value. Even though it&amp;#39;s a &lt;strong&gt;cube&lt;/strong&gt;map, it&amp;#39;s defining colour values across the surface of a sphere &lt;em&gt;(before cubemaps we used other mappings, like &lt;strong&gt;spheremaps&lt;/strong&gt; and &lt;strong&gt;paraboloid&lt;/strong&gt; maps -- but it turns out that, oddly, a cube is just the cheapest approximation to a sphere for shaders)&lt;/em&gt;. We could use spherical harmonics to do something very similar.&lt;/p&gt;
+
+&lt;p&gt;In the spline example, the analogous operation would be fitting a curve to texture values. So imagine we had an RGB single dimensional texture. We would need 1 spline for each component, but let&amp;#39;s take red as an example. Since this is a 1D texture, we can graph the red values against the (1D) texture coordinate as so:&lt;/p&gt;
+
+&lt;p&gt;&lt;br/&gt;&lt;img src="/assets/media/SphericalHarmonics/fit_curve.svg"&gt;&lt;/p&gt;
+
+&lt;p&gt;In theory, we can find a best fit cubic spline for this data. If we do that, we can use the spline as a (non-discrete) replacement for the texture (if we were doing the reverse -- using a texture as a replacement for a function -- we would called it a lookup table).&lt;/p&gt;
+
+&lt;p&gt;The degree of the spline will determine how accurately we can approach the source data. Most textures would need very high degree polynomials to even get close. In general, high frequency information is hard to replicate, but low frequency information can sometimes come through.&lt;/p&gt;
+
+&lt;p&gt;In practice, this usually isn&amp;#39;t a very useful thing to do -- though there are applications along this line of thought (such as cubic interpolation between texels, particularly with terrain heightmaps). We&amp;#39;re also starting to tread on &amp;quot;signal processing&amp;quot; ground (which we might use for deep ocean wave simulations, like the one in XLE).&lt;/p&gt;
+
+&lt;p&gt;So why would we ever want to replace a cubemap with a function using spherical harmonics? Isn&amp;#39;t that just as useless? The answer is no! There are some important cases where spherical harmonics are both accurate enough and useful enough to be worth our attention!&lt;/p&gt;
+
+&lt;h2 id="toc_4"&gt;Cartesian spherical harmonics&lt;/h2&gt;
+
+&lt;p&gt;The spherical harmonics can be expressed in spherical coordinates or cartesian coordinates. For graphics, the cartesian form is much more useful.&lt;/p&gt;
+
+&lt;p&gt;Our notation for the harmonics themselves will be this:
+&lt;br/&gt;&lt;img src="/assets/media/SphericalHarmonics/cartesian_form.png"&gt;&lt;/p&gt;
+
+&lt;p&gt;Where &lt;em&gt;l&lt;/em&gt; (lower case L) is the &amp;quot;band index&amp;quot; and &lt;em&gt;m&lt;/em&gt; is a value with the constraint &lt;em&gt;-l&lt;/em&gt; &#x2264; &lt;em&gt;m&lt;/em&gt; &#x2264; &lt;em&gt;l&lt;/em&gt;.
+The number of bands is the analogue of the degree of a polynomial -- more bands means greater accuracy and better reproduction of higher frequency data. For realtime stuff, we&amp;#39;ll focus on the first 3 &amp;quot;bands&amp;quot;.
+If you look around Wolfram or Wikipedia, you&amp;#39;ll see more complex forms of the equations. But this form is good for our applications.&lt;/p&gt;
+
+&lt;p&gt;There are the first 3 bands, in the form we&amp;#39;ll use in XLE:
+&lt;br/&gt;&lt;img src="/assets/media/SphericalHarmonics/cartesian_form_eqns.png"&gt;&lt;/p&gt;
+
+&lt;p&gt;To get a sense of how these equations look in 3D space, here&amp;#39;s a picture of the first 4 bands from Wikipedia (note that the blue represents positive numbers, the yellow is negative):
+&lt;br&gt;&lt;a title="By Inigo.quilez (Own work) [CC BY-SA 3.0 (http://creativecommons.org/licenses/by-sa/3.0)], via Wikimedia Commons" href="https://commons.wikimedia.org/wiki/File%3ASpherical_Harmonics.png"&gt;&lt;img width="512" alt="Spherical Harmonics" src="https://upload.wikimedia.org/wikipedia/commons/thumb/6/62/Spherical_Harmonics.png/512px-Spherical_Harmonics.png"/&gt;&lt;/a&gt;
+&lt;br&gt;&lt;em&gt;By Inigo.quilez (Own work) [CC BY-SA 3.0 (&lt;a href="http://creativecommons.org/licenses/by-sa/3.0)"&gt;http://creativecommons.org/licenses/by-sa/3.0)&lt;/a&gt;], via Wikimedia Commons&lt;/em&gt;&lt;/p&gt;
+
+&lt;p&gt;It&amp;#39;s important to be aware that you&amp;#39;ll see slightly different variations of these equations in different publications. This is why it&amp;#39;s not always safe to combine equations from different sources (such as the rotation equations and optimization equations we&amp;#39;ll get to later).&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;this form employs the &amp;quot;&lt;strong&gt;Condon-Shortley phase&lt;/strong&gt;&amp;quot;. This basically just adds the negative sign in front of some of the equations. This reduces the complexity of some of derived equations (such as the equations for rotation). Not all graphics literature use this form (for example, Robin Green doesn&amp;#39;t, but Peter-Pike Sloan does)&lt;/li&gt;
+&lt;li&gt;the order in which &lt;em&gt;y&lt;/em&gt;, &lt;em&gt;z&lt;/em&gt; &amp;amp; &lt;em&gt;x&lt;/em&gt; appear in band 1 can be different in different forms (this ordering seems to be most common, but it does make the rotation code a little more confusing)&lt;/li&gt;
+&lt;li&gt;this form assumes that the vector [&lt;em&gt;x&lt;/em&gt; &lt;em&gt;y&lt;/em&gt; &lt;em&gt;z&lt;/em&gt;] is unit length (ie: &lt;em&gt;x&lt;/em&gt;^2+&lt;em&gt;y&lt;/em&gt;^2+&lt;em&gt;z&lt;/em&gt;^2=1). For our applications, that&amp;#39;s always true -- but many sources don&amp;#39;t mention that as an assumption&lt;/li&gt;
+&lt;li&gt;the equation for &lt;em&gt;m&lt;/em&gt;=0 &amp;amp; &lt;em&gt;l&lt;/em&gt;=2 is often expressed with 2&lt;em&gt;z&lt;/em&gt;^2 - &lt;em&gt;x&lt;/em&gt;^2 - &lt;em&gt;y&lt;/em&gt;^2 in the brackets. But, given the unit length assumption, this equivalent&lt;/li&gt;
+&lt;li&gt;finally, there seems to be some uncertainty about the constant in the equation when &lt;em&gt;m&lt;/em&gt;=2 &amp;amp; &lt;em&gt;l&lt;/em&gt;=2 (maybe?). While working on this page, I noticed that some sources have 15/16, others have 15/32. I&amp;#39;m not sure what&amp;#39; going on there -- I might have to re-derive the equation to figure that out&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;In short, we can&amp;#39;t just copy/paste our why through spherical harmonics. We have to know what&amp;#39;s going on. (It&amp;#39;s also a good example of why you should never trust the correctness of any code you find on the internet!)&lt;/p&gt;
+
+&lt;h2 id="toc_5"&gt;Projecting into spherical harmonics and reconstruction&lt;/h2&gt;
+
+&lt;p&gt;As mentioned above, we want to combine the spherical harmonics with weight values, and use this combination to express some complex spherical function. Converting a function into spherical harmonics is called &amp;quot;projection.&amp;quot; Using the spherical harmonics to get back an approximation of the original function is called &amp;quot;reconstruction.&amp;quot;&lt;/p&gt;
+
+&lt;p&gt;The projected form of a function is just the set of weights -- one weight for each spherical harmonic (up to some limit on the number of bands). The weights are called coefficients. Let&amp;#39;s say our input function is the red channel of a cubemap. We&amp;#39;ll use 3 bands to approximate that -- that&amp;#39;s 9 equations, and 9 coefficients. Since we also want the green and blue channels, that&amp;#39;s another 9 coefficients per channel.&lt;/p&gt;
+
+&lt;p&gt;In effect, we end up with an approximation of the input cubemap in just 9 color values. Obviously we can&amp;#39;t represent much high frequency data with so few colours. We could get higher quality versions with more bands (4 bands would be 16 colour coefficients, 5 would be 25, 6 would be 36). This might be useful for spherical reflections, but for diffuse (as we&amp;#39;ll see later) there&amp;#39;s a good reason to stop at 3 bands.&lt;/p&gt;
+
+&lt;h3 id="toc_6"&gt;Projection and Reconstruction&lt;/h3&gt;
+
+&lt;p&gt;Projection is surprising simple. We can calculate each coefficient separately, and we do that by just finding the integral of the input function multiplied by the corresponding spherical harmonic.&lt;/p&gt;
+
+&lt;p&gt;&lt;br/&gt;&lt;img src="/assets/media/SphericalHarmonics/projection.png"&gt;&lt;/p&gt;
+
+&lt;p&gt;Since our input function is discreet (ie, it&amp;#39;s just pixels in a cubemap), the integral becomes simple. We just need to multiply the pixel values by the spherical harmonic for the cubemap direction -- the only difficulty is to weight for the solid angle of the cubemap pixel (see the XLE shader code for this equation).&lt;/p&gt;
+
+&lt;p&gt;The reconstruction formula is also very simple; and should now look oddly familiar:&lt;/p&gt;
+
+&lt;p&gt;&lt;br/&gt;&lt;img src="/assets/media/SphericalHarmonics/reconstruction.png"&gt;&lt;/p&gt;
+
+&lt;p&gt;Here, we just take the weighted sum of the spherical harmonics for a given direction (where &lt;em&gt;b&lt;/em&gt; is the band number limit). It&amp;#39;s pretty straight forward; but it gets more complex from here.&lt;/p&gt;
+
+&lt;h3 id="toc_7"&gt;Example&lt;/h3&gt;
+
+&lt;p&gt;So what does it look like? Here&amp;#39;s an example environment texture and the equivalent constructed environment. I&amp;#39;m going to skip ahead just a bit and show how it looks when we construct diffuse reflectance from an environment texture.
+These are equirectangular panorama maps; trivially compressed to LDR jpgs.&lt;/p&gt;
+
+&lt;h3 id="toc_8"&gt;Source texture&lt;/h3&gt;
+
+&lt;p&gt;&lt;br/&gt;&lt;img src="/assets/media/SphericalHarmonics/mans_0.jpg"&gt;
+&lt;br/&gt;(from sIBL Archive: &lt;a href="http://www.hdrlabs.com/sibl/archive.html"&gt;http://www.hdrlabs.com/sibl/archive.html&lt;/a&gt;)&lt;/p&gt;
+
+&lt;h3 id="toc_9"&gt;Reference diffuse response&lt;/h3&gt;
+
+&lt;p&gt;ie, for each direction in the panorama map, this shows the correct diffuse response of the environment, from a plain lambert diffuse BRDF.
+&lt;br/&gt;&lt;img src="/assets/media/SphericalHarmonics/reference.jpg"&gt;&lt;/p&gt;
+
+&lt;h3 id="toc_10"&gt;Reconstructed response with spherical harmonics compression&lt;/h3&gt;
+
+&lt;p&gt;&lt;br/&gt;&lt;img src="/assets/media/SphericalHarmonics/reconstruct.jpg"&gt;&lt;/p&gt;
+
+&lt;h3 id="toc_11"&gt;Absolute difference multiplied by 20&lt;/h3&gt;
+
+&lt;p&gt;&lt;br/&gt;&lt;img src="/assets/media/SphericalHarmonics/diff.jpg"&gt;&lt;/p&gt;
+
+&lt;p&gt;The reconstructed response is using 3 bands; so it&amp;#39;s stored using just 9 colour values.
+As you can see, there is some information loss -- but we can actually prove mathematically that the maximum error is pretty small.&lt;/p&gt;
+
+&lt;h2 id="toc_12"&gt;To be continued&lt;/h2&gt;
+
+&lt;p&gt;So, we&amp;#39;ve got the very basics down. We know enough to be able to compress a cubemap down to spherical harmonic form, and reconstruct an approximation from that.&lt;/p&gt;
+
+&lt;p&gt;Alone, it may sound like an interesting thing to do; but it&amp;#39;s not very useful yet. I&amp;#39;ll follow this up with some details on how we can use spherical harmonics for some really interesting stuff. Still to cover:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;combining our compressed environment information with the lambert diffuse equation&lt;/li&gt;
+&lt;li&gt;building optimized reconstruction code for shaders&lt;/li&gt;
+&lt;li&gt;rotating and manipulating spherical harmonics at runtime (and optimization thereof)&lt;/li&gt;
+&lt;li&gt;applications in global illumination schemes&lt;/li&gt;
+&lt;li&gt;some examples from around the web, and a list of the right literature to follow up with&lt;/li&gt;
+&lt;li&gt;some cool examples of SH used in games (eg; &lt;em&gt;The Last of Us&lt;/em&gt;, &lt;em&gt;The Order: 1886&lt;/em&gt;)!&lt;/li&gt;
+&lt;/ul&gt;
+</description>
+    </item>
     <item>
       <title>Latest Update</title>
       <link>http://xlgames-inc.github.io/posts/juneupdate</link>
@@ -1455,25 +1622,6 @@ This works particularly well with shadowed directional lights and geometry using
 &lt;h2 id="toc_4"&gt;Better doubled sided GGX specular equation&lt;/h2&gt;
 
 &lt;p&gt;When the shader flag &lt;em&gt;&amp;quot;MAT&lt;em&gt;DOUBLE&lt;/em&gt;SIDED_LIGHTING&amp;quot;&lt;/em&gt; is set, the specular equation is now double sided. The results will be symmetrical for a flipped normal (ie, &lt;em&gt;Specular(normal)&lt;/em&gt;==&lt;em&gt;Specular(-normal)&lt;/em&gt;, for all normals). It can be handy in cases like this, where the normals are pointing in all directions.&lt;/p&gt;
-</description>
-    </item>
-    <item>
-      <title>Transmission Node Diagram</title>
-      <link>http://xlgames-inc.github.io/posts/transmissionnodegraph</link>
-      <pubDate>January 22, 2016</pubDate>
-      <description>&lt;p&gt;Here is a node diagram for the specular transmission function (BTDF) from Walter, et al, from &lt;em&gt;&amp;quot;Microfacet Models for Refraction through Rough Surfaces.&amp;quot;&lt;/em&gt;
-Also known as the &amp;quot;GGX&amp;quot; model (or Trowbridge-Reitz).&lt;/p&gt;
-
-&lt;p&gt;&lt;br/&gt;&lt;img src="/assets/media/MaterialTool/WalterGGXTransmission.png"&gt;&lt;/p&gt;
-
-&lt;p&gt;You can see how the node graph comes in handy for debugging a shader function like this. It&amp;#39;s useful to visualize each term and see it&amp;#39;s effects.
-For example, the &amp;quot;D&amp;quot; term of the BTDF is a node on the diagram. And we can visualize the effects of that term independent of everything else.&lt;/p&gt;
-
-&lt;p&gt;In this case, the diagram saves a HLSL function, and that function is called by text-based HLSL code. This will become part of some new functionality for specular transmission through thin surfaces.&lt;/p&gt;
-
-&lt;p&gt;I&amp;#39;ll pop this in a new &amp;quot;experimental&amp;quot; branch.&lt;/p&gt;
-
-&lt;p&gt;See the post from yesterday, &lt;a href="materialtool"&gt;Material and Node Diagram Tool&lt;/a&gt;, for more information.&lt;/p&gt;
 </description>
     </item>
   </channel>

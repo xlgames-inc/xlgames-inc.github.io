@@ -1,0 +1,306 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Spherical Harmonics and applications in real time graphics</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="author" content="XL Games">
+
+    <!-- Le HTML5 shim, for IE6-8 support of HTML elements -->
+    <!--[if lt IE 9]>
+      <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+
+    <!-- Le styles -->
+<link href='/assets/stylesheets/bootstrap.min-93b47f97c3444c4711853ed5140d82a1.css' type='text/css' rel='stylesheet' media='all'>
+<link href='/assets/stylesheets/style-1dcb1d39791f3457afa56d279fcf0945.css' type='text/css' rel='stylesheet' media='all'>
+<link href='/assets/stylesheets/google_prettify/sons-of-obsidian-5e05343fd0c18e0a05231023b643245c.css' type='text/css' rel='stylesheet' media='all'>
+    <!-- Le fav and touch icons -->
+  <!-- Update these with your own images
+    <link rel="shortcut icon" href="images/favicon.ico">
+    <link rel="apple-touch-icon" href="images/apple-touch-icon.png">
+    <link rel="apple-touch-icon" sizes="72x72" href="images/apple-touch-icon-72x72.png">
+    <link rel="apple-touch-icon" sizes="114x114" href="images/apple-touch-icon-114x114.png">
+  -->
+  </head>
+
+  <body>
+
+    <div class="navbar">
+      <div class="navbar-inner">
+        <div class="container-narrow">
+          <a class="brand" href="/">XLE development blog</a>
+          <ul class="nav">
+              
+                <li><a href="/tags">Tags</a></li>
+              
+              
+                <li><a href="/archive">Archive</a></li>
+              
+              
+                <li><a href="/about">About</a></li>
+              
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="container-narrow">
+
+      <div class="content">
+        
+<div class="page-header">
+  <h1>Spherical Harmonics and applications in real time graphics </h1>
+</div>
+
+<div class="row-fluid post-full">
+  <div class="span12">
+    <div class="date">
+      <span>December 27, 2016</strong>
+    </div>
+    <div class="content">
+      <p>Yikes; it&#39;s been awhile since my last update!</p>
+
+<p>I wanted to share a little bit of information from a technique I&#39;ve recently been working on for an unrelated project. The technique uses a series of equations called &quot;spherical harmonics&quot; for extremely efficient high quality diffuse environment illumination.</p>
+
+<p>This is a technique that started to become popular maybe around 15 years ago -- possibly because of its usefulness on low power hardware. It fell out of favour for awhile, I was never entirely clear why. I got some good value from it back then, and I hope to get more good value from the technique now; so perhaps it&#39;s time for spherical harmonic&#39;s star to come around again?</p>
+
+<p>There&#39;s a fair amount of information about spherical harmonics on the internet, but some of can be a little dense. There seems to be lack of information on how to take the first few steps in applying this math to the graphics domain (for example, for diffuse environment lighting). So I&#39;ll try to keep this page approachable for graphics programmers, while also linking off to some of the more dense and abstract stuff later on. And I&#39;ll focus specifically on how I&#39;m using this math for graphics, how I&#39;ve used it in the past, and how I&#39;d like that to grow in the future.</p>
+
+<h2 id="toc_0">What are spherical harmonics</h2>
+
+<p>The &quot;spherical harmonics&quot; are a series of equations that we&#39;ll use to compress lighting information greatly. The easiest way to understand them is to start with something simpler and analogous -- and that is cubic splines.</p>
+
+<p>Splines are a method of describing a curve through space with a finite number of points (or points and tangents). Even though the curve is defined by a finite number of parameters, the result is effectively an infinite number of points. To define the curve, we need equations of the form:</p>
+
+<p><br/><img src="/assets/media/SphericalHarmonics/basic_spline.png">
+<br/></p>
+
+<p>Where <strong>t</strong> is the distance along the spline (usually between 0 and 1) and <strong>x</strong>, <strong>y</strong> &amp; <strong>z</strong> are cartesian coordinates.
+In the case of cubic splines, the functions <strong>f</strong>, <strong>h</strong> and <strong>g</strong> are cubic polynomials. If you&#39;ve used Bezier splines before, you may be familiar with a way to express these polynomials using a form called a <em>&quot;Bernstein polynomial&quot;</em>.</p>
+
+<h3 id="toc_1">Bernstein basis</h3>
+
+<p>Imagine the folowing 4 equations:
+<br/><img src="https://upload.wikimedia.org/wikipedia/commons/8/80/Bezier_basis.svg"></p>
+
+<p><em>By Ben FrantzDale (Graphed in Matplotlib.) [GFDL (<a href="http://www.gnu.org/copyleft/fdl.html">http://www.gnu.org/copyleft/fdl.html</a>) or CC BY-SA 4.0-3.0-2.5-2.0-1.0 (<a href="http://creativecommons.org/licenses/by-sa/4.0-3.0-2.5-2.0-1.0)">http://creativecommons.org/licenses/by-sa/4.0-3.0-2.5-2.0-1.0)</a>], via Wikimedia Commons</em></p>
+
+<p>These are the Bernstein basis functions (<strong>B0()</strong>, <strong>B1()</strong>, <strong>B2()</strong>, <strong>B3()</strong>).
+Using these functions, we can express a cubic polynomial in this form:
+<br/><img src="/assets/media/SphericalHarmonics/bernsteinbasis.png"></p>
+
+<p>Where <strong>w0</strong>, <strong>w1</strong>, <strong>w2</strong> &amp; <strong>w3</strong> are constant weights. The four weight values will determine the shape of the curve we get. This is the important thing -- the Bernstein basis functions are defined so that we get any cubic polynomial function, just by changing the 4 weight values. And the four weight values provide a convenient way to express a spline (alternatively we can do similar things with other basis functions -- like the <em>Hermite basis</em>, or for different types of equations, the <em>Fourier basis</em>).</p>
+
+<p>When dealing with cubic polynormals, we use 4 Bernstein basis equations; but the equations are defined for any degree polynomials. So, for example, if we were working with 5th degree polynomials, then we could calculate 6 associated Bernstein basis functions.</p>
+
+<h3 id="toc_2">SH basis</h3>
+
+<p>But we want to know how this relates to spherical harmonics! <em>(But the interested might want to diverge off to Wolfram &amp; Wikipedia: <a href="http://mathworld.wolfram.com/BernsteinPolynomial.html">http://mathworld.wolfram.com/BernsteinPolynomial.html</a>, <a href="https://en.wikipedia.org/wiki/B%C3%A9zier_curve">https://en.wikipedia.org/wiki/B%C3%A9zier_curve</a>)</em>.</p>
+
+<p>It turns out that the &quot;spherical harmonics&quot; are actually a series of equations which are a little bit similar to the Bernstein basis functions (&quot;harmonic&quot; being just a name for a certain kind of equation). But the spherical harmonics are special because they are defined for a very specific type of data. And that is values that are defined across the surface of a sphere...</p>
+
+<p>Above, we used Bernstein basis functions to express polynomials. But the type of function that can be expressed using spherical harmonics looks a little like this:
+<br/><img src="/assets/media/SphericalHarmonics/spherical_function.png"></p>
+
+<p>Here, <strong>theta</strong> and <strong>phi</strong> are spherical coordinates. Also note that another way to express the spherical coordinates <strong>theta</strong> and <strong>phi</strong> is by using a unit length vector!</p>
+
+<h2 id="toc_3">Simplest application in graphics</h2>
+
+<p>So why is this type of equation useful? Well, there&#39;s another common construct in graphics that represents values stored over the surface of sphere -- that is a <em>cubemap</em>.</p>
+
+<p>When we use a cubemap for the background sky in a shader, we probably have a line of shader code a little like this:
+<code>
+float3 skyColor = MySkyCubeMap.Sample(MySampler, unitLengthVector.xyz).rgb;
+</code></p>
+
+<p>For any given direction, the cubemap will give us a colour value. Even though it&#39;s a <strong>cube</strong>map, it&#39;s defining colour values across the surface of a sphere <em>(before cubemaps we used other mappings, like <strong>spheremaps</strong> and <strong>paraboloid</strong> maps -- but it turns out that, oddly, a cube is just the cheapest approximation to a sphere for shaders)</em>. We could use spherical harmonics to do something very similar.</p>
+
+<p>In the spline example, the analogous operation would be fitting a curve to texture values. So imagine we had an RGB single dimensional texture. We would need 1 spline for each component, but let&#39;s take red as an example. Since this is a 1D texture, we can graph the red values against the (1D) texture coordinate as so:</p>
+
+<p><br/><img src="/assets/media/SphericalHarmonics/fit_curve.svg"></p>
+
+<p>In theory, we can find a best fit cubic spline for this data. If we do that, we can use the spline as a (non-discrete) replacement for the texture (if we were doing the reverse -- using a texture as a replacement for a function -- we would called it a lookup table).</p>
+
+<p>The degree of the spline will determine how accurately we can approach the source data. Most textures would need very high degree polynomials to even get close. In general, high frequency information is hard to replicate, but low frequency information can sometimes come through.</p>
+
+<p>In practice, this usually isn&#39;t a very useful thing to do -- though there are applications along this line of thought (such as cubic interpolation between texels, particularly with terrain heightmaps). We&#39;re also starting to tread on &quot;signal processing&quot; ground (which we might use for deep ocean wave simulations, like the one in XLE).</p>
+
+<p>So why would we ever want to replace a cubemap with a function using spherical harmonics? Isn&#39;t that just as useless? The answer is no! There are some important cases where spherical harmonics are both accurate enough and useful enough to be worth our attention!</p>
+
+<h2 id="toc_4">Cartesian spherical harmonics</h2>
+
+<p>The spherical harmonics can be expressed in spherical coordinates or cartesian coordinates. For graphics, the cartesian form is much more useful.</p>
+
+<p>Our notation for the harmonics themselves will be this:
+<br/><img src="/assets/media/SphericalHarmonics/cartesian_form.png"></p>
+
+<p>Where <em>l</em> (lower case L) is the &quot;band index&quot; and <em>m</em> is a value with the constraint <em>-l</em> ≤ <em>m</em> ≤ <em>l</em>.
+The number of bands is the analogue of the degree of a polynomial -- more bands means greater accuracy and better reproduction of higher frequency data. For realtime stuff, we&#39;ll focus on the first 3 &quot;bands&quot;.
+If you look around Wolfram or Wikipedia, you&#39;ll see more complex forms of the equations. But this form is good for our applications.</p>
+
+<p>There are the first 3 bands, in the form we&#39;ll use in XLE:
+<br/><img src="/assets/media/SphericalHarmonics/cartesian_form_eqns.png"></p>
+
+<p>To get a sense of how these equations look in 3D space, here&#39;s a picture of the first 4 bands from Wikipedia (note that the blue represents positive numbers, the yellow is negative):
+<br><a title="By Inigo.quilez (Own work) [CC BY-SA 3.0 (http://creativecommons.org/licenses/by-sa/3.0)], via Wikimedia Commons" href="https://commons.wikimedia.org/wiki/File%3ASpherical_Harmonics.png"><img width="512" alt="Spherical Harmonics" src="https://upload.wikimedia.org/wikipedia/commons/thumb/6/62/Spherical_Harmonics.png/512px-Spherical_Harmonics.png"/></a>
+<br><em>By Inigo.quilez (Own work) [CC BY-SA 3.0 (<a href="http://creativecommons.org/licenses/by-sa/3.0)">http://creativecommons.org/licenses/by-sa/3.0)</a>], via Wikimedia Commons</em></p>
+
+<p>It&#39;s important to be aware that you&#39;ll see slightly different variations of these equations in different publications. This is why it&#39;s not always safe to combine equations from different sources (such as the rotation equations and optimization equations we&#39;ll get to later).</p>
+
+<ul>
+<li>this form employs the &quot;<strong>Condon-Shortley phase</strong>&quot;. This basically just adds the negative sign in front of some of the equations. This reduces the complexity of some of derived equations (such as the equations for rotation). Not all graphics literature use this form (for example, Robin Green doesn&#39;t, but Peter-Pike Sloan does)</li>
+<li>the order in which <em>y</em>, <em>z</em> &amp; <em>x</em> appear in band 1 can be different in different forms (this ordering seems to be most common, but it does make the rotation code a little more confusing)</li>
+<li>this form assumes that the vector [<em>x</em> <em>y</em> <em>z</em>] is unit length (ie: <em>x</em>^2+<em>y</em>^2+<em>z</em>^2=1). For our applications, that&#39;s always true -- but many sources don&#39;t mention that as an assumption</li>
+<li>the equation for <em>m</em>=0 &amp; <em>l</em>=2 is often expressed with 2<em>z</em>^2 - <em>x</em>^2 - <em>y</em>^2 in the brackets. But, given the unit length assumption, this equivalent</li>
+<li>finally, there seems to be some uncertainty about the constant in the equation when <em>m</em>=2 &amp; <em>l</em>=2 (maybe?). While working on this page, I noticed that some sources have 15/16, others have 15/32. I&#39;m not sure what&#39; going on there -- I might have to re-derive the equation to figure that out</li>
+</ul>
+
+<p>In short, we can&#39;t just copy/paste our why through spherical harmonics. We have to know what&#39;s going on. (It&#39;s also a good example of why you should never trust the correctness of any code you find on the internet!)</p>
+
+<h2 id="toc_5">Projecting into spherical harmonics and reconstruction</h2>
+
+<p>As mentioned above, we want to combine the spherical harmonics with weight values, and use this combination to express some complex spherical function. Converting a function into spherical harmonics is called &quot;projection.&quot; Using the spherical harmonics to get back an approximation of the original function is called &quot;reconstruction.&quot;</p>
+
+<p>The projected form of a function is just the set of weights -- one weight for each spherical harmonic (up to some limit on the number of bands). The weights are called coefficients. Let&#39;s say our input function is the red channel of a cubemap. We&#39;ll use 3 bands to approximate that -- that&#39;s 9 equations, and 9 coefficients. Since we also want the green and blue channels, that&#39;s another 9 coefficients per channel.</p>
+
+<p>In effect, we end up with an approximation of the input cubemap in just 9 color values. Obviously we can&#39;t represent much high frequency data with so few colours. We could get higher quality versions with more bands (4 bands would be 16 colour coefficients, 5 would be 25, 6 would be 36). This might be useful for spherical reflections, but for diffuse (as we&#39;ll see later) there&#39;s a good reason to stop at 3 bands.</p>
+
+<h3 id="toc_6">Projection and Reconstruction</h3>
+
+<p>Projection is surprising simple. We can calculate each coefficient separately, and we do that by just finding the integral of the input function multiplied by the corresponding spherical harmonic.</p>
+
+<p><br/><img src="/assets/media/SphericalHarmonics/projection.png"></p>
+
+<p>Since our input function is discreet (ie, it&#39;s just pixels in a cubemap), the integral becomes simple. We just need to multiply the pixel values by the spherical harmonic for the cubemap direction -- the only difficulty is to weight for the solid angle of the cubemap pixel (see the XLE shader code for this equation).</p>
+
+<p>The reconstruction formula is also very simple; and should now look oddly familiar:</p>
+
+<p><br/><img src="/assets/media/SphericalHarmonics/reconstruction.png"></p>
+
+<p>Here, we just take the weighted sum of the spherical harmonics for a given direction (where <em>b</em> is the band number limit). It&#39;s pretty straight forward; but it gets more complex from here.</p>
+
+<h3 id="toc_7">Example</h3>
+
+<p>So what does it look like? Here&#39;s an example environment texture and the equivalent constructed environment. I&#39;m going to skip ahead just a bit and show how it looks when we construct diffuse reflectance from an environment texture.
+These are equirectangular panorama maps; trivially compressed to LDR jpgs.</p>
+
+<h3 id="toc_8">Source texture</h3>
+
+<p><br/><img src="/assets/media/SphericalHarmonics/mans_0.jpg">
+<br/>(from sIBL Archive: <a href="http://www.hdrlabs.com/sibl/archive.html">http://www.hdrlabs.com/sibl/archive.html</a>)</p>
+
+<h3 id="toc_9">Reference diffuse response</h3>
+
+<p>ie, for each direction in the panorama map, this shows the correct diffuse response of the environment, from a plain lambert diffuse BRDF.
+<br/><img src="/assets/media/SphericalHarmonics/reference.jpg"></p>
+
+<h3 id="toc_10">Reconstructed response with spherical harmonics compression</h3>
+
+<p><br/><img src="/assets/media/SphericalHarmonics/reconstruct.jpg"></p>
+
+<h3 id="toc_11">Absolute difference multiplied by 20</h3>
+
+<p><br/><img src="/assets/media/SphericalHarmonics/diff.jpg"></p>
+
+<p>The reconstructed response is using 3 bands; so it&#39;s stored using just 9 colour values.
+As you can see, there is some information loss -- but we can actually prove mathematically that the maximum error is pretty small.</p>
+
+<h2 id="toc_12">To be continued</h2>
+
+<p>So, we&#39;ve got the very basics down. We know enough to be able to compress a cubemap down to spherical harmonic form, and reconstruct an approximation from that.</p>
+
+<p>Alone, it may sound like an interesting thing to do; but it&#39;s not very useful yet. I&#39;ll follow this up with some details on how we can use spherical harmonics for some really interesting stuff. Still to cover:</p>
+
+<ul>
+<li>combining our compressed environment information with the lambert diffuse equation</li>
+<li>building optimized reconstruction code for shaders</li>
+<li>rotating and manipulating spherical harmonics at runtime (and optimization thereof)</li>
+<li>applications in global illumination schemes</li>
+<li>some examples from around the web, and a list of the right literature to follow up with</li>
+<li>some cool examples of SH used in games (eg; <em>The Last of Us</em>, <em>The Order: 1886</em>)!</li>
+</ul>
+
+    </div>
+    <ul class="tag_box inline">
+      <li><i class="icon-folder-open"></i></li>
+      <li>
+        <a href="/categories#Misc-ref">Misc <span>1</span></a>
+      </li>
+    </ul>
+    <ul class="tag_box inline">
+      <li><i class="icon-tags"></i></li>
+      <li>
+        <a href="/tags#SphericalHarmonics-ref">SphericalHarmonics <span>1</span></a>
+      </li>
+    </ul>
+    <hr>
+    <div class="pagination">
+      <ul>
+          <li class="prev"><a href="/posts/juneupdate" title="Latest Update">&larr; Previous</a></li>
+
+          <li><a href="/archive">Archive</a></li>
+
+          <li class="next disabled"><a>Next &rarr;</a>
+      </ul>
+    </div>
+    <hr>
+    <div id="disqus_thread"></div>
+<script>
+    var disqus_developer = 1;
+    var disqus_shortname = 'xledev'; // required: replace example with your forum shortname
+    /* * * DON'T EDIT BELOW THIS LINE * * */
+    (function() {
+        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+        dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<a href="http://disqus.com" class="dsq-brlink">blog comments powered by <span class="logo-disqus">Disqus</span></a>
+
+  </div>
+</div>
+
+
+      </div>
+
+      <hr>
+      <div class="footer">
+        <p>&copy; XL Games 2015
+          with help from <a href="http://ruhoh.com" target="_blank" title="The Definitive Technical Blogging Framework">ruhoh</a>
+          and <a href="http://twitter.github.com/bootstrap/" target="_blank">Twitter Bootstrap</a>
+        </p>
+      </div>
+
+    </div> <!-- /container -->
+
+    <!-- Google Prettify -->
+<script src="http://cdnjs.cloudflare.com/ajax/libs/prettify/188.0.0/prettify.js"></script>
+<script>
+  var pres = document.getElementsByTagName("pre");
+  for (var i=0; i < pres.length; ++i) {
+    pres[i].className = "prettyprint linenums";
+  }
+  prettyPrint();
+</script>
+<!-- end Google Prettify -->
+    <script type="text/javascript">
+
+  var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', 'UA-71034032-1']);
+  _gaq.push(['_trackPageview']);
+  
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+
+</script>
+
+
+    
+  </body>
+</html>

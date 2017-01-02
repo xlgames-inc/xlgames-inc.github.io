@@ -72,6 +72,12 @@
 
         <div class="summary ellipsis">
   <h2>2016</h2>
+    <h3>December</h3>
+    <ul>
+      <li>
+<span>December 27, 2016</span> » <a href="/posts/sphericalharmonics0">Spherical Harmonics and applications in real time graphics</a>
+</li>
+    </ul>
     <h3>June</h3>
     <ul>
       <li>
@@ -108,7 +114,7 @@
 <span>April 04, 2016</span> » <a href="/posts/vulkan">Starting to experiment with Vulkan</a>
 </li>
     </ul>
-    </div>
+</div>
 
         <div class="more">
           <a href="/archive" class="btn btn-small">read more..</a>
@@ -124,6 +130,9 @@
   </li>
   <li>
     <a href="/categories#blog-ref">blog <span>1</span></a>
+  </li>
+  <li>
+    <a href="/categories#Misc-ref">Misc <span>1</span></a>
   </li>
 </ul>
 
@@ -166,28 +175,27 @@
         <h3 class="title"><a href="/">Home</a><br/> <span class="date"></span></h3>
 
         <div class="summary ellipsis">
-<p>Work is still continuing on XLE! Over the last few weeks, I've have been very distracted by other priorities. I'm likely to be somewhat busy and distracted during for a few more weeks until things return to a more normal situation.
-However, I'm still finding time to work on XLE, and make some improvements and fixes!</p>
+<p>Yikes; it's been awhile since my last update!</p>
 
-<p>Lately, my focus has been on <strong>Vulkan</strong> support (in the <em>experimental</em> branch). Vulkan is looking more and more stable and reliable, and the HLSL -&gt; SPIR-V path is working really well now!
-However, there are still some big things I want to improve on:</p>
+<p>I wanted to share a little bit of information from a technique I've recently been working on for an unrelated project. The technique uses a series of equations called "spherical harmonics" for extremely efficient high quality diffuse environment illumination.</p>
 
-<ul>
-<li>Improved interface for BoundUniforms, that can allow for precreation of descriptor sets during loading phases</li>
-<li>Improved interface for Metal::ConstantBuffer and temporary vertex/index buffers that would rely on a single large circular device buffer</li>
-<li>Pre-create graphics pipelines when using <code>SharedStateSet</code> (eg, when rendering <code>RenderCore::Assets::ModelRenderer</code>)
+<p>This is a technique that started to become popular maybe around 15 years ago -- possibly because of its usefulness on low power hardware. It fell out of favour for awhile, I was never entirely clear why. I got some good value from it back then, and I hope to get more good value from the technique now; so perhaps it's time for spherical harmonic's star to come around again?</p>
 
-<ul>
-<li><em>(this might also involve a better solution for the render state resolver objects used by materials)</em></li>
-</ul>
-</li>
-<li>Fix triangle hit-test supported used by the tools (which is complicated by the render pass concept and requires stream output support)</li>
-<li>Tessellation support for terrain rendering</li>
-<li>Integration of MSAA resolve for Vulkan</li>
-</ul>
+<p>There's a fair amount of information about spherical harmonics on the internet, but some of can be a little dense. There seems to be lack of information on how to take the first few steps in applying this math to the graphics domain (for example, for diffuse environment lighting). So I'll try to keep this page approachable for graphics programmers, while also linking off to some of the more dense and abstract stuff later on. And I'll focus specifically on how I'm using this math for graphics, how I've used it in the past, and how I'd like that to grow in the future.</p>
 
-<p>With these changes, we should start to see much more efficient results with the Vulkan pipeline. Some SceneEngine features won't work immediately, but otherwise we will be getting very good Vulkan results, while also retaining the DirectX compatibility! </p>
+<h2 id="toc_0">What are spherical harmonics</h2>
 
+<p>The "spherical harmonics" are a series of equations that we'll use to compress lighting information greatly. The easiest way to understand them is to start with something simpler and analogous -- and that is cubic splines.</p>
+
+<p>Splines are a method of describing a curve through space with a finite number of points (or points and tangents). Even though the curve is defined by a finite number of parameters, the result is effectively an infinite number of points. To define the curve, we need equations of the form:</p>
+
+<p><br><img src="/assets/media/SphericalHarmonics/basic_spline.png">
+<br></p>
+
+<p>Where <strong>t</strong> is the distance along the spline (usually between 0 and 1) and <strong>x</strong>, <strong>y</strong> &amp; <strong>z</strong> are cartesian coordinates.
+In the case of cubic splines, the functions <strong>f</strong>, <strong>h</strong> and <strong>g</strong> are cubic polynomials. If you've used Bezier splines before, you may be familiar with a way to express these polynomials using a form called a <em>"Bernstein polynomial"</em>.</p>
+
+<h3 id="toc_1">Bernstein basis</h3>
 </div>
 
         <div class="more">
