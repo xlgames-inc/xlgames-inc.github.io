@@ -4,7 +4,126 @@
     <title>XLE development blog</title>
     <description>XLE development blog</description>
     <link>http://xlgames-inc.github.io</link>
-    <pubDate>January 02, 2017</pubDate>
+    <pubDate>January 15, 2017</pubDate>
+    <item>
+      <title>Spherical Harmonics and applications in real time graphics (part 2)</title>
+      <link>http://xlgames-inc.github.io/posts/sphericalharmonics1</link>
+      <pubDate>January 08, 2017</pubDate>
+      <description>&lt;p&gt;This is a continuation of the previous page; a tutorial for using spherical harmonic methods for real time graphics. On this page we start to dig into slightly more complex math concepts -- but I&amp;#39;ll try to keep it approachable, while still sticking to the correct concepts and terms.&lt;/p&gt;
+
+&lt;h2 id="toc_0"&gt;Integrating the diffuse BRDF&lt;/h2&gt;
+
+&lt;p&gt;On the previous page, we reconstructed a value from a panorama map that was compressed as a spherical harmonic. The result is a blurry version of the original panorama.&lt;/p&gt;
+
+&lt;p&gt;Our ultimate goal is much more exciting, though -- what if we could calculate the diffuse reflections at a material should exhibit, if it was placed within that environment?&lt;/p&gt;
+
+&lt;p&gt;This is the fundamental goal of &amp;quot;image based&amp;quot; real time lighting methods. The easiest way to think about it is this -- we want to treat every texel of the input texture as a separate light. Each light is a small cone light at an infinite distance. The color texture of texel tells us the color and brightness of the light (and since we&amp;#39;re probably using a HDR input texture, we can have a broad range of brightnesses).&lt;/p&gt;
+
+&lt;p&gt;Effectively, the input texture represents the &amp;quot;incident&amp;quot; light on an object. We want to calculate the &amp;quot;excident&amp;quot; light -- or the light that reflects off in the direction of the eye. We&amp;#39;re making an assumption that the lighting is coming from far away, and the object is small.&lt;/p&gt;
+
+&lt;p&gt;Since our input texture has a finite number of texels, we could achieve this with a large linear sum:&lt;/p&gt;
+
+&lt;p&gt;&lt;br/&gt;&lt;img src="/assets/media/SphericalHarmonics/sum_of_texels.png"&gt;
+&lt;br/&gt;
+Where &lt;em&gt;t&lt;/em&gt; is a texel in the input texture, &lt;em&gt;I&lt;/em&gt; is the color in the input texture, &lt;em&gt;d&lt;/em&gt; is the direction defined by the mapping (ie, equirectangular or cubemap), &lt;em&gt;a&lt;/em&gt; is the solid angle of the texel, and &lt;em&gt;L()&lt;/em&gt; is our (somewhat less than bi-directional) BRDF. In spherical harmonic form, we would have to express this equation as a integral (because the spherical harmonic form is a non-discrete function).&lt;/p&gt;
+
+&lt;p&gt;But we can do better than this. It might be tempting to consider the blurred spherical harmonic reconstruction of the environment as close enough -- but, again, we can do better!&lt;/p&gt;
+
+&lt;h2 id="toc_1"&gt;Zonal harmonics&lt;/h2&gt;
+
+&lt;p&gt;We&amp;#39;ve talked about using spherical harmonics to represent data across a sphere. But certain type of data can be expressed in a even more compressed form. For example, if the data has rotational symmetry, we can take advantage of that.&lt;/p&gt;
+
+&lt;p&gt;Let&amp;#39;s consider a vector dot product:
+&lt;br/&gt;&lt;img src="/assets/media/SphericalHarmonics/vector_dot_product.png"&gt;
+&lt;br/&gt;&lt;/p&gt;
+
+&lt;p&gt;Where &lt;em&gt;u&lt;/em&gt; is a constant 3d vector. If the parameter, &lt;em&gt;x&lt;/em&gt;, is a unit length 3d vector, then we have an equation that can be represented as a spherical harmonic. However, this equation is rotationally symmetrical around the &lt;em&gt;u&lt;/em&gt; axis (meaning we can rotate &lt;em&gt;x&lt;/em&gt; around &lt;em&gt;u&lt;/em&gt; without changing the value of &lt;em&gt;f(x)&lt;/em&gt;).&lt;/p&gt;
+
+&lt;p&gt;For convenience, we&amp;#39;ll set &lt;em&gt;u&lt;/em&gt; to be +Z. Now, only the &lt;em&gt;z&lt;/em&gt; component of &lt;em&gt;x&lt;/em&gt; has any bearing. As a result, when we build the spherical harmonics for this equation, the harmonics that use the &lt;em&gt;x&lt;/em&gt; and &lt;em&gt;y&lt;/em&gt; components can be discarded. It turns out that only the harmonics where &lt;em&gt;m&lt;/em&gt; = 0 will remain -- that is, we end up with one harmonic per band, and it&amp;#39;s the middle one.&lt;/p&gt;
+
+&lt;p&gt;So, this convention of preferring +Z as the central axis for equations with rotational symmetry is part of the reason we express the harmonics as they are, in the order that they typically appear (but, as we&amp;#39;ll find out, the rotational invariance property means that other conventions would work just as well).&lt;/p&gt;
+
+&lt;p&gt;This new set of harmonics (with rotational symmetry around the +Z axis) are called &amp;quot;zonal harmonics.&amp;quot; They can be useful for simplifying some operations down to more manageable levels.&lt;/p&gt;
+
+&lt;h2 id="toc_2"&gt;BRDF as a zonal harmonic&lt;/h2&gt;
+
+&lt;p&gt;Obviously, when we say &amp;quot;diffuse BRDF&amp;quot;, typically we mean the lambert diffuse equation:
+&lt;br/&gt;&lt;img src="/assets/media/SphericalHarmonics/lambert_diffuse.png"&gt;
+&lt;br/&gt;&lt;/p&gt;
+
+&lt;p&gt;This is one of those cases where the &amp;quot;normalization factor&amp;quot; of 1/pi is important. Sometimes we can ignore that; but here it&amp;#39;s critical! (Particularly since we&amp;#39;re probably going to combine our diffuse IBL simulation with a specular IBL simulation from the same input texture and we want them to be properly balanced against each other). So, if you&amp;#39;re not familiar with it -- better do some research!!&lt;/p&gt;
+
+&lt;p&gt;The first we need to do is create a spherical harmonic that represents the BRDF itself (notice that our simple BRDF, with one vector parameter, takes the same form as other equations we&amp;#39;ve expressed with spherical harmonics -- it, also, is just a function expressed over the surface of a sphere).&lt;/p&gt;
+
+&lt;p&gt;For the lambert diffuse, this is straight-forward. We&amp;#39;ve already seen that we can represent a dot product as a zonal harmonic. All we need to do is modify that for our normalized equation. We can do this by projecting the equation into spherical harmonics (using the formulae in the previous post).&lt;/p&gt;
+
+&lt;p&gt;Diffuse SH methods seem to universally use this simple BRDF... But it might be an interesting exercise to extend these ideas for more complex BRDFs. 2 candidates come to mind:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;Oren-Nayar, which introduces a view dependent microfacet simulations&lt;/li&gt;
+&lt;li&gt;the Disney diffuse model, which simulates the fresnel effect on both incidence and excidence&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;But for now, let&amp;#39;s just stick with lambert.&lt;/p&gt;
+
+&lt;h3 id="toc_3"&gt;Zonal harmonics for lambert diffuse&lt;/h3&gt;
+
+&lt;p&gt;Here are the resulting coefficients for the first 3 bands (these are derived from Peter-Pike Sloan&amp;#39;s &lt;a href="http://www.ppsloan.org/publications/StupidSH36.pdf"&gt;&amp;quot;Stupid SH Tricks.&amp;quot;&lt;/a&gt;):&lt;/p&gt;
+
+&lt;p&gt;&lt;br/&gt;&lt;img src="/assets/media/SphericalHarmonics/cosine_lobe_harmonics.png"&gt;
+&lt;br/&gt;&lt;/p&gt;
+
+&lt;p&gt;This is a zonal harmonic -- so we only have one coefficient per band.
+It&amp;#39;s also a polynomial approximation of a non-polynomial function, so it can&amp;#39;t be perfectly accurate. We should take a look at the consequence of these inaccuracies before we go forward.&lt;/p&gt;
+
+&lt;p&gt;&lt;br/&gt;&lt;img src="/assets/media/SphericalHarmonics/cosine_lobe_graph.png"&gt;
+&lt;br/&gt;&lt;/p&gt;
+
+&lt;p&gt;Here, the orange line is &lt;em&gt;cos(theta)/pi&lt;/em&gt; and the purple line is our approximation using SH (the x axis is theta). You can find some similar graphs for higher orders in the above reference. As you can see, our approximation seems to drift off a bit, particularly at theta=0 and theta=pi/2.&lt;/p&gt;
+
+&lt;h2 id="toc_4"&gt;Convolving our environment by the cosine lobe&lt;/h2&gt;
+
+&lt;p&gt;Recall the equation we started with:
+&lt;br/&gt;&lt;img src="/assets/media/SphericalHarmonics/sum_of_texels.png"&gt;
+&lt;br/&gt;&lt;/p&gt;
+
+&lt;p&gt;We can&amp;#39;t afford to actually do that sum in real time -- it would mean sampling every pixel in the input texture and multiplying it by the BRDF. We just want some equation that can find the sum in a single step.&lt;/p&gt;
+
+&lt;p&gt;Our &lt;em&gt;L()&lt;/em&gt; part of this equation represents the zonal harmonic approximation of the BRDF. That&amp;#39;s the quantity of reflection for a particular direction. And &lt;em&gt;I&lt;/em&gt; represents the spherical harmonic approximation of our environment. That&amp;#39;s the amount of incident light from a direction.&lt;/p&gt;
+
+&lt;p&gt;We want to find a way to combine these two parts of the equation and evaluate the sum all at once. It turns out, there&amp;#39;s a way to do this -- it&amp;#39;s called &lt;a href="http://mathworld.wolfram.com/Convolution.html"&gt;convolution&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;That might sound difficult enough, but there&amp;#39;s even more to it than that. Our cosine lobe zonal harmonic coefficients are defined only for a normal along +Z. We need a way to rotate the zonal harmonic coefficients relative to the spherical harmonic coefficients (which would be the same as rotating the normal from +Z to some arbitrary direction). We would rotate spherical harmonic coefficients (which we can do arbitrarily and without loss) but actually that formula is fairly expensive. We want something more efficient.&lt;/p&gt;
+
+&lt;p&gt;It turns out that there is a way to do all of this at once -- find the convolution and also rotate the zonal harmonic. The equation is oddly simple, and (fortunately for us!) the result is just another set of  spherical harmonic coefficients.&lt;/p&gt;
+
+&lt;p&gt;See &lt;a href="http://www.ppsloan.org/publications/ldprt_final05.pdf"&gt;Local, Deformable Precomputed Radiance Transfer&lt;/a&gt; by Sloan, Luna &amp;amp; Snyder:
+&lt;br/&gt;&lt;img src="/assets/media/SphericalHarmonics/convolve.png"&gt;
+&lt;br/&gt;&lt;/p&gt;
+
+&lt;p&gt;Where &lt;em&gt;h&lt;/em&gt; are zonal harmonic coefficients, &lt;em&gt;c&lt;/em&gt; are spherical harmonic coefficients, &lt;em&gt;y&lt;/em&gt; are the basic SH constants (from the previous page), &lt;em&gt;&amp;lt;x,y,z&amp;gt;&lt;/em&gt; is the direction that +Z will be rotated onto, and &lt;em&gt;[c * h]&lt;/em&gt; are the convolved coefficients.&lt;/p&gt;
+
+&lt;p&gt;The result (finally) is a spherical harmonic coefficients that represent the diffuse response, for a given environment, for a given direction. If we were use the reconstruction formulae with these coefficients, we would end up with a function wherein the input is a normal direction, and the output is a value that takes into account all incident light, from all directions. And -- to an extraordinarily high accuracy -- we can do that for any environment using just 9 color coefficients.&lt;/p&gt;
+
+&lt;p&gt;This is the equation that makes all of this crazy stuff possible. We&amp;#39;ve effectively reduced a very complex integral down to a really basic equation. If we didn&amp;#39;t have such as simple formula for this convolution and rotation then math might have become unwieldy enough to be unmanageable.&lt;/p&gt;
+
+&lt;p&gt;Oddly, though, the role of this equation within the whole SH diffuse mess is frequently not well described in many papers and sources. I&amp;#39;ve come across a bunch of spherical harmonic implementations that have stumbled in this area, perhaps because it&amp;#39;s not very clear. Peter-Pike Sloan talks about it in the above paper, and he references &lt;a href="http://www.sciencedirect.com/science/article/pii/S0196885884710086"&gt;Driscoll and Healy&lt;/a&gt; for the derivation... But at that point, that math is getting pretty dense. Other papers (like Ramamoorthi &amp;amp; Hanrahan&amp;#39;s &lt;a href="https://cseweb.ucsd.edu/%7Eravir/papers/envmap/envmap.pdf"&gt;original paper&lt;/a&gt;) tend to deal with it in a somewhat abstract fashion. And in the final shader implemention, the equations will evolve into a completely new form that doesn&amp;#39;t look like a convolve at all. So, this step can be easily overlooked.&lt;/p&gt;
+
+&lt;p&gt;This is a large part of why I wanted to write this tutorial -- to try to make it a little clearer that there is a critical convolve operation in the middle of this application, and show how that evolves into the constants we&amp;#39;ll see later.&lt;/p&gt;
+
+&lt;h2 id="toc_5"&gt;Still to come&lt;/h2&gt;
+
+&lt;p&gt;So; we&amp;#39;ve figured out how to use spherical harmonics to distill our complex lighting integral down to something manageable and highly compressed.&lt;/p&gt;
+
+&lt;p&gt;But there&amp;#39;s still a bunch to cover!&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;implementing efficient shader code&lt;/li&gt;
+&lt;li&gt;rotating arbitrary spherical harmonic coefficients&lt;/li&gt;
+&lt;li&gt;cool applications and tricks!&lt;/li&gt;
+&lt;/ul&gt;
+</description>
+    </item>
     <item>
       <title>Spherical Harmonics and applications in real time graphics</title>
       <link>http://xlgames-inc.github.io/posts/sphericalharmonics0</link>
@@ -1579,49 +1698,6 @@ Remember that &lt;strong&gt;&amp;quot;D&amp;quot;&lt;/strong&gt; represents how 
 &lt;h2 id="toc_3"&gt;Make it your own!&lt;/h2&gt;
 
 &lt;p&gt;It&amp;#39;s difficult to get this working the first time. There&amp;#39;s a lot of work. But once it&amp;#39;s going, all of the parts are extensible and exchangeable. It&amp;#39;s a simple, but very flexible system. Handy for managing small, everyday processing tasks.&lt;/p&gt;
-</description>
-    </item>
-    <item>
-      <title>Transmitted specular</title>
-      <link>http://xlgames-inc.github.io/posts/transmittedspecular</link>
-      <pubDate>January 25, 2016</pubDate>
-      <description>&lt;p&gt;I&amp;#39;ve modified the lighting equations to allow for transmitted (as well as reflected) specular for dynamic lightings. Transmitted specular means the light is on the opposite side of the object, but light is coming through the object towards the viewer.&lt;/p&gt;
-
-&lt;p&gt;This is important for thin materials (such as leaves)&lt;/p&gt;
-
-&lt;h3 id="toc_0"&gt;No transmitted specular:&lt;/h3&gt;
-
-&lt;p&gt;&lt;br/&gt;&lt;img src="/assets/media/TransSpec/LeavesNoTransSpec.png"&gt;&lt;/p&gt;
-
-&lt;h3 id="toc_1"&gt;With transmitted specular:&lt;/h3&gt;
-
-&lt;p&gt;&lt;br/&gt;&lt;img src="/assets/media/TransSpec/LeavesTransSpec.png"&gt;&lt;/p&gt;
-
-&lt;p&gt;Here the amount of transmission is maybe slightly too high -- but it shows the effect well.
-This works particularly well with shadowed directional lights and geometry using order independent transparency. The above screenshot is exactly that situation. The tree leaves are rendered with stochastic transparency (which works particularly well for this model). So we get a nice halo effect around the edges of the tree.&lt;/p&gt;
-
-&lt;p&gt;And, if you look closely, you can see that the tree shadowing is blocking the transmitted specular, giving a volumetric look.&lt;/p&gt;
-
-&lt;p&gt;This model is built in a way to create a lot of noise in the normals. As you can see here:
-&lt;br/&gt;&lt;img src="/assets/media/TransSpec/LeavesNormals.png"&gt;&lt;/p&gt;
-
-&lt;p&gt;Normals point in every direction, and there is a lot of local variation.&lt;/p&gt;
-
-&lt;p&gt;The transmitted specular really helps highlight this noise. It helps to make the tree canopy feel more 3D, and it helps to hide the &amp;quot;true&amp;quot; triangular geometry. The preview reflected-only specular just wasn&amp;#39;t able to do this as well.&lt;/p&gt;
-
-&lt;h2 id="toc_2"&gt;It&amp;#39;s expensive!&lt;/h2&gt;
-
-&lt;p&gt;The transmitted specular calculation is actually a second, additional, specular calculation -- and it&amp;#39;s a little more expensive than the reflected specular. It&amp;#39;s using the node diagram from the previous post, &lt;a href="transmissionnodegraph"&gt;Transmission Node Diagram&lt;/a&gt;. So it&amp;#39;s not really cheap. It&amp;#39;s particularly expensive in this case, because stochastic transparency can result in many lighting calculations per pixel (for the different depth layers).&lt;/p&gt;
-
-&lt;h2 id="toc_3"&gt;IBL implementation&lt;/h2&gt;
-
-&lt;p&gt;This is not currently working with image based lighting. Part of the &lt;strong&gt;IBL&lt;/strong&gt; principle is that every effect applied to &amp;quot;dynamic&amp;quot; lighting should also be applied to &lt;strong&gt;IBL&lt;/strong&gt; -- (so material appear the same under both types of lights, and so we can fade distant dynamic lights into precalculated IBL).&lt;/p&gt;
-
-&lt;p&gt;It might be interesting to try to get it working under IBL, so I&amp;#39;ll give it a shot.&lt;/p&gt;
-
-&lt;h2 id="toc_4"&gt;Better doubled sided GGX specular equation&lt;/h2&gt;
-
-&lt;p&gt;When the shader flag &lt;em&gt;&amp;quot;MAT&lt;em&gt;DOUBLE&lt;/em&gt;SIDED_LIGHTING&amp;quot;&lt;/em&gt; is set, the specular equation is now double sided. The results will be symmetrical for a flipped normal (ie, &lt;em&gt;Specular(normal)&lt;/em&gt;==&lt;em&gt;Specular(-normal)&lt;/em&gt;, for all normals). It can be handy in cases like this, where the normals are pointing in all directions.&lt;/p&gt;
 </description>
     </item>
   </channel>

@@ -51,6 +51,37 @@
         <div class="row-fluid">
   <div class="span12">
       <div class="posts">
+        <h3 class="title"><a href="/posts/sphericalharmonics1">Spherical Harmonics and applications in real time graphics (part 2)</a><br/> <span class="date">January 08, 2017</span></h3>
+
+        <div class="summary ellipsis">
+<p>This is a continuation of the previous page; a tutorial for using spherical harmonic methods for real time graphics. On this page we start to dig into slightly more complex math concepts -- but I'll try to keep it approachable, while still sticking to the correct concepts and terms.</p>
+
+<h2 id="toc_0">Integrating the diffuse BRDF</h2>
+
+<p>On the previous page, we reconstructed a value from a panorama map that was compressed as a spherical harmonic. The result is a blurry version of the original panorama.</p>
+
+<p>Our ultimate goal is much more exciting, though -- what if we could calculate the diffuse reflections at a material should exhibit, if it was placed within that environment?</p>
+
+<p>This is the fundamental goal of "image based" real time lighting methods. The easiest way to think about it is this -- we want to treat every texel of the input texture as a separate light. Each light is a small cone light at an infinite distance. The color texture of texel tells us the color and brightness of the light (and since we're probably using a HDR input texture, we can have a broad range of brightnesses).</p>
+
+<p>Effectively, the input texture represents the "incident" light on an object. We want to calculate the "excident" light -- or the light that reflects off in the direction of the eye. We're making an assumption that the lighting is coming from far away, and the object is small.</p>
+
+<p>Since our input texture has a finite number of texels, we could achieve this with a large linear sum:</p>
+
+<p><br><img src="/assets/media/SphericalHarmonics/sum_of_texels.png">
+<br>
+Where <em>t</em> is a texel in the input texture, <em>I</em> is the color in the input texture, <em>d</em> is the direction defined by the mapping (ie, equirectangular or cubemap), <em>a</em> is the solid angle of the texel, and <em>L()</em> is our (somewhat less than bi-directional) BRDF. In spherical harmonic form, we would have to express this equation as a integral (because the spherical harmonic form is a non-discrete function).</p>
+
+<p>But we can do better than this. It might be tempting to consider the blurred spherical harmonic reconstruction of the environment as close enough -- but, again, we can do better!</p>
+
+<h2 id="toc_1">Zonal harmonics</h2>
+</div>
+
+        <div class="more">
+          <a href="/posts/sphericalharmonics1" class="btn btn-small">read more..</a>
+        </div>
+      </div>
+      <div class="posts">
         <h3 class="title"><a href="/posts/sphericalharmonics0">Spherical Harmonics and applications in real time graphics</a><br/> <span class="date">December 27, 2016</span></h3>
 
         <div class="summary ellipsis">
@@ -174,41 +205,6 @@ However, there are still some big things I want to improve on:</p>
 
         <div class="more">
           <a href="/posts/vulkanmoreprogress" class="btn btn-small">read more..</a>
-        </div>
-      </div>
-      <div class="posts">
-        <h3 class="title"><a href="/posts/vulkandeclarativelightingparser">Vulkan prototype - how many separate render passes in the lighting parser?</a><br/> <span class="date">April 22, 2016</span></h3>
-
-        <div class="summary ellipsis">
-<p>The lighting parser is a set of steps (including geometry rendering and full screen passes) that occur in a similar order and configuration every frame. In some ways it is like a higher level version of a "renderpass" (or frame buffer layout). Each "subpass" in the renderpass is like a step in the lighting parser process for evaluating the frame.</p>
-
-<p>But how do we map the lighting parser steps onto render pass subpasses? Do we want to use one single huge render pass for everything? Or a number of small passes?</p>
-
-<h2 id="toc_0">Declarative lighting parser</h2>
-
-<p>Since we're using a "declarative" approach for "frame buffer layouts", we could do the same for the lighting parser. Imagine a LightingParserConfiguration object that takes a few configuration variables (related to the current platform and quality mode, and also scene features) and produces the set of steps that the lighting parser will perform.</p>
-
-<p>We could use the <code>VariantFunctions</code> interface for this, along with some structures to define the "attachment" inputs and outputs for each step. If we have a step (such as tonemapping) we just define the input attachments, output attachments, and temporary buffers required, and add the tone map function.</p>
-
-<p>Then we would just need a small system that could collect all this information, and generate a <code>RenderCore::FrameBufferDesc</code> object from it.</p>
-
-<p>This would allow us to have a very configurable pipeline, because we could just build up the list of steps as we need them, and from there generate everything we need. In effect, we would declare everything that is going to happen in the lighting parser before hand; and then the system would automatically calculate everything that needs to happen when we call Run().</p>
-
-<p>This could also allow us to have a single render pass for the entire lighting parser process. But is that what we really want?</p>
-
-<h2 id="toc_1">How many render passes?</h2>
-
-<p>There are a few things to consider:</p>
-
-<ol>
-<li>Compute shader usage</li>
-<li>frame-to-frame variations in the render pass</li>
-<li>parallization within the lighting parser</li>
-</ol>
-</div>
-
-        <div class="more">
-          <a href="/posts/vulkandeclarativelightingparser" class="btn btn-small">read more..</a>
         </div>
       </div>
     

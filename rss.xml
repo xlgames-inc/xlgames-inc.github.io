@@ -4,7 +4,7 @@
     <title>XLE development blog</title>
     <description>XLE development blog</description>
     <link>http://xlgames-inc.github.io</link>
-    <pubDate>January 02, 2017</pubDate>
+    <pubDate>January 15, 2017</pubDate>
     <item>
       <title>About</title>
       <link>http://xlgames-inc.github.io/about</link>
@@ -21,6 +21,11 @@
       <title>Archive</title>
       <link>http://xlgames-inc.github.io/archive</link>
       <description>
+  &lt;h2&gt;2017&lt;/h2&gt;
+    &lt;h3&gt;January&lt;/h3&gt;
+    &lt;ul&gt;
+      &lt;li&gt;&lt;span&gt;January 08, 2017&lt;/span&gt; &amp;raquo; &lt;a href="/posts/sphericalharmonics1"&gt;Spherical Harmonics and applications in real time graphics (part 2)&lt;/a&gt;&lt;/li&gt;
+    &lt;/ul&gt;
   &lt;h2&gt;2016&lt;/h2&gt;
     &lt;h3&gt;December&lt;/h3&gt;
     &lt;ul&gt;
@@ -89,7 +94,7 @@
     &lt;a href="/categories#blog-ref"&gt;blog &lt;span&gt;1&lt;/span&gt;&lt;/a&gt;
   &lt;/li&gt;
   &lt;li&gt;
-    &lt;a href="/categories#Misc-ref"&gt;Misc &lt;span&gt;1&lt;/span&gt;&lt;/a&gt;
+    &lt;a href="/categories#Misc-ref"&gt;Misc &lt;span&gt;2&lt;/span&gt;&lt;/a&gt;
   &lt;/li&gt;
 &lt;/ul&gt;
 
@@ -126,9 +131,10 @@
   &lt;ul&gt;
       &lt;li&gt;&lt;a href="/posts/first"&gt;First post&lt;/a&gt;&lt;/li&gt;
   &lt;/ul&gt;
-  &lt;h3&gt;Misc (1)&lt;/h3&gt;
+  &lt;h3&gt;Misc (2)&lt;/h3&gt;
   &lt;ul&gt;
       &lt;li&gt;&lt;a href="/posts/sphericalharmonics0"&gt;Spherical Harmonics and applications in real time graphics&lt;/a&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;a href="/posts/sphericalharmonics1"&gt;Spherical Harmonics and applications in real time graphics (part 2)&lt;/a&gt;&lt;/li&gt;
   &lt;/ul&gt;
 </description>
     </item>
@@ -142,6 +148,11 @@
 &lt;p&gt;For more information, see our &lt;a href="https://github.com/xlgames-inc/XLE/wiki"&gt;wiki on Github&lt;/a&gt;&lt;/p&gt;
 &lt;p&gt;Dev team contact: &lt;a href="mailto:xle@xlgames.com"&gt;xle@xlgames.com&lt;/a&gt; (in English or Korean)&lt;/p&gt;
 
+  &lt;h2&gt;2017&lt;/h2&gt;
+    &lt;h3&gt;January&lt;/h3&gt;
+    &lt;ul&gt;
+      &lt;li&gt;&lt;span&gt;January 08, 2017&lt;/span&gt; &amp;raquo; &lt;a href="/posts/sphericalharmonics1"&gt;Spherical Harmonics and applications in real time graphics (part 2)&lt;/a&gt;&lt;/li&gt;
+    &lt;/ul&gt;
   &lt;h2&gt;2016&lt;/h2&gt;
     &lt;h3&gt;December&lt;/h3&gt;
     &lt;ul&gt;
@@ -203,6 +214,37 @@
 
 &lt;hr /&gt;
 
+&lt;div class="post"&gt;
+  &lt;h3 class="title"&gt;&lt;a href="/posts/sphericalharmonics1"&gt;Spherical Harmonics and applications in real time graphics (part 2)&lt;/a&gt;&lt;br /&gt; &lt;span class="date"&gt;January 08, 2017&lt;/span&gt;&lt;/h3&gt;
+
+  &lt;div class="summary ellipsis"&gt;
+&lt;p&gt;This is a continuation of the previous page; a tutorial for using spherical harmonic methods for real time graphics. On this page we start to dig into slightly more complex math concepts -- but I'll try to keep it approachable, while still sticking to the correct concepts and terms.&lt;/p&gt;
+
+&lt;h2 id="toc_0"&gt;Integrating the diffuse BRDF&lt;/h2&gt;
+
+&lt;p&gt;On the previous page, we reconstructed a value from a panorama map that was compressed as a spherical harmonic. The result is a blurry version of the original panorama.&lt;/p&gt;
+
+&lt;p&gt;Our ultimate goal is much more exciting, though -- what if we could calculate the diffuse reflections at a material should exhibit, if it was placed within that environment?&lt;/p&gt;
+
+&lt;p&gt;This is the fundamental goal of "image based" real time lighting methods. The easiest way to think about it is this -- we want to treat every texel of the input texture as a separate light. Each light is a small cone light at an infinite distance. The color texture of texel tells us the color and brightness of the light (and since we're probably using a HDR input texture, we can have a broad range of brightnesses).&lt;/p&gt;
+
+&lt;p&gt;Effectively, the input texture represents the "incident" light on an object. We want to calculate the "excident" light -- or the light that reflects off in the direction of the eye. We're making an assumption that the lighting is coming from far away, and the object is small.&lt;/p&gt;
+
+&lt;p&gt;Since our input texture has a finite number of texels, we could achieve this with a large linear sum:&lt;/p&gt;
+
+&lt;p&gt;&lt;br&gt;&lt;img src="/assets/media/SphericalHarmonics/sum_of_texels.png"&gt;
+&lt;br&gt;
+Where &lt;em&gt;t&lt;/em&gt; is a texel in the input texture, &lt;em&gt;I&lt;/em&gt; is the color in the input texture, &lt;em&gt;d&lt;/em&gt; is the direction defined by the mapping (ie, equirectangular or cubemap), &lt;em&gt;a&lt;/em&gt; is the solid angle of the texel, and &lt;em&gt;L()&lt;/em&gt; is our (somewhat less than bi-directional) BRDF. In spherical harmonic form, we would have to express this equation as a integral (because the spherical harmonic form is a non-discrete function).&lt;/p&gt;
+
+&lt;p&gt;But we can do better than this. It might be tempting to consider the blurred spherical harmonic reconstruction of the environment as close enough -- but, again, we can do better!&lt;/p&gt;
+
+&lt;h2 id="toc_1"&gt;Zonal harmonics&lt;/h2&gt;
+&lt;/div&gt;
+
+  &lt;div class="more"&gt;
+    &lt;a href="/posts/sphericalharmonics1" class="btn btn-small"&gt;read more..&lt;/a&gt;
+  &lt;/div&gt;
+&lt;/div&gt;
 &lt;div class="post"&gt;
   &lt;h3 class="title"&gt;&lt;a href="/posts/sphericalharmonics0"&gt;Spherical Harmonics and applications in real time graphics&lt;/a&gt;&lt;br /&gt; &lt;span class="date"&gt;December 27, 2016&lt;/span&gt;&lt;/h3&gt;
 
@@ -329,41 +371,6 @@ However, there are still some big things I want to improve on:&lt;/p&gt;
     &lt;a href="/posts/vulkanmoreprogress" class="btn btn-small"&gt;read more..&lt;/a&gt;
   &lt;/div&gt;
 &lt;/div&gt;
-&lt;div class="post"&gt;
-  &lt;h3 class="title"&gt;&lt;a href="/posts/vulkandeclarativelightingparser"&gt;Vulkan prototype - how many separate render passes in the lighting parser?&lt;/a&gt;&lt;br /&gt; &lt;span class="date"&gt;April 22, 2016&lt;/span&gt;&lt;/h3&gt;
-
-  &lt;div class="summary ellipsis"&gt;
-&lt;p&gt;The lighting parser is a set of steps (including geometry rendering and full screen passes) that occur in a similar order and configuration every frame. In some ways it is like a higher level version of a "renderpass" (or frame buffer layout). Each "subpass" in the renderpass is like a step in the lighting parser process for evaluating the frame.&lt;/p&gt;
-
-&lt;p&gt;But how do we map the lighting parser steps onto render pass subpasses? Do we want to use one single huge render pass for everything? Or a number of small passes?&lt;/p&gt;
-
-&lt;h2 id="toc_0"&gt;Declarative lighting parser&lt;/h2&gt;
-
-&lt;p&gt;Since we're using a "declarative" approach for "frame buffer layouts", we could do the same for the lighting parser. Imagine a LightingParserConfiguration object that takes a few configuration variables (related to the current platform and quality mode, and also scene features) and produces the set of steps that the lighting parser will perform.&lt;/p&gt;
-
-&lt;p&gt;We could use the &lt;code&gt;VariantFunctions&lt;/code&gt; interface for this, along with some structures to define the "attachment" inputs and outputs for each step. If we have a step (such as tonemapping) we just define the input attachments, output attachments, and temporary buffers required, and add the tone map function.&lt;/p&gt;
-
-&lt;p&gt;Then we would just need a small system that could collect all this information, and generate a &lt;code&gt;RenderCore::FrameBufferDesc&lt;/code&gt; object from it.&lt;/p&gt;
-
-&lt;p&gt;This would allow us to have a very configurable pipeline, because we could just build up the list of steps as we need them, and from there generate everything we need. In effect, we would declare everything that is going to happen in the lighting parser before hand; and then the system would automatically calculate everything that needs to happen when we call Run().&lt;/p&gt;
-
-&lt;p&gt;This could also allow us to have a single render pass for the entire lighting parser process. But is that what we really want?&lt;/p&gt;
-
-&lt;h2 id="toc_1"&gt;How many render passes?&lt;/h2&gt;
-
-&lt;p&gt;There are a few things to consider:&lt;/p&gt;
-
-&lt;ol&gt;
-&lt;li&gt;Compute shader usage&lt;/li&gt;
-&lt;li&gt;frame-to-frame variations in the render pass&lt;/li&gt;
-&lt;li&gt;parallization within the lighting parser&lt;/li&gt;
-&lt;/ol&gt;
-&lt;/div&gt;
-
-  &lt;div class="more"&gt;
-    &lt;a href="/posts/vulkandeclarativelightingparser" class="btn btn-small"&gt;read more..&lt;/a&gt;
-  &lt;/div&gt;
-&lt;/div&gt;
 
 &lt;div class="pagination"&gt;
   &lt;ul&gt;
@@ -481,7 +488,7 @@ However, there are still some big things I want to improve on:&lt;/p&gt;
     &lt;a href="/tags#Releases-ref"&gt;Releases &lt;span&gt;1&lt;/span&gt;&lt;/a&gt;
   &lt;/li&gt;
   &lt;li&gt;
-    &lt;a href="/tags#SphericalHarmonics-ref"&gt;SphericalHarmonics &lt;span&gt;1&lt;/span&gt;&lt;/a&gt;
+    &lt;a href="/tags#SphericalHarmonics-ref"&gt;SphericalHarmonics &lt;span&gt;2&lt;/span&gt;&lt;/a&gt;
   &lt;/li&gt;
   &lt;li&gt;
     &lt;a href="/tags#rendering-ref"&gt;rendering &lt;span&gt;1&lt;/span&gt;&lt;/a&gt;
@@ -588,6 +595,7 @@ However, there are still some big things I want to improve on:&lt;/p&gt;
     &lt;li&gt;&lt;a href="/posts/release0040"&gt;Release v0.04.0&lt;/a&gt;&lt;/li&gt;
   &lt;h3 id="SphericalHarmonics-ref"&gt;SphericalHarmonics&lt;/h3&gt;
     &lt;li&gt;&lt;a href="/posts/sphericalharmonics0"&gt;Spherical Harmonics and applications in real time graphics&lt;/a&gt;&lt;/li&gt;
+    &lt;li&gt;&lt;a href="/posts/sphericalharmonics1"&gt;Spherical Harmonics and applications in real time graphics (part 2)&lt;/a&gt;&lt;/li&gt;
   &lt;h3 id="rendering-ref"&gt;rendering&lt;/h3&gt;
     &lt;li&gt;&lt;a href="/posts/vulkan"&gt;Starting to experiment with Vulkan&lt;/a&gt;&lt;/li&gt;
   &lt;h3 id="API-ref"&gt;API&lt;/h3&gt;

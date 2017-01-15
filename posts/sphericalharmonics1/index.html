@@ -1,0 +1,258 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Spherical Harmonics and applications in real time graphics (part 2)</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="author" content="XL Games">
+
+    <!-- Le HTML5 shim, for IE6-8 support of HTML elements -->
+    <!--[if lt IE 9]>
+      <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+
+    <!-- Le styles -->
+<link href='/assets/stylesheets/bootstrap.min-93b47f97c3444c4711853ed5140d82a1.css' type='text/css' rel='stylesheet' media='all'>
+<link href='/assets/stylesheets/style-1dcb1d39791f3457afa56d279fcf0945.css' type='text/css' rel='stylesheet' media='all'>
+<link href='/assets/stylesheets/google_prettify/sons-of-obsidian-5e05343fd0c18e0a05231023b643245c.css' type='text/css' rel='stylesheet' media='all'>
+    <!-- Le fav and touch icons -->
+  <!-- Update these with your own images
+    <link rel="shortcut icon" href="images/favicon.ico">
+    <link rel="apple-touch-icon" href="images/apple-touch-icon.png">
+    <link rel="apple-touch-icon" sizes="72x72" href="images/apple-touch-icon-72x72.png">
+    <link rel="apple-touch-icon" sizes="114x114" href="images/apple-touch-icon-114x114.png">
+  -->
+  </head>
+
+  <body>
+
+    <div class="navbar">
+      <div class="navbar-inner">
+        <div class="container-narrow">
+          <a class="brand" href="/">XLE development blog</a>
+          <ul class="nav">
+              
+                <li><a href="/tags">Tags</a></li>
+              
+              
+                <li><a href="/archive">Archive</a></li>
+              
+              
+                <li><a href="/about">About</a></li>
+              
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="container-narrow">
+
+      <div class="content">
+        
+<div class="page-header">
+  <h1>Spherical Harmonics and applications in real time graphics (part 2) </h1>
+</div>
+
+<div class="row-fluid post-full">
+  <div class="span12">
+    <div class="date">
+      <span>January 08, 2017</strong>
+    </div>
+    <div class="content">
+      <p>This is a continuation of the previous page; a tutorial for using spherical harmonic methods for real time graphics. On this page we start to dig into slightly more complex math concepts -- but I&#39;ll try to keep it approachable, while still sticking to the correct concepts and terms.</p>
+
+<h2 id="toc_0">Integrating the diffuse BRDF</h2>
+
+<p>On the previous page, we reconstructed a value from a panorama map that was compressed as a spherical harmonic. The result is a blurry version of the original panorama.</p>
+
+<p>Our ultimate goal is much more exciting, though -- what if we could calculate the diffuse reflections at a material should exhibit, if it was placed within that environment?</p>
+
+<p>This is the fundamental goal of &quot;image based&quot; real time lighting methods. The easiest way to think about it is this -- we want to treat every texel of the input texture as a separate light. Each light is a small cone light at an infinite distance. The color texture of texel tells us the color and brightness of the light (and since we&#39;re probably using a HDR input texture, we can have a broad range of brightnesses).</p>
+
+<p>Effectively, the input texture represents the &quot;incident&quot; light on an object. We want to calculate the &quot;excident&quot; light -- or the light that reflects off in the direction of the eye. We&#39;re making an assumption that the lighting is coming from far away, and the object is small.</p>
+
+<p>Since our input texture has a finite number of texels, we could achieve this with a large linear sum:</p>
+
+<p><br/><img src="/assets/media/SphericalHarmonics/sum_of_texels.png">
+<br/>
+Where <em>t</em> is a texel in the input texture, <em>I</em> is the color in the input texture, <em>d</em> is the direction defined by the mapping (ie, equirectangular or cubemap), <em>a</em> is the solid angle of the texel, and <em>L()</em> is our (somewhat less than bi-directional) BRDF. In spherical harmonic form, we would have to express this equation as a integral (because the spherical harmonic form is a non-discrete function).</p>
+
+<p>But we can do better than this. It might be tempting to consider the blurred spherical harmonic reconstruction of the environment as close enough -- but, again, we can do better!</p>
+
+<h2 id="toc_1">Zonal harmonics</h2>
+
+<p>We&#39;ve talked about using spherical harmonics to represent data across a sphere. But certain type of data can be expressed in a even more compressed form. For example, if the data has rotational symmetry, we can take advantage of that.</p>
+
+<p>Let&#39;s consider a vector dot product:
+<br/><img src="/assets/media/SphericalHarmonics/vector_dot_product.png">
+<br/></p>
+
+<p>Where <em>u</em> is a constant 3d vector. If the parameter, <em>x</em>, is a unit length 3d vector, then we have an equation that can be represented as a spherical harmonic. However, this equation is rotationally symmetrical around the <em>u</em> axis (meaning we can rotate <em>x</em> around <em>u</em> without changing the value of <em>f(x)</em>).</p>
+
+<p>For convenience, we&#39;ll set <em>u</em> to be +Z. Now, only the <em>z</em> component of <em>x</em> has any bearing. As a result, when we build the spherical harmonics for this equation, the harmonics that use the <em>x</em> and <em>y</em> components can be discarded. It turns out that only the harmonics where <em>m</em> = 0 will remain -- that is, we end up with one harmonic per band, and it&#39;s the middle one.</p>
+
+<p>So, this convention of preferring +Z as the central axis for equations with rotational symmetry is part of the reason we express the harmonics as they are, in the order that they typically appear (but, as we&#39;ll find out, the rotational invariance property means that other conventions would work just as well).</p>
+
+<p>This new set of harmonics (with rotational symmetry around the +Z axis) are called &quot;zonal harmonics.&quot; They can be useful for simplifying some operations down to more manageable levels.</p>
+
+<h2 id="toc_2">BRDF as a zonal harmonic</h2>
+
+<p>Obviously, when we say &quot;diffuse BRDF&quot;, typically we mean the lambert diffuse equation:
+<br/><img src="/assets/media/SphericalHarmonics/lambert_diffuse.png">
+<br/></p>
+
+<p>This is one of those cases where the &quot;normalization factor&quot; of 1/pi is important. Sometimes we can ignore that; but here it&#39;s critical! (Particularly since we&#39;re probably going to combine our diffuse IBL simulation with a specular IBL simulation from the same input texture and we want them to be properly balanced against each other). So, if you&#39;re not familiar with it -- better do some research!!</p>
+
+<p>The first we need to do is create a spherical harmonic that represents the BRDF itself (notice that our simple BRDF, with one vector parameter, takes the same form as other equations we&#39;ve expressed with spherical harmonics -- it, also, is just a function expressed over the surface of a sphere).</p>
+
+<p>For the lambert diffuse, this is straight-forward. We&#39;ve already seen that we can represent a dot product as a zonal harmonic. All we need to do is modify that for our normalized equation. We can do this by projecting the equation into spherical harmonics (using the formulae in the previous post).</p>
+
+<p>Diffuse SH methods seem to universally use this simple BRDF... But it might be an interesting exercise to extend these ideas for more complex BRDFs. 2 candidates come to mind:</p>
+
+<ul>
+<li>Oren-Nayar, which introduces a view dependent microfacet simulations</li>
+<li>the Disney diffuse model, which simulates the fresnel effect on both incidence and excidence</li>
+</ul>
+
+<p>But for now, let&#39;s just stick with lambert.</p>
+
+<h3 id="toc_3">Zonal harmonics for lambert diffuse</h3>
+
+<p>Here are the resulting coefficients for the first 3 bands (these are derived from Peter-Pike Sloan&#39;s <a href="http://www.ppsloan.org/publications/StupidSH36.pdf">&quot;Stupid SH Tricks.&quot;</a>):</p>
+
+<p><br/><img src="/assets/media/SphericalHarmonics/cosine_lobe_harmonics.png">
+<br/></p>
+
+<p>This is a zonal harmonic -- so we only have one coefficient per band.
+It&#39;s also a polynomial approximation of a non-polynomial function, so it can&#39;t be perfectly accurate. We should take a look at the consequence of these inaccuracies before we go forward.</p>
+
+<p><br/><img src="/assets/media/SphericalHarmonics/cosine_lobe_graph.png">
+<br/></p>
+
+<p>Here, the orange line is <em>cos(theta)/pi</em> and the purple line is our approximation using SH (the x axis is theta). You can find some similar graphs for higher orders in the above reference. As you can see, our approximation seems to drift off a bit, particularly at theta=0 and theta=pi/2.</p>
+
+<h2 id="toc_4">Convolving our environment by the cosine lobe</h2>
+
+<p>Recall the equation we started with:
+<br/><img src="/assets/media/SphericalHarmonics/sum_of_texels.png">
+<br/></p>
+
+<p>We can&#39;t afford to actually do that sum in real time -- it would mean sampling every pixel in the input texture and multiplying it by the BRDF. We just want some equation that can find the sum in a single step.</p>
+
+<p>Our <em>L()</em> part of this equation represents the zonal harmonic approximation of the BRDF. That&#39;s the quantity of reflection for a particular direction. And <em>I</em> represents the spherical harmonic approximation of our environment. That&#39;s the amount of incident light from a direction.</p>
+
+<p>We want to find a way to combine these two parts of the equation and evaluate the sum all at once. It turns out, there&#39;s a way to do this -- it&#39;s called <a href="http://mathworld.wolfram.com/Convolution.html">convolution</a>.</p>
+
+<p>That might sound difficult enough, but there&#39;s even more to it than that. Our cosine lobe zonal harmonic coefficients are defined only for a normal along +Z. We need a way to rotate the zonal harmonic coefficients relative to the spherical harmonic coefficients (which would be the same as rotating the normal from +Z to some arbitrary direction). We would rotate spherical harmonic coefficients (which we can do arbitrarily and without loss) but actually that formula is fairly expensive. We want something more efficient.</p>
+
+<p>It turns out that there is a way to do all of this at once -- find the convolution and also rotate the zonal harmonic. The equation is oddly simple, and (fortunately for us!) the result is just another set of  spherical harmonic coefficients.</p>
+
+<p>See <a href="http://www.ppsloan.org/publications/ldprt_final05.pdf">Local, Deformable Precomputed Radiance Transfer</a> by Sloan, Luna &amp; Snyder:
+<br/><img src="/assets/media/SphericalHarmonics/convolve.png">
+<br/></p>
+
+<p>Where <em>h</em> are zonal harmonic coefficients, <em>c</em> are spherical harmonic coefficients, <em>y</em> are the basic SH constants (from the previous page), <em>&lt;x,y,z&gt;</em> is the direction that +Z will be rotated onto, and <em>[c * h]</em> are the convolved coefficients.</p>
+
+<p>The result (finally) is a spherical harmonic coefficients that represent the diffuse response, for a given environment, for a given direction. If we were use the reconstruction formulae with these coefficients, we would end up with a function wherein the input is a normal direction, and the output is a value that takes into account all incident light, from all directions. And -- to an extraordinarily high accuracy -- we can do that for any environment using just 9 color coefficients.</p>
+
+<p>This is the equation that makes all of this crazy stuff possible. We&#39;ve effectively reduced a very complex integral down to a really basic equation. If we didn&#39;t have such as simple formula for this convolution and rotation then math might have become unwieldy enough to be unmanageable.</p>
+
+<p>Oddly, though, the role of this equation within the whole SH diffuse mess is frequently not well described in many papers and sources. I&#39;ve come across a bunch of spherical harmonic implementations that have stumbled in this area, perhaps because it&#39;s not very clear. Peter-Pike Sloan talks about it in the above paper, and he references <a href="http://www.sciencedirect.com/science/article/pii/S0196885884710086">Driscoll and Healy</a> for the derivation... But at that point, that math is getting pretty dense. Other papers (like Ramamoorthi &amp; Hanrahan&#39;s <a href="https://cseweb.ucsd.edu/%7Eravir/papers/envmap/envmap.pdf">original paper</a>) tend to deal with it in a somewhat abstract fashion. And in the final shader implemention, the equations will evolve into a completely new form that doesn&#39;t look like a convolve at all. So, this step can be easily overlooked.</p>
+
+<p>This is a large part of why I wanted to write this tutorial -- to try to make it a little clearer that there is a critical convolve operation in the middle of this application, and show how that evolves into the constants we&#39;ll see later.</p>
+
+<h2 id="toc_5">Still to come</h2>
+
+<p>So; we&#39;ve figured out how to use spherical harmonics to distill our complex lighting integral down to something manageable and highly compressed.</p>
+
+<p>But there&#39;s still a bunch to cover!</p>
+
+<ul>
+<li>implementing efficient shader code</li>
+<li>rotating arbitrary spherical harmonic coefficients</li>
+<li>cool applications and tricks!</li>
+</ul>
+
+    </div>
+    <ul class="tag_box inline">
+      <li><i class="icon-folder-open"></i></li>
+      <li>
+        <a href="/categories#Misc-ref">Misc <span>2</span></a>
+      </li>
+    </ul>
+    <ul class="tag_box inline">
+      <li><i class="icon-tags"></i></li>
+      <li>
+        <a href="/tags#SphericalHarmonics-ref">SphericalHarmonics <span>2</span></a>
+      </li>
+    </ul>
+    <hr>
+    <div class="pagination">
+      <ul>
+          <li class="prev"><a href="/posts/sphericalharmonics0" title="Spherical Harmonics and applications in real time graphics">&larr; Previous</a></li>
+
+          <li><a href="/archive">Archive</a></li>
+
+          <li class="next disabled"><a>Next &rarr;</a>
+      </ul>
+    </div>
+    <hr>
+    <div id="disqus_thread"></div>
+<script>
+    var disqus_developer = 1;
+    var disqus_shortname = 'xledev'; // required: replace example with your forum shortname
+    /* * * DON'T EDIT BELOW THIS LINE * * */
+    (function() {
+        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+        dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<a href="http://disqus.com" class="dsq-brlink">blog comments powered by <span class="logo-disqus">Disqus</span></a>
+
+  </div>
+</div>
+
+
+      </div>
+
+      <hr>
+      <div class="footer">
+        <p>&copy; XL Games 2015
+          with help from <a href="http://ruhoh.com" target="_blank" title="The Definitive Technical Blogging Framework">ruhoh</a>
+          and <a href="http://twitter.github.com/bootstrap/" target="_blank">Twitter Bootstrap</a>
+        </p>
+      </div>
+
+    </div> <!-- /container -->
+
+    <!-- Google Prettify -->
+<script src="http://cdnjs.cloudflare.com/ajax/libs/prettify/188.0.0/prettify.js"></script>
+<script>
+  var pres = document.getElementsByTagName("pre");
+  for (var i=0; i < pres.length; ++i) {
+    pres[i].className = "prettyprint linenums";
+  }
+  prettyPrint();
+</script>
+<!-- end Google Prettify -->
+    <script type="text/javascript">
+
+  var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', 'UA-71034032-1']);
+  _gaq.push(['_trackPageview']);
+  
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+
+</script>
+
+
+    
+  </body>
+</html>
