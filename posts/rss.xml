@@ -4,7 +4,86 @@
     <title>XLE development blog</title>
     <description>XLE development blog</description>
     <link>http://xlgames-inc.github.io</link>
-    <pubDate>January 15, 2017</pubDate>
+    <pubDate>February 01, 2017</pubDate>
+    <item>
+      <title>Vulkan Workshop / DevU 2017</title>
+      <link>http://xlgames-inc.github.io/posts/vulkanworkshop2017</link>
+      <pubDate>January 31, 2017</pubDate>
+      <description>&lt;p&gt;More on spherical harmonics is coming, but this is a slight intermission about Vulkan. Yesterday, I got a chance to attend a Vulkan workshop (called Vulkan DevU) in Vancouver, Canada. It was a short conference with talks by some of the Vulkan working group, with a mixture of both advanced and beginner sessions. You can get the slides &lt;a href="https://www.khronos.org/news/events/khronos-devu-vancouver-2017"&gt;here&lt;/a&gt;. &lt;/p&gt;
+
+&lt;p&gt;Unfortunately, isn&amp;#39;t been awhile since I&amp;#39;ve touched the Vulkan implementation in XLE, and it wasn&amp;#39;t fresh in my mind -- but I got a chance to meet some of the working group members and ask a bunch of random questions. Lately it&amp;#39;s been difficult to find enough time to properly focus on low level graphics in XLE; I&amp;#39;ve had to prioritize other things.&lt;/p&gt;
+
+&lt;p&gt;My impressions of Vulkan&amp;#39;s strong points were re-affirmed by this conference. Vulkan has a fundamentally open nature and is naturally industry driven -- and working group showed a desire to become even more open; both by inviting contributions and suggesting they would change their NDA structure so they can speak about upcoming drafts sooner in the process.&lt;/p&gt;
+
+&lt;p&gt;Vulkan creates a practical balance between compatibility and performance; and the team addressed that directly. They also spoke about their desire to keep Vulkan thin and avoid heuristics -- another great property of the library.&lt;/p&gt;
+
+&lt;p&gt;So, they gave me every reason to think that Vulkan was in good hands. However, during the conversations we also started to touch upon some of the potential risks of the Vulkan concept. They were upfront about the desire to create a successor to OpenGL, which implies a very broad usage of the API (awesome!) but, in my opinion, there are some possible risks:&lt;/p&gt;
+
+&lt;h3 id="toc_0"&gt;DirectX 12&lt;/h3&gt;
+
+&lt;p&gt;After what seemed like an uncertain start, DX12 looks like it could be very strong. The fact that it shares many fundamental properties with Vulkan makes the two natural competitors.&lt;/p&gt;
+
+&lt;p&gt;Part of DirectX&amp;#39;s strength is that is has for many years worked hand and hand with GPU hardware development. Generally important (game oriented) hardware features need to be exposed by the DX API before they are &amp;quot;real&amp;quot; -- so Nvidia, AMD &amp;amp; Intel must fight it out to guide the API to best suit whatever hardware feature they want to emphasize. Over the years, both Nvidia and AMD have attempted to lessen their dependence on DX (with GL extensions or Mantle, etc) but it hasn&amp;#39;t worked so well. If you want to make a major change (eg, multicore GPUs, bindless, etc), game developers have a tendency to ignore it until it&amp;#39;s in DX.&lt;/p&gt;
+
+&lt;p&gt;The problem for Vulkan is that it risks having to just trot along after DX, or becoming too bound to whichever hardware vendor that feels left out in the cold by the DX council (or, alternatively, mobile oriented hardware vendors that don&amp;#39;t have as much skin in DirectX)&lt;/p&gt;
+
+&lt;h3 id="toc_1"&gt;Shifting responsibilities onto engine teams&lt;/h3&gt;
+
+&lt;p&gt;Vulkan shifts some of the responsibilities that were previously handled by GPU driver teams onto the game engine team. This is particularly obvious in areas such as memory management, scheduling and coherency... But it&amp;#39;s a general principle, sometimes referred to as the &amp;quot;explicit&amp;quot; principle. For me, this is Vulkan&amp;#39;s greatest attribute; but there are risks associated also.&lt;/p&gt;
+
+&lt;p&gt;For example, what happens next time there&amp;#39;s a big change GPU architecture? What happens if there&amp;#39;s a mythical &amp;quot;paradigm shift&amp;quot;? In the old model, it would just be up to the GPU driver developers write a new driver and bind the old API to the new hardware.&lt;/p&gt;
+
+&lt;p&gt;The working group have said that major revisions of Vulkan will be compatibility breaks. That would open the door to deep re-architecting of the API after hardware shift. We already see that with DX every 10 years or so. But is that going to be enough to solve this problem?&lt;/p&gt;
+
+&lt;p&gt;For major hardware changes, I guess time will tell. But what abount minor hardware changes -- those that are not enough to require big API changes, but are significant enough to change the performance profiling of applications. What happens if a certain API usage practice, which was previously a best-practice, suddenly becomes extremely slow on some specific hardware...?&lt;/p&gt;
+
+&lt;p&gt;To hazard an example, what happens if the &amp;quot;descriptor set&amp;quot; model for shader inputs becomes inefficient for new hardware?&lt;/p&gt;
+
+&lt;p&gt;In the Vulkan model, if we want to keep the &amp;quot;explicit&amp;quot; principle, then this would require game engine teams going in and adapting their code to suit the new hardware. But there are hundreds more game engine teams than there are GPU driver teams! And game engine teams don&amp;#39;t frequently maintain older games for newer hardware innovations. So there is a kind of &amp;quot;moral&amp;quot; hazard here for the GPU driver team to just go in an modify the explicit API path and replace it with some driver magic that is actually doing something else. But if that happens, we&amp;#39;re all screwed in the long term -- because Vulkan is &lt;strong&gt;so&lt;/strong&gt; explicit, it must do exactly what it says it&amp;#39;s doing.&lt;/p&gt;
+
+&lt;p&gt;Something tells me that the &amp;quot;explicit&amp;quot; principle is both Vulkan&amp;#39;s greatest attribute, and also it&amp;#39;s greatest along-term test.&lt;/p&gt;
+
+&lt;h3 id="toc_2"&gt;It&amp;#39;s impossible to test for the correctness of a Vulkan application&lt;/h3&gt;
+
+&lt;p&gt;This came up in the context of scheduling; but there&amp;#39;s more to it than that. Scheduling in Vulkan is incredibly difficult. People were really shocked by the difficulty of the PS3 (and are still today!), but in some ways it&amp;#39;s more difficult in Vulkan. We&amp;#39;ve got to specify, down to the exact pipeline stage, exactly when an operation is required to be completed.&lt;/p&gt;
+
+&lt;p&gt;The problem with this is that most hardware will work fine, even if there are &lt;em&gt;major&lt;/em&gt; scheduling errors. But, as Tom said, for every scheduling mistake that can be made, there&amp;#39;s at least one GPU that it will cause problems with (otherwise that API feature wouldn&amp;#39;t exist!)&lt;/p&gt;
+
+&lt;p&gt;The difficulty is that there is no practical way to test our code, to see if it is correct. All we can do is run it on as much hardware as possible, and see if it breaks. But how do we know what hardware is the most unique, the most likely to break? When there are few Vulkan games, the GPU manufacturers will test for but -- but for the second wave, it&amp;#39;s going to take some time to figure those things out.&lt;/p&gt;
+
+&lt;h3 id="toc_3"&gt;Vulkan needs high quality layers on top of it&lt;/h3&gt;
+
+&lt;p&gt;Vulkan is too difficult for many game engine teams to approach. Some early games can maybe get through it with help from the working group and driver developers; and experienced console developers will be fine. But for the second wave, many engine teams risk just falling down an endless rabbit hole.&lt;/p&gt;
+
+&lt;p&gt;Furthermore, the benefit in many cases will be limited. I&amp;#39;ve seen many game engines that have turned to technologies like Vulkan or Apple Metal for performance improvements. But they&amp;#39;ve not found what they sought because they didn&amp;#39;t understand their profile well enough to understand that their existing API overhead was already low relative to the overhead in the rest of their engine code. I&amp;#39;ve seen that over and over again; it&amp;#39;s just common for game engine code to be much less optimized than GPU driver code. In some cases this may mean that replacing driver code with engine code results in a net decrease in performance.&lt;/p&gt;
+
+&lt;p&gt;For the aspirational industry leaders, the opposite is going to be true (even that the generality of a driver will make it more difficult to optimized). But there are few that fall into that category.&lt;/p&gt;
+
+&lt;p&gt;The solution is to build reusable mini-engine layers on top of Vulkan. Layers that provide the same kinds of guarantees and ease of use that DirectX does. Ideally these layers should open-source, and they should be written to shield less experienced engine developers from the major pitfalls and vulgarities of low level coding.&lt;/p&gt;
+
+&lt;h3 id="toc_4"&gt;Cross-platform gaps&lt;/h3&gt;
+
+&lt;p&gt;One of Vulkan&amp;#39;s greatest attributes is it&amp;#39;s cross-platform nature. Windows, Mac, Linux, Android, etc, etc -- all in one very thin package. It&amp;#39;s fantastic.&lt;/p&gt;
+
+&lt;p&gt;But there&amp;#39;s some gaps here. Lack of support on Apple is a big one. There&amp;#39;s another odd one that also came up in the conference -- and that is WebGL. Obviously Vulkan doesn&amp;#39;t quite seem right for the web; but this is an odd case because I was thinking about exactly the same thing when the questioner asked about WebGL.&lt;/p&gt;
+
+&lt;p&gt;I actually have a really good reason for wanting a single solution that can work across IOS, Android, Windows, Mac &amp;amp; the web. But it still seems like an odd combination of platforms!&lt;/p&gt;
+
+&lt;p&gt;It turns out that OpenGLES actually works on all of these platforms (and it&amp;#39;s the only solution that does). But OpenGLES is near end-of-life, and all of those platforms have much better solutions except for the web (and point-in-question Android).&lt;/p&gt;
+
+&lt;p&gt;The other possibility is to use Vulkan for Windows, Mac, Android, Apple Metal for IOS and OpenGLES for web and Android fallback. In some ways that&amp;#39;s a ridiculous combination of very different APIs (but what else can I do??!)&lt;/p&gt;
+
+&lt;h2 id="toc_5"&gt;My take-aways&lt;/h2&gt;
+
+&lt;p&gt;So, I mostly represented myself in my professional context as a mobile games developer (but perhaps I should have put XLE first in this context?). My studio has both the technical and art capabilities to use Vulkan very effectively on mobile, and the willingness to invest in best-in-class solutions. We&amp;#39;re also facing some significant internal engine refactoring in the near future, which requires that we consider future trends.&lt;/p&gt;
+
+&lt;p&gt;So I guess in part I wanted to find the answer to the question of how high should Vulkan be on our list of priorities? That list is deep with important stuff; so there&amp;#39;s plenty of competition?&lt;/p&gt;
+
+&lt;p&gt;I very much want Vulkan to succeed; but I&amp;#39;m also aware that I&amp;#39;m a little biased in that way. It feels like we haven to plan for Vulkan (because we don&amp;#39;t want to refactor towards a direction that will be incompatible with Vulkan in the long run). At the moment, I think that Vulkan can bring improvements to our internal day-to-day development; but it&amp;#39;s unclear if there will be any great benefit to the final product (ie, we have better options for performance improvement currently, and we still need an OpenGLES fallback for low end hardware, anyway).&lt;/p&gt;
+
+&lt;p&gt;It feels like Vulkan still has a path to tread before it can establish itself fully. Vulkan must convince game engine programmers to change they way they work; to take on more responsibilities, to understand more of the pipeline, and to publish more code as open-source. In some ways, Vulkan feels like a reaction to Sony console hardware of the past. Right at the moment, my feeling is that Vulkan can only succeed if there are a sufficient number of low-level serious graphics coders spread throughout the industry (such those trained on the PS2 &amp;amp; PS3) that can help address the risks and demonstrate the advantages of the explicit model. Otherwise, the temptation is to just fall back on the likes of Microsoft, Nvidia &amp;amp; AMD, and let them shoulder the load for awhile longer.&lt;/p&gt;
+</description>
+    </item>
     <item>
       <title>Spherical Harmonics and applications in real time graphics (part 2)</title>
       <link>http://xlgames-inc.github.io/posts/sphericalharmonics1</link>
@@ -81,6 +160,11 @@ It&amp;#39;s also a polynomial approximation of a non-polynomial function, so it
 
 &lt;p&gt;Here, the orange line is &lt;em&gt;cos(theta)/pi&lt;/em&gt; and the purple line is our approximation using SH (the x axis is theta). You can find some similar graphs for higher orders in the above reference. As you can see, our approximation seems to drift off a bit, particularly at theta=0 and theta=pi/2.&lt;/p&gt;
 
+&lt;p&gt;On the previous page, I showed some images from our final algorithm and another showing the absolute difference from a reference solution multiplied by 30. Here it is again:
+&lt;br/&gt;&lt;img src="/assets/media/SphericalHarmonics/diff.jpg"&gt;&lt;/p&gt;
+
+&lt;p&gt;The banding suggests that most of the error is coming from high frequency details that are lost to spherical harmonic reconstruction. However, we&amp;#39;re also seeing places where bright light appears to be bleeding into dark areas. I wonder if this may be due to the cosine lobe inaccuracies near pi/2.&lt;/p&gt;
+
 &lt;h2 id="toc_4"&gt;Convolving our environment by the cosine lobe&lt;/h2&gt;
 
 &lt;p&gt;Recall the equation we started with:
@@ -103,11 +187,11 @@ It&amp;#39;s also a polynomial approximation of a non-polynomial function, so it
 
 &lt;p&gt;Where &lt;em&gt;h&lt;/em&gt; are zonal harmonic coefficients, &lt;em&gt;c&lt;/em&gt; are spherical harmonic coefficients, &lt;em&gt;y&lt;/em&gt; are the basic SH constants (from the previous page), &lt;em&gt;&amp;lt;x,y,z&amp;gt;&lt;/em&gt; is the direction that +Z will be rotated onto, and &lt;em&gt;[c * h]&lt;/em&gt; are the convolved coefficients.&lt;/p&gt;
 
-&lt;p&gt;The result (finally) is a spherical harmonic coefficients that represent the diffuse response, for a given environment, for a given direction. If we were use the reconstruction formulae with these coefficients, we would end up with a function wherein the input is a normal direction, and the output is a value that takes into account all incident light, from all directions. And -- to an extraordinarily high accuracy -- we can do that for any environment using just 9 color coefficients.&lt;/p&gt;
+&lt;p&gt;The result (finally) are spherical harmonic coefficients that represent the diffuse response, for a given environment, for a given direction. If we were use the reconstruction formulae with these coefficients, we would end up with a function wherein the input is a normal direction, and the output is a value that takes into account all incident light, from all directions. And -- to an extraordinarily high accuracy -- we can do that for any environment using just 9 color coefficients.&lt;/p&gt;
 
 &lt;p&gt;This is the equation that makes all of this crazy stuff possible. We&amp;#39;ve effectively reduced a very complex integral down to a really basic equation. If we didn&amp;#39;t have such as simple formula for this convolution and rotation then math might have become unwieldy enough to be unmanageable.&lt;/p&gt;
 
-&lt;p&gt;Oddly, though, the role of this equation within the whole SH diffuse mess is frequently not well described in many papers and sources. I&amp;#39;ve come across a bunch of spherical harmonic implementations that have stumbled in this area, perhaps because it&amp;#39;s not very clear. Peter-Pike Sloan talks about it in the above paper, and he references &lt;a href="http://www.sciencedirect.com/science/article/pii/S0196885884710086"&gt;Driscoll and Healy&lt;/a&gt; for the derivation... But at that point, that math is getting pretty dense. Other papers (like Ramamoorthi &amp;amp; Hanrahan&amp;#39;s &lt;a href="https://cseweb.ucsd.edu/%7Eravir/papers/envmap/envmap.pdf"&gt;original paper&lt;/a&gt;) tend to deal with it in a somewhat abstract fashion. And in the final shader implemention, the equations will evolve into a completely new form that doesn&amp;#39;t look like a convolve at all. So, this step can be easily overlooked.&lt;/p&gt;
+&lt;p&gt;Oddly, though, the role of this equation within the whole SH diffuse mess is frequently not well described in many papers and sources. I&amp;#39;ve come across a bunch of spherical harmonic implementations that have stumbled in this area, perhaps because it&amp;#39;s not very clear. Peter-Pike Sloan talks about it in the above paper, and he references &lt;a href="http://www.sciencedirect.com/science/article/pii/S0196885884710086"&gt;Driscoll and Healy&lt;/a&gt; for the derivation... But at that point, that math is getting pretty dense. Other papers (like Ramamoorthi &amp;amp; Hanrahan&amp;#39;s &lt;a href="https://cseweb.ucsd.edu/%7Eravir/papers/envmap/envmap.pdf"&gt;seminal paper&lt;/a&gt;) tend to deal with it in a somewhat abstract fashion. And in the final shader implemention, the equations will evolve into a completely new form that doesn&amp;#39;t look like a convolve at all. So, this step can be easily overlooked.&lt;/p&gt;
 
 &lt;p&gt;This is a large part of why I wanted to write this tutorial -- to try to make it a little clearer that there is a critical convolve operation in the middle of this application, and show how that evolves into the constants we&amp;#39;ll see later.&lt;/p&gt;
 
@@ -1626,78 +1710,6 @@ Remember that &lt;strong&gt;&amp;quot;D&amp;quot;&lt;/strong&gt; represents how 
 &lt;p&gt;(See the older version here:&lt;a href="transmissionnodegraph"&gt;Transmission Node Diagram&lt;/a&gt;)&lt;/p&gt;
 
 &lt;p&gt;As you can see in the diagram, the equations are causing a lot of light to get focused in around the edges. This seems to be exaggerated when roughness is very high. That might require a little more investigation next week.&lt;/p&gt;
-</description>
-    </item>
-    <item>
-      <title>Processing textures with the XLE scriptable asset path</title>
-      <link>http://xlgames-inc.github.io/posts/assetpathscripts</link>
-      <pubDate>January 26, 2016</pubDate>
-      <description>&lt;p&gt;I&amp;#39;ve included a few Gradle scripts in the XLE distribution. This is mostly just a simple set of tools I use for my own testing. But you may find it useful for your own needs.&lt;/p&gt;
-
-&lt;p&gt;Of course this system isn&amp;#39;t designed to be 100% robust and fool proof. Actually, it&amp;#39;s just a few simple scripts. But it is scalable and flexible.&lt;/p&gt;
-
-&lt;h2 id="toc_0"&gt;Gradle&lt;/h2&gt;
-
-&lt;p&gt;At heart, an &lt;strong&gt;&amp;quot;asset path&amp;quot;&lt;/strong&gt; is some system that can identify changed assets, recognize processing working that needs to be performed with those assets, and schedule that work.&lt;/p&gt;
-
-&lt;p&gt;For example, we might have an asset for a sky background texture. Various processing tools need to pre-filter this texture so it can be used for image based lighting. Whenever the texture changes (or when the processing tools change) we want to execute the processing steps and produce intermediate assets.&lt;/p&gt;
-
-&lt;p&gt;XLE does some processing at runtime. But that is only practical for short processing steps. Expensive processing steps need some other solution.&lt;/p&gt;
-
-&lt;p&gt;So we need some build system to manage assets and dependences. Are requirements are similar to build systems we use for code. But most code-oriented build systems don&amp;#39;t work well for assets.&lt;/p&gt;
-
-&lt;p&gt;I picked &lt;em&gt;Gradle&lt;/em&gt; because of it&amp;#39;s procedural nature. It allows us to specify input assets -- but also to give instructions to the build path on how to handle that object. For example, we need to tell the build path if a texture is a sky texture, a normals texture, or some other type... That kind of thing just falls out of &lt;em&gt;Gradle&lt;/em&gt; very easily.&lt;/p&gt;
-
-&lt;h2 id="toc_1"&gt;Executing Gradle&lt;/h2&gt;
-
-&lt;p&gt;First, you need to install Gradle, from: &lt;a href="http://gradle.org/gradle-download/"&gt;http://gradle.org/gradle-download/&lt;/a&gt;&lt;/p&gt;
-
-&lt;p&gt;In Tools/AssetPath, we have the &amp;quot;settings.gradle&amp;quot; root project file. Also, this folder contains some &amp;quot;groovy&amp;quot; source files that contain gradle task type implementations. So, there is a task type for processing sky textures -- which basically just involves executing a number of command line operations.&lt;/p&gt;
-
-&lt;p&gt;I&amp;#39;ve also defined a root task called &lt;strong&gt;&amp;quot;tex&amp;quot;&lt;/strong&gt;. This is where gradle starts to shine. The &amp;quot;tex&amp;quot; task searches through the entire working folder for build.gradle files that contain tasks whose names being with &lt;strong&gt;&amp;quot;tex...&amp;quot;&lt;/strong&gt;. All of the tasks found become subtasks of the root &amp;quot;tex&amp;quot; task.&lt;/p&gt;
-
-&lt;p&gt;So, we can create a &lt;strong&gt;&amp;quot;build.gradle&amp;quot;&lt;/strong&gt; in any folder in the working directory. And if we add tasks to that file that being with &amp;quot;tex&amp;quot; (typically &amp;quot;tex0&amp;quot;, &amp;quot;tex1&amp;quot;, etc), they will be automatically added as subtasks of the root &amp;quot;tex&amp;quot; task.&lt;/p&gt;
-
-&lt;p&gt;This is important because when we execute gradle (using the &lt;em&gt;&amp;quot;Tools/AssetPath/execute.bat&amp;quot;&lt;/em&gt; batch file) and pass the root task &amp;quot;tex&amp;quot; on the command line, this has the effect of execute all &amp;quot;tex...&amp;quot; tasks in the entire working directory.&lt;/p&gt;
-
-&lt;p&gt;Pretty cool, right? We can also execute individual tasks using the normal gradle command line.&lt;/p&gt;
-
-&lt;p&gt;There is an example in git in &lt;em&gt;&amp;quot;Working/Game/xleres/DefaultResources/build.gradle.&amp;quot;&lt;/em&gt; This project will generate the standard lookup tables.&lt;/p&gt;
-
-&lt;h2 id="toc_2"&gt;Processing Textures&lt;/h2&gt;
-
-&lt;p&gt;Executing Gradle is just the first step. Gradle is just going to chain together command line operations. Those operations require a bunch of tools.&lt;/p&gt;
-
-&lt;p&gt;One of the most useful task types is &amp;quot;xle.EquiRectEnv.&amp;quot; This takes in a equirectangular (ie, paranoramic) environment map and produces 3 important textures: Cubemap background, Specular IBL texture and Diffuse IBL texture.&lt;/p&gt;
-
-&lt;p&gt;This get a little complicated. This is just the pipeline I use for processing these textures myself. So it&amp;#39;s a little complicated and involved right now.&lt;/p&gt;
-
-&lt;p&gt;First, install these:&lt;/p&gt;
-
-&lt;ol&gt;
-&lt;li&gt;&lt;em&gt;AMD CubemapGen&lt;/em&gt; (&lt;a href="http://developer.amd.com/tools-and-sdks/archive/legacy-cpu-gpu-tools/cubemapgen/"&gt;http://developer.amd.com/tools-and-sdks/archive/legacy-cpu-gpu-tools/cubemapgen/&lt;/a&gt;)&lt;/li&gt;
-&lt;li&gt;&lt;em&gt;S&#xE9;bastien Lagarde&amp;#39;s modified CubemapGen&lt;/em&gt;: &lt;a href="https://seblagarde.wordpress.com/2012/06/10/amd-cubemapgen-for-physically-based-rendering/"&gt;https://seblagarde.wordpress.com/2012/06/10/amd-cubemapgen-for-physically-based-rendering/&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;em&gt;nvcompress&lt;/em&gt; ** from nvidia-texture-tools (see below)&lt;/li&gt;
-&lt;li&gt;&lt;em&gt;TextureProcess&lt;/em&gt; sample from XLE&lt;/li&gt;
-&lt;/ol&gt;
-
-&lt;p&gt;All of these must in the system environment variable &lt;strong&gt;path&lt;/strong&gt;. In the case of TextureProcess, don&amp;#39;t move the executable from the Finals_** folders (because it needs to find the working directory for shaders).&lt;/p&gt;
-
-&lt;p&gt;I use a slightly slightly modified version of nvidia-texture-tools that works better with HDR textures. The standard nvidia-texture-tools always tonemaps HDR textures on load-in (frustratingly). You can find my modified version here: &lt;a href="https://github.com/djewsbury/nvidia-texture-tools"&gt;https://github.com/djewsbury/nvidia-texture-tools&lt;/a&gt;. This modified version allows us to read HDR files (from .hdr and other formats) and write unprocessed floating point .dds file.&lt;/p&gt;
-
-&lt;p&gt;S&#xE9;bastien Lagarde&amp;#39;s &lt;strong&gt;ModifiedCubeMapGen&lt;/strong&gt; is used to generate the diffuse IBL texture. This goes via a spherical harmonic representation before arriving at a small cubemap.&lt;/p&gt;
-
-&lt;p&gt;XLE&amp;#39;s &lt;strong&gt;TextureProcess.exe&lt;/strong&gt; is used to generate the specular IBL texture, as well as compressing to BC6. The specular IBL process reads from a equirectangular HDR map and writes a cubemap.&lt;/p&gt;
-
-&lt;p&gt;All of these textures need to be compress to BC6. Awkwardly, nvidia-texture-tools doesn&amp;#39;t support compressing HDR data to BC6 properly, but &lt;strong&gt;TextureProcess.exe&lt;/strong&gt; can do that via the &lt;strong&gt;DirectXTex&lt;/strong&gt; library.&lt;/p&gt;
-
-&lt;p&gt;So, once you&amp;#39;ve got all of that, compiled it all, put in all in the path... Then you&amp;#39;re ready to process textures.&lt;/p&gt;
-
-&lt;p&gt;Intermediate outputs from this process get written into the &amp;quot;int/u&amp;quot; (or intermediate/universal) directory. From there, you can copy it out, or do what you like. You should get a &lt;em&gt;(file).dds&lt;/em&gt;, &lt;em&gt;(file)_diffuse.dds&lt;/em&gt; &amp;amp; &lt;em&gt;(file)_specular.dds&lt;/em&gt;.&lt;/p&gt;
-
-&lt;h2 id="toc_3"&gt;Make it your own!&lt;/h2&gt;
-
-&lt;p&gt;It&amp;#39;s difficult to get this working the first time. There&amp;#39;s a lot of work. But once it&amp;#39;s going, all of the parts are extensible and exchangeable. It&amp;#39;s a simple, but very flexible system. Handy for managing small, everyday processing tasks.&lt;/p&gt;
 </description>
     </item>
   </channel>

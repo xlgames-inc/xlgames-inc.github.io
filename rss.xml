@@ -4,7 +4,7 @@
     <title>XLE development blog</title>
     <description>XLE development blog</description>
     <link>http://xlgames-inc.github.io</link>
-    <pubDate>January 15, 2017</pubDate>
+    <pubDate>February 01, 2017</pubDate>
     <item>
       <title>About</title>
       <link>http://xlgames-inc.github.io/about</link>
@@ -24,6 +24,7 @@
   &lt;h2&gt;2017&lt;/h2&gt;
     &lt;h3&gt;January&lt;/h3&gt;
     &lt;ul&gt;
+      &lt;li&gt;&lt;span&gt;January 31, 2017&lt;/span&gt; &amp;raquo; &lt;a href="/posts/vulkanworkshop2017"&gt;Vulkan Workshop / DevU 2017&lt;/a&gt;&lt;/li&gt;
       &lt;li&gt;&lt;span&gt;January 08, 2017&lt;/span&gt; &amp;raquo; &lt;a href="/posts/sphericalharmonics1"&gt;Spherical Harmonics and applications in real time graphics (part 2)&lt;/a&gt;&lt;/li&gt;
     &lt;/ul&gt;
   &lt;h2&gt;2016&lt;/h2&gt;
@@ -88,7 +89,7 @@
       <description>
 &lt;ul class="tag_box inline"&gt;
   &lt;li&gt;
-    &lt;a href="/categories#XLE-ref"&gt;XLE &lt;span&gt;26&lt;/span&gt;&lt;/a&gt;
+    &lt;a href="/categories#XLE-ref"&gt;XLE &lt;span&gt;27&lt;/span&gt;&lt;/a&gt;
   &lt;/li&gt;
   &lt;li&gt;
     &lt;a href="/categories#blog-ref"&gt;blog &lt;span&gt;1&lt;/span&gt;&lt;/a&gt;
@@ -98,7 +99,7 @@
   &lt;/li&gt;
 &lt;/ul&gt;
 
-  &lt;h3&gt;XLE (26)&lt;/h3&gt;
+  &lt;h3&gt;XLE (27)&lt;/h3&gt;
   &lt;ul&gt;
       &lt;li&gt;&lt;a href="/posts/arealightsandpbr"&gt;Area Lights with Physically Based Rendering&lt;/a&gt;&lt;/li&gt;
       &lt;li&gt;&lt;a href="/posts/assetpathscripts"&gt;Processing textures with the XLE scriptable asset path&lt;/a&gt;&lt;/li&gt;
@@ -124,6 +125,7 @@
       &lt;li&gt;&lt;a href="/posts/vulkanprototypeslowprogress"&gt;Vulkan prototype slowly progressing&lt;/a&gt;&lt;/li&gt;
       &lt;li&gt;&lt;a href="/posts/vulkanshaderprototype"&gt;HLSL shader prototype with Vulkan&lt;/a&gt;&lt;/li&gt;
       &lt;li&gt;&lt;a href="/posts/vulkantips"&gt;Important Vulkan tips&lt;/a&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;a href="/posts/vulkanworkshop2017"&gt;Vulkan Workshop / DevU 2017&lt;/a&gt;&lt;/li&gt;
       &lt;li&gt;&lt;a href="/posts/whattodofirst"&gt;What to do first&lt;/a&gt;&lt;/li&gt;
       &lt;li&gt;&lt;a href="/posts/workingonrectlights"&gt;Working some improvements to rectangle lights&lt;/a&gt;&lt;/li&gt;
   &lt;/ul&gt;
@@ -151,6 +153,7 @@
   &lt;h2&gt;2017&lt;/h2&gt;
     &lt;h3&gt;January&lt;/h3&gt;
     &lt;ul&gt;
+      &lt;li&gt;&lt;span&gt;January 31, 2017&lt;/span&gt; &amp;raquo; &lt;a href="/posts/vulkanworkshop2017"&gt;Vulkan Workshop / DevU 2017&lt;/a&gt;&lt;/li&gt;
       &lt;li&gt;&lt;span&gt;January 08, 2017&lt;/span&gt; &amp;raquo; &lt;a href="/posts/sphericalharmonics1"&gt;Spherical Harmonics and applications in real time graphics (part 2)&lt;/a&gt;&lt;/li&gt;
     &lt;/ul&gt;
   &lt;h2&gt;2016&lt;/h2&gt;
@@ -214,6 +217,37 @@
 
 &lt;hr /&gt;
 
+&lt;div class="post"&gt;
+  &lt;h3 class="title"&gt;&lt;a href="/posts/vulkanworkshop2017"&gt;Vulkan Workshop / DevU 2017&lt;/a&gt;&lt;br /&gt; &lt;span class="date"&gt;January 31, 2017&lt;/span&gt;&lt;/h3&gt;
+
+  &lt;div class="summary ellipsis"&gt;
+&lt;p&gt;More on spherical harmonics is coming, but this is a slight intermission about Vulkan. Yesterday, I got a chance to attend a Vulkan workshop (called Vulkan DevU) in Vancouver, Canada. It was a short conference with talks by some of the Vulkan working group, with a mixture of both advanced and beginner sessions. You can get the slides &lt;a href="https://www.khronos.org/news/events/khronos-devu-vancouver-2017"&gt;here&lt;/a&gt;. &lt;/p&gt;
+
+&lt;p&gt;Unfortunately, isn't been awhile since I've touched the Vulkan implementation in XLE, and it wasn't fresh in my mind -- but I got a chance to meet some of the working group members and ask a bunch of random questions. Lately it's been difficult to find enough time to properly focus on low level graphics in XLE; I've had to prioritize other things.&lt;/p&gt;
+
+&lt;p&gt;My impressions of Vulkan's strong points were re-affirmed by this conference. Vulkan has a fundamentally open nature and is naturally industry driven -- and working group showed a desire to become even more open; both by inviting contributions and suggesting they would change their NDA structure so they can speak about upcoming drafts sooner in the process.&lt;/p&gt;
+
+&lt;p&gt;Vulkan creates a practical balance between compatibility and performance; and the team addressed that directly. They also spoke about their desire to keep Vulkan thin and avoid heuristics -- another great property of the library.&lt;/p&gt;
+
+&lt;p&gt;So, they gave me every reason to think that Vulkan was in good hands. However, during the conversations we also started to touch upon some of the potential risks of the Vulkan concept. They were upfront about the desire to create a successor to OpenGL, which implies a very broad usage of the API (awesome!) but, in my opinion, there are some possible risks:&lt;/p&gt;
+
+&lt;h3 id="toc_0"&gt;DirectX 12&lt;/h3&gt;
+
+&lt;p&gt;After what seemed like an uncertain start, DX12 looks like it could be very strong. The fact that it shares many fundamental properties with Vulkan makes the two natural competitors.&lt;/p&gt;
+
+&lt;p&gt;Part of DirectX's strength is that is has for many years worked hand and hand with GPU hardware development. Generally important (game oriented) hardware features need to be exposed by the DX API before they are "real" -- so Nvidia, AMD &amp;amp; Intel must fight it out to guide the API to best suit whatever hardware feature they want to emphasize. Over the years, both Nvidia and AMD have attempted to lessen their dependence on DX (with GL extensions or Mantle, etc) but it hasn't worked so well. If you want to make a major change (eg, multicore GPUs, bindless, etc), game developers have a tendency to ignore it until it's in DX.&lt;/p&gt;
+
+&lt;p&gt;The problem for Vulkan is that it risks having to just trot along after DX, or becoming too bound to whichever hardware vendor that feels left out in the cold by the DX council (or, alternatively, mobile oriented hardware vendors that don't have as much skin in DirectX)&lt;/p&gt;
+
+&lt;h3 id="toc_1"&gt;Shifting responsibilities onto engine teams&lt;/h3&gt;
+
+&lt;p&gt;Vulkan shifts some of the responsibilities that were previously handled by GPU driver teams onto the game engine team. This is particularly obvious in areas such as memory management, scheduling and coherency... But it's a general principle, sometimes referred to as the "explicit" principle. For me, this is Vulkan's greatest attribute; but there are risks associated also.&lt;/p&gt;
+&lt;/div&gt;
+
+  &lt;div class="more"&gt;
+    &lt;a href="/posts/vulkanworkshop2017" class="btn btn-small"&gt;read more..&lt;/a&gt;
+  &lt;/div&gt;
+&lt;/div&gt;
 &lt;div class="post"&gt;
   &lt;h3 class="title"&gt;&lt;a href="/posts/sphericalharmonics1"&gt;Spherical Harmonics and applications in real time graphics (part 2)&lt;/a&gt;&lt;br /&gt; &lt;span class="date"&gt;January 08, 2017&lt;/span&gt;&lt;/h3&gt;
 
@@ -340,37 +374,6 @@ However, there are still some big things I want to improve on:&lt;/p&gt;
     &lt;a href="/posts/metallayerrefactoring" class="btn btn-small"&gt;read more..&lt;/a&gt;
   &lt;/div&gt;
 &lt;/div&gt;
-&lt;div class="post"&gt;
-  &lt;h3 class="title"&gt;&lt;a href="/posts/vulkanmoreprogress"&gt;Vulkan latest progress -- core lighting working&lt;/a&gt;&lt;br /&gt; &lt;span class="date"&gt;May 04, 2016&lt;/span&gt;&lt;/h3&gt;
-
-  &lt;div class="summary ellipsis"&gt;
-&lt;p&gt;The Vulkan build is steadily getting more and more functionality. Now the core rendering pipeline in SceneEngine is working -- which means we can have deferred lighting, shadows, IBL, tonemapping, etc. Simple scene should render correctly now. But there are some inefficiencies and issues (see below).&lt;/p&gt;
-
-&lt;p&gt;Unfortunately the DirectX11 version isn't working at the moment. This is all in the "experimental" branch.&lt;/p&gt;
-
-&lt;h2 id="toc_0"&gt;Declarative render passes&lt;/h2&gt;
-
-&lt;p&gt;Tone-mapping now works, and it was a good prototype for the "declarative" render pass model. This allows us to specify render passes and render targets required using a "description" structure. The system will do some caching and correlate request to resources, creating and binding as necessary.&lt;/p&gt;
-
-&lt;p&gt;There is some overhead with this design because it involves doing some per-frame hash and lookups as we go along. It's not as efficient as (for example) just pre-creating all of the frame buffer / render pass objects in a configure step. However, this design is maybe a little more flexible and easier to tie into existing scene engine code. In effect, we're building a new layer that is just one step more abstract from the underlying Vulkan objects.&lt;/p&gt;
-
-&lt;p&gt;I've pushed some of the "busy-work" (like declaring subpass dependencies) down into the RenderCore::Metal layer. This makes the interface easier to use... But the downside is that my abstraction is not expressive enough for some unusual cases. For example, I came across a cases where we want to bind the "depth &amp;amp; stencil" aspects of a depth texture in one subpass; and in the second subpass only the "stencil" aspect is bound. This apparently needs a dependency... But it's just really inconvenient with this interface.&lt;/p&gt;
-
-&lt;p&gt;I've also build a concept called "named resources" into the Metal::DeviceContext. This allows us to get TextureViews for  attachments from the device context. It feels out of place because it's an operation that doesn't involve the hardware, but there doesn't seem to be any better way to handle this case.&lt;/p&gt;
-
-&lt;p&gt;Fundamentally we want to define attachments FrameBufferDesc objects, so that we can later refer to them again by binding id. It would be better if some of this functionality was in the RenderCore::Techniques library... But it would be just too much hassle to split it better Techniques and Metal.&lt;/p&gt;
-
-&lt;p&gt;Anyway, it's working now in Vulkan. However, I still haven't got to the caching and reuse part. And it also needs to be implemented for DirectX11, also!&lt;/p&gt;
-
-&lt;h2 id="toc_1"&gt;Compute shader work!&lt;/h2&gt;
-
-&lt;p&gt;I added in support for the compute pipeline. It actually was pretty easy. I decided to switch some of the tonemapping code from pixel shaders to compute shaders -- because this seems to be more natural in Vulkan. Working with viewports and render targets is much more complex in Vulkan than DirectX11.&lt;/p&gt;
-&lt;/div&gt;
-
-  &lt;div class="more"&gt;
-    &lt;a href="/posts/vulkanmoreprogress" class="btn btn-small"&gt;read more..&lt;/a&gt;
-  &lt;/div&gt;
-&lt;/div&gt;
 
 &lt;div class="pagination"&gt;
   &lt;ul&gt;
@@ -467,7 +470,7 @@ However, there are still some big things I want to improve on:&lt;/p&gt;
     &lt;a href="/tags#GGX-ref"&gt;GGX &lt;span&gt;4&lt;/span&gt;&lt;/a&gt;
   &lt;/li&gt;
   &lt;li&gt;
-    &lt;a href="/tags#Vulkan-ref"&gt;Vulkan &lt;span&gt;9&lt;/span&gt;&lt;/a&gt;
+    &lt;a href="/tags#Vulkan-ref"&gt;Vulkan &lt;span&gt;10&lt;/span&gt;&lt;/a&gt;
   &lt;/li&gt;
   &lt;li&gt;
     &lt;a href="/tags#MaterialTool-ref"&gt;MaterialTool &lt;span&gt;2&lt;/span&gt;&lt;/a&gt;
@@ -476,7 +479,7 @@ However, there are still some big things I want to improve on:&lt;/p&gt;
     &lt;a href="/tags#Shaders-ref"&gt;Shaders &lt;span&gt;2&lt;/span&gt;&lt;/a&gt;
   &lt;/li&gt;
   &lt;li&gt;
-    &lt;a href="/tags#cross platform-ref"&gt;cross platform &lt;span&gt;8&lt;/span&gt;&lt;/a&gt;
+    &lt;a href="/tags#cross platform-ref"&gt;cross platform &lt;span&gt;9&lt;/span&gt;&lt;/a&gt;
   &lt;/li&gt;
   &lt;li&gt;
     &lt;a href="/tags#Metal-ref"&gt;Metal &lt;span&gt;1&lt;/span&gt;&lt;/a&gt;
@@ -491,10 +494,10 @@ However, there are still some big things I want to improve on:&lt;/p&gt;
     &lt;a href="/tags#SphericalHarmonics-ref"&gt;SphericalHarmonics &lt;span&gt;2&lt;/span&gt;&lt;/a&gt;
   &lt;/li&gt;
   &lt;li&gt;
-    &lt;a href="/tags#rendering-ref"&gt;rendering &lt;span&gt;1&lt;/span&gt;&lt;/a&gt;
+    &lt;a href="/tags#rendering-ref"&gt;rendering &lt;span&gt;2&lt;/span&gt;&lt;/a&gt;
   &lt;/li&gt;
   &lt;li&gt;
-    &lt;a href="/tags#API-ref"&gt;API &lt;span&gt;1&lt;/span&gt;&lt;/a&gt;
+    &lt;a href="/tags#API-ref"&gt;API &lt;span&gt;2&lt;/span&gt;&lt;/a&gt;
   &lt;/li&gt;
   &lt;li&gt;
     &lt;a href="/tags#lighting-ref"&gt;lighting &lt;span&gt;1&lt;/span&gt;&lt;/a&gt;
@@ -571,6 +574,7 @@ However, there are still some big things I want to improve on:&lt;/p&gt;
     &lt;li&gt;&lt;a href="/posts/vulkanprototypeslowprogress"&gt;Vulkan prototype slowly progressing&lt;/a&gt;&lt;/li&gt;
     &lt;li&gt;&lt;a href="/posts/vulkanshaderprototype"&gt;HLSL shader prototype with Vulkan&lt;/a&gt;&lt;/li&gt;
     &lt;li&gt;&lt;a href="/posts/vulkantips"&gt;Important Vulkan tips&lt;/a&gt;&lt;/li&gt;
+    &lt;li&gt;&lt;a href="/posts/vulkanworkshop2017"&gt;Vulkan Workshop / DevU 2017&lt;/a&gt;&lt;/li&gt;
   &lt;h3 id="MaterialTool-ref"&gt;MaterialTool&lt;/h3&gt;
     &lt;li&gt;&lt;a href="/posts/materialtool"&gt;Material and Node Diagram Tool&lt;/a&gt;&lt;/li&gt;
     &lt;li&gt;&lt;a href="/posts/transmissionnodegraph"&gt;Transmission Node Diagram&lt;/a&gt;&lt;/li&gt;
@@ -586,6 +590,7 @@ However, there are still some big things I want to improve on:&lt;/p&gt;
     &lt;li&gt;&lt;a href="/posts/vulkanprototypeslowprogress"&gt;Vulkan prototype slowly progressing&lt;/a&gt;&lt;/li&gt;
     &lt;li&gt;&lt;a href="/posts/vulkanshaderprototype"&gt;HLSL shader prototype with Vulkan&lt;/a&gt;&lt;/li&gt;
     &lt;li&gt;&lt;a href="/posts/vulkantips"&gt;Important Vulkan tips&lt;/a&gt;&lt;/li&gt;
+    &lt;li&gt;&lt;a href="/posts/vulkanworkshop2017"&gt;Vulkan Workshop / DevU 2017&lt;/a&gt;&lt;/li&gt;
   &lt;h3 id="Metal-ref"&gt;Metal&lt;/h3&gt;
     &lt;li&gt;&lt;a href="/posts/metallayerrefactoring"&gt;Vulkan prototype - metal layer refactoring&lt;/a&gt;&lt;/li&gt;
   &lt;h3 id="RectangleLights-ref"&gt;RectangleLights&lt;/h3&gt;
@@ -598,8 +603,10 @@ However, there are still some big things I want to improve on:&lt;/p&gt;
     &lt;li&gt;&lt;a href="/posts/sphericalharmonics1"&gt;Spherical Harmonics and applications in real time graphics (part 2)&lt;/a&gt;&lt;/li&gt;
   &lt;h3 id="rendering-ref"&gt;rendering&lt;/h3&gt;
     &lt;li&gt;&lt;a href="/posts/vulkan"&gt;Starting to experiment with Vulkan&lt;/a&gt;&lt;/li&gt;
+    &lt;li&gt;&lt;a href="/posts/vulkanworkshop2017"&gt;Vulkan Workshop / DevU 2017&lt;/a&gt;&lt;/li&gt;
   &lt;h3 id="API-ref"&gt;API&lt;/h3&gt;
     &lt;li&gt;&lt;a href="/posts/vulkan"&gt;Starting to experiment with Vulkan&lt;/a&gt;&lt;/li&gt;
+    &lt;li&gt;&lt;a href="/posts/vulkanworkshop2017"&gt;Vulkan Workshop / DevU 2017&lt;/a&gt;&lt;/li&gt;
   &lt;h3 id="lighting-ref"&gt;lighting&lt;/h3&gt;
     &lt;li&gt;&lt;a href="/posts/vulkanmoreprogress"&gt;Vulkan latest progress -- core lighting working&lt;/a&gt;&lt;/li&gt;
   &lt;h3 id="shaders-ref"&gt;shaders&lt;/h3&gt;

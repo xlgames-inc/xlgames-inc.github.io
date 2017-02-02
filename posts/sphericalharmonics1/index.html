@@ -131,6 +131,11 @@ It&#39;s also a polynomial approximation of a non-polynomial function, so it can
 
 <p>Here, the orange line is <em>cos(theta)/pi</em> and the purple line is our approximation using SH (the x axis is theta). You can find some similar graphs for higher orders in the above reference. As you can see, our approximation seems to drift off a bit, particularly at theta=0 and theta=pi/2.</p>
 
+<p>On the previous page, I showed some images from our final algorithm and another showing the absolute difference from a reference solution multiplied by 30. Here it is again:
+<br/><img src="/assets/media/SphericalHarmonics/diff.jpg"></p>
+
+<p>The banding suggests that most of the error is coming from high frequency details that are lost to spherical harmonic reconstruction. However, we&#39;re also seeing places where bright light appears to be bleeding into dark areas. I wonder if this may be due to the cosine lobe inaccuracies near pi/2.</p>
+
 <h2 id="toc_4">Convolving our environment by the cosine lobe</h2>
 
 <p>Recall the equation we started with:
@@ -153,11 +158,11 @@ It&#39;s also a polynomial approximation of a non-polynomial function, so it can
 
 <p>Where <em>h</em> are zonal harmonic coefficients, <em>c</em> are spherical harmonic coefficients, <em>y</em> are the basic SH constants (from the previous page), <em>&lt;x,y,z&gt;</em> is the direction that +Z will be rotated onto, and <em>[c * h]</em> are the convolved coefficients.</p>
 
-<p>The result (finally) is a spherical harmonic coefficients that represent the diffuse response, for a given environment, for a given direction. If we were use the reconstruction formulae with these coefficients, we would end up with a function wherein the input is a normal direction, and the output is a value that takes into account all incident light, from all directions. And -- to an extraordinarily high accuracy -- we can do that for any environment using just 9 color coefficients.</p>
+<p>The result (finally) are spherical harmonic coefficients that represent the diffuse response, for a given environment, for a given direction. If we were use the reconstruction formulae with these coefficients, we would end up with a function wherein the input is a normal direction, and the output is a value that takes into account all incident light, from all directions. And -- to an extraordinarily high accuracy -- we can do that for any environment using just 9 color coefficients.</p>
 
 <p>This is the equation that makes all of this crazy stuff possible. We&#39;ve effectively reduced a very complex integral down to a really basic equation. If we didn&#39;t have such as simple formula for this convolution and rotation then math might have become unwieldy enough to be unmanageable.</p>
 
-<p>Oddly, though, the role of this equation within the whole SH diffuse mess is frequently not well described in many papers and sources. I&#39;ve come across a bunch of spherical harmonic implementations that have stumbled in this area, perhaps because it&#39;s not very clear. Peter-Pike Sloan talks about it in the above paper, and he references <a href="http://www.sciencedirect.com/science/article/pii/S0196885884710086">Driscoll and Healy</a> for the derivation... But at that point, that math is getting pretty dense. Other papers (like Ramamoorthi &amp; Hanrahan&#39;s <a href="https://cseweb.ucsd.edu/%7Eravir/papers/envmap/envmap.pdf">original paper</a>) tend to deal with it in a somewhat abstract fashion. And in the final shader implemention, the equations will evolve into a completely new form that doesn&#39;t look like a convolve at all. So, this step can be easily overlooked.</p>
+<p>Oddly, though, the role of this equation within the whole SH diffuse mess is frequently not well described in many papers and sources. I&#39;ve come across a bunch of spherical harmonic implementations that have stumbled in this area, perhaps because it&#39;s not very clear. Peter-Pike Sloan talks about it in the above paper, and he references <a href="http://www.sciencedirect.com/science/article/pii/S0196885884710086">Driscoll and Healy</a> for the derivation... But at that point, that math is getting pretty dense. Other papers (like Ramamoorthi &amp; Hanrahan&#39;s <a href="https://cseweb.ucsd.edu/%7Eravir/papers/envmap/envmap.pdf">seminal paper</a>) tend to deal with it in a somewhat abstract fashion. And in the final shader implemention, the equations will evolve into a completely new form that doesn&#39;t look like a convolve at all. So, this step can be easily overlooked.</p>
 
 <p>This is a large part of why I wanted to write this tutorial -- to try to make it a little clearer that there is a critical convolve operation in the middle of this application, and show how that evolves into the constants we&#39;ll see later.</p>
 
@@ -193,7 +198,7 @@ It&#39;s also a polynomial approximation of a non-polynomial function, so it can
 
           <li><a href="/archive">Archive</a></li>
 
-          <li class="next disabled"><a>Next &rarr;</a>
+          <li class="next"><a href="/posts/vulkanworkshop2017" title="Vulkan Workshop / DevU 2017">Next &rarr;</a></li>
       </ul>
     </div>
     <hr>

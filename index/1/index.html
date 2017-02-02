@@ -75,6 +75,9 @@
     <h3>January</h3>
     <ul>
       <li>
+<span>January 31, 2017</span> » <a href="/posts/vulkanworkshop2017">Vulkan Workshop / DevU 2017</a>
+</li>
+      <li>
 <span>January 08, 2017</span> » <a href="/posts/sphericalharmonics1">Spherical Harmonics and applications in real time graphics (part 2)</a>
 </li>
     </ul>
@@ -100,7 +103,7 @@
 <span>May 04, 2016</span> » <a href="/posts/vulkanmoreprogress">Vulkan latest progress -- core lighting working</a>
 </li>
     </ul>
-    </div>
+</div>
 
         <div class="more">
           <a href="/archive" class="btn btn-small">read more..</a>
@@ -112,7 +115,7 @@
         <div class="summary ellipsis">
 <ul class="tag_box inline">
   <li>
-    <a href="/categories#XLE-ref">XLE <span>26</span></a>
+    <a href="/categories#XLE-ref">XLE <span>27</span></a>
   </li>
   <li>
     <a href="/categories#blog-ref">blog <span>1</span></a>
@@ -122,7 +125,7 @@
   </li>
 </ul>
 
-  <h3>XLE (26)</h3>
+  <h3>XLE (27)</h3>
   <ul>
       <li><a href="/posts/arealightsandpbr">Area Lights with Physically Based Rendering</a></li>
       <li><a href="/posts/assetpathscripts">Processing textures with the XLE scriptable asset path</a></li>
@@ -148,6 +151,7 @@
       <li><a href="/posts/vulkanprototypeslowprogress">Vulkan prototype slowly progressing</a></li>
       <li><a href="/posts/vulkanshaderprototype">HLSL shader prototype with Vulkan</a></li>
       <li><a href="/posts/vulkantips">Important Vulkan tips</a></li>
+      <li><a href="/posts/vulkanworkshop2017">Vulkan Workshop / DevU 2017</a></li>
       <li><a href="/posts/whattodofirst">What to do first</a></li>
       <li><a href="/posts/workingonrectlights">Working some improvements to rectangle lights</a></li>
   </ul>
@@ -161,27 +165,27 @@
         <h3 class="title"><a href="/">Home</a><br/> <span class="date"></span></h3>
 
         <div class="summary ellipsis">
-<p>This is a continuation of the previous page; a tutorial for using spherical harmonic methods for real time graphics. On this page we start to dig into slightly more complex math concepts -- but I'll try to keep it approachable, while still sticking to the correct concepts and terms.</p>
+<p>More on spherical harmonics is coming, but this is a slight intermission about Vulkan. Yesterday, I got a chance to attend a Vulkan workshop (called Vulkan DevU) in Vancouver, Canada. It was a short conference with talks by some of the Vulkan working group, with a mixture of both advanced and beginner sessions. You can get the slides <a href="https://www.khronos.org/news/events/khronos-devu-vancouver-2017">here</a>. </p>
 
-<h2 id="toc_0">Integrating the diffuse BRDF</h2>
+<p>Unfortunately, isn't been awhile since I've touched the Vulkan implementation in XLE, and it wasn't fresh in my mind -- but I got a chance to meet some of the working group members and ask a bunch of random questions. Lately it's been difficult to find enough time to properly focus on low level graphics in XLE; I've had to prioritize other things.</p>
 
-<p>On the previous page, we reconstructed a value from a panorama map that was compressed as a spherical harmonic. The result is a blurry version of the original panorama.</p>
+<p>My impressions of Vulkan's strong points were re-affirmed by this conference. Vulkan has a fundamentally open nature and is naturally industry driven -- and working group showed a desire to become even more open; both by inviting contributions and suggesting they would change their NDA structure so they can speak about upcoming drafts sooner in the process.</p>
 
-<p>Our ultimate goal is much more exciting, though -- what if we could calculate the diffuse reflections at a material should exhibit, if it was placed within that environment?</p>
+<p>Vulkan creates a practical balance between compatibility and performance; and the team addressed that directly. They also spoke about their desire to keep Vulkan thin and avoid heuristics -- another great property of the library.</p>
 
-<p>This is the fundamental goal of "image based" real time lighting methods. The easiest way to think about it is this -- we want to treat every texel of the input texture as a separate light. Each light is a small cone light at an infinite distance. The color texture of texel tells us the color and brightness of the light (and since we're probably using a HDR input texture, we can have a broad range of brightnesses).</p>
+<p>So, they gave me every reason to think that Vulkan was in good hands. However, during the conversations we also started to touch upon some of the potential risks of the Vulkan concept. They were upfront about the desire to create a successor to OpenGL, which implies a very broad usage of the API (awesome!) but, in my opinion, there are some possible risks:</p>
 
-<p>Effectively, the input texture represents the "incident" light on an object. We want to calculate the "excident" light -- or the light that reflects off in the direction of the eye. We're making an assumption that the lighting is coming from far away, and the object is small.</p>
+<h3 id="toc_0">DirectX 12</h3>
 
-<p>Since our input texture has a finite number of texels, we could achieve this with a large linear sum:</p>
+<p>After what seemed like an uncertain start, DX12 looks like it could be very strong. The fact that it shares many fundamental properties with Vulkan makes the two natural competitors.</p>
 
-<p><br><img src="/assets/media/SphericalHarmonics/sum_of_texels.png">
-<br>
-Where <em>t</em> is a texel in the input texture, <em>I</em> is the color in the input texture, <em>d</em> is the direction defined by the mapping (ie, equirectangular or cubemap), <em>a</em> is the solid angle of the texel, and <em>L()</em> is our (somewhat less than bi-directional) BRDF. In spherical harmonic form, we would have to express this equation as a integral (because the spherical harmonic form is a non-discrete function).</p>
+<p>Part of DirectX's strength is that is has for many years worked hand and hand with GPU hardware development. Generally important (game oriented) hardware features need to be exposed by the DX API before they are "real" -- so Nvidia, AMD &amp; Intel must fight it out to guide the API to best suit whatever hardware feature they want to emphasize. Over the years, both Nvidia and AMD have attempted to lessen their dependence on DX (with GL extensions or Mantle, etc) but it hasn't worked so well. If you want to make a major change (eg, multicore GPUs, bindless, etc), game developers have a tendency to ignore it until it's in DX.</p>
 
-<p>But we can do better than this. It might be tempting to consider the blurred spherical harmonic reconstruction of the environment as close enough -- but, again, we can do better!</p>
+<p>The problem for Vulkan is that it risks having to just trot along after DX, or becoming too bound to whichever hardware vendor that feels left out in the cold by the DX council (or, alternatively, mobile oriented hardware vendors that don't have as much skin in DirectX)</p>
 
-<h2 id="toc_1">Zonal harmonics</h2>
+<h3 id="toc_1">Shifting responsibilities onto engine teams</h3>
+
+<p>Vulkan shifts some of the responsibilities that were previously handled by GPU driver teams onto the game engine team. This is particularly obvious in areas such as memory management, scheduling and coherency... But it's a general principle, sometimes referred to as the "explicit" principle. For me, this is Vulkan's greatest attribute; but there are risks associated also.</p>
 </div>
 
         <div class="more">

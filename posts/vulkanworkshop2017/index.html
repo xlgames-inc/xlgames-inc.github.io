@@ -1,0 +1,227 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Vulkan Workshop / DevU 2017</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="author" content="XL Games">
+
+    <!-- Le HTML5 shim, for IE6-8 support of HTML elements -->
+    <!--[if lt IE 9]>
+      <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+
+    <!-- Le styles -->
+<link href='/assets/stylesheets/bootstrap.min-93b47f97c3444c4711853ed5140d82a1.css' type='text/css' rel='stylesheet' media='all'>
+<link href='/assets/stylesheets/style-1dcb1d39791f3457afa56d279fcf0945.css' type='text/css' rel='stylesheet' media='all'>
+<link href='/assets/stylesheets/google_prettify/sons-of-obsidian-5e05343fd0c18e0a05231023b643245c.css' type='text/css' rel='stylesheet' media='all'>
+    <!-- Le fav and touch icons -->
+  <!-- Update these with your own images
+    <link rel="shortcut icon" href="images/favicon.ico">
+    <link rel="apple-touch-icon" href="images/apple-touch-icon.png">
+    <link rel="apple-touch-icon" sizes="72x72" href="images/apple-touch-icon-72x72.png">
+    <link rel="apple-touch-icon" sizes="114x114" href="images/apple-touch-icon-114x114.png">
+  -->
+  </head>
+
+  <body>
+
+    <div class="navbar">
+      <div class="navbar-inner">
+        <div class="container-narrow">
+          <a class="brand" href="/">XLE development blog</a>
+          <ul class="nav">
+              
+                <li><a href="/tags">Tags</a></li>
+              
+              
+                <li><a href="/archive">Archive</a></li>
+              
+              
+                <li><a href="/about">About</a></li>
+              
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="container-narrow">
+
+      <div class="content">
+        
+<div class="page-header">
+  <h1>Vulkan Workshop / DevU 2017 </h1>
+</div>
+
+<div class="row-fluid post-full">
+  <div class="span12">
+    <div class="date">
+      <span>January 31, 2017</strong>
+    </div>
+    <div class="content">
+      <p>More on spherical harmonics is coming, but this is a slight intermission about Vulkan. Yesterday, I got a chance to attend a Vulkan workshop (called Vulkan DevU) in Vancouver, Canada. It was a short conference with talks by some of the Vulkan working group, with a mixture of both advanced and beginner sessions. You can get the slides <a href="https://www.khronos.org/news/events/khronos-devu-vancouver-2017">here</a>. </p>
+
+<p>Unfortunately, isn&#39;t been awhile since I&#39;ve touched the Vulkan implementation in XLE, and it wasn&#39;t fresh in my mind -- but I got a chance to meet some of the working group members and ask a bunch of random questions. Lately it&#39;s been difficult to find enough time to properly focus on low level graphics in XLE; I&#39;ve had to prioritize other things.</p>
+
+<p>My impressions of Vulkan&#39;s strong points were re-affirmed by this conference. Vulkan has a fundamentally open nature and is naturally industry driven -- and working group showed a desire to become even more open; both by inviting contributions and suggesting they would change their NDA structure so they can speak about upcoming drafts sooner in the process.</p>
+
+<p>Vulkan creates a practical balance between compatibility and performance; and the team addressed that directly. They also spoke about their desire to keep Vulkan thin and avoid heuristics -- another great property of the library.</p>
+
+<p>So, they gave me every reason to think that Vulkan was in good hands. However, during the conversations we also started to touch upon some of the potential risks of the Vulkan concept. They were upfront about the desire to create a successor to OpenGL, which implies a very broad usage of the API (awesome!) but, in my opinion, there are some possible risks:</p>
+
+<h3 id="toc_0">DirectX 12</h3>
+
+<p>After what seemed like an uncertain start, DX12 looks like it could be very strong. The fact that it shares many fundamental properties with Vulkan makes the two natural competitors.</p>
+
+<p>Part of DirectX&#39;s strength is that is has for many years worked hand and hand with GPU hardware development. Generally important (game oriented) hardware features need to be exposed by the DX API before they are &quot;real&quot; -- so Nvidia, AMD &amp; Intel must fight it out to guide the API to best suit whatever hardware feature they want to emphasize. Over the years, both Nvidia and AMD have attempted to lessen their dependence on DX (with GL extensions or Mantle, etc) but it hasn&#39;t worked so well. If you want to make a major change (eg, multicore GPUs, bindless, etc), game developers have a tendency to ignore it until it&#39;s in DX.</p>
+
+<p>The problem for Vulkan is that it risks having to just trot along after DX, or becoming too bound to whichever hardware vendor that feels left out in the cold by the DX council (or, alternatively, mobile oriented hardware vendors that don&#39;t have as much skin in DirectX)</p>
+
+<h3 id="toc_1">Shifting responsibilities onto engine teams</h3>
+
+<p>Vulkan shifts some of the responsibilities that were previously handled by GPU driver teams onto the game engine team. This is particularly obvious in areas such as memory management, scheduling and coherency... But it&#39;s a general principle, sometimes referred to as the &quot;explicit&quot; principle. For me, this is Vulkan&#39;s greatest attribute; but there are risks associated also.</p>
+
+<p>For example, what happens next time there&#39;s a big change GPU architecture? What happens if there&#39;s a mythical &quot;paradigm shift&quot;? In the old model, it would just be up to the GPU driver developers write a new driver and bind the old API to the new hardware.</p>
+
+<p>The working group have said that major revisions of Vulkan will be compatibility breaks. That would open the door to deep re-architecting of the API after hardware shift. We already see that with DX every 10 years or so. But is that going to be enough to solve this problem?</p>
+
+<p>For major hardware changes, I guess time will tell. But what abount minor hardware changes -- those that are not enough to require big API changes, but are significant enough to change the performance profiling of applications. What happens if a certain API usage practice, which was previously a best-practice, suddenly becomes extremely slow on some specific hardware...?</p>
+
+<p>To hazard an example, what happens if the &quot;descriptor set&quot; model for shader inputs becomes inefficient for new hardware?</p>
+
+<p>In the Vulkan model, if we want to keep the &quot;explicit&quot; principle, then this would require game engine teams going in and adapting their code to suit the new hardware. But there are hundreds more game engine teams than there are GPU driver teams! And game engine teams don&#39;t frequently maintain older games for newer hardware innovations. So there is a kind of &quot;moral&quot; hazard here for the GPU driver team to just go in an modify the explicit API path and replace it with some driver magic that is actually doing something else. But if that happens, we&#39;re all screwed in the long term -- because Vulkan is <strong>so</strong> explicit, it must do exactly what it says it&#39;s doing.</p>
+
+<p>Something tells me that the &quot;explicit&quot; principle is both Vulkan&#39;s greatest attribute, and also it&#39;s greatest along-term test.</p>
+
+<h3 id="toc_2">It&#39;s impossible to test for the correctness of a Vulkan application</h3>
+
+<p>This came up in the context of scheduling; but there&#39;s more to it than that. Scheduling in Vulkan is incredibly difficult. People were really shocked by the difficulty of the PS3 (and are still today!), but in some ways it&#39;s more difficult in Vulkan. We&#39;ve got to specify, down to the exact pipeline stage, exactly when an operation is required to be completed.</p>
+
+<p>The problem with this is that most hardware will work fine, even if there are <em>major</em> scheduling errors. But, as Tom said, for every scheduling mistake that can be made, there&#39;s at least one GPU that it will cause problems with (otherwise that API feature wouldn&#39;t exist!)</p>
+
+<p>The difficulty is that there is no practical way to test our code, to see if it is correct. All we can do is run it on as much hardware as possible, and see if it breaks. But how do we know what hardware is the most unique, the most likely to break? When there are few Vulkan games, the GPU manufacturers will test for but -- but for the second wave, it&#39;s going to take some time to figure those things out.</p>
+
+<h3 id="toc_3">Vulkan needs high quality layers on top of it</h3>
+
+<p>Vulkan is too difficult for many game engine teams to approach. Some early games can maybe get through it with help from the working group and driver developers; and experienced console developers will be fine. But for the second wave, many engine teams risk just falling down an endless rabbit hole.</p>
+
+<p>Furthermore, the benefit in many cases will be limited. I&#39;ve seen many game engines that have turned to technologies like Vulkan or Apple Metal for performance improvements. But they&#39;ve not found what they sought because they didn&#39;t understand their profile well enough to understand that their existing API overhead was already low relative to the overhead in the rest of their engine code. I&#39;ve seen that over and over again; it&#39;s just common for game engine code to be much less optimized than GPU driver code. In some cases this may mean that replacing driver code with engine code results in a net decrease in performance.</p>
+
+<p>For the aspirational industry leaders, the opposite is going to be true (even that the generality of a driver will make it more difficult to optimized). But there are few that fall into that category.</p>
+
+<p>The solution is to build reusable mini-engine layers on top of Vulkan. Layers that provide the same kinds of guarantees and ease of use that DirectX does. Ideally these layers should open-source, and they should be written to shield less experienced engine developers from the major pitfalls and vulgarities of low level coding.</p>
+
+<h3 id="toc_4">Cross-platform gaps</h3>
+
+<p>One of Vulkan&#39;s greatest attributes is it&#39;s cross-platform nature. Windows, Mac, Linux, Android, etc, etc -- all in one very thin package. It&#39;s fantastic.</p>
+
+<p>But there&#39;s some gaps here. Lack of support on Apple is a big one. There&#39;s another odd one that also came up in the conference -- and that is WebGL. Obviously Vulkan doesn&#39;t quite seem right for the web; but this is an odd case because I was thinking about exactly the same thing when the questioner asked about WebGL.</p>
+
+<p>I actually have a really good reason for wanting a single solution that can work across IOS, Android, Windows, Mac &amp; the web. But it still seems like an odd combination of platforms!</p>
+
+<p>It turns out that OpenGLES actually works on all of these platforms (and it&#39;s the only solution that does). But OpenGLES is near end-of-life, and all of those platforms have much better solutions except for the web (and point-in-question Android).</p>
+
+<p>The other possibility is to use Vulkan for Windows, Mac, Android, Apple Metal for IOS and OpenGLES for web and Android fallback. In some ways that&#39;s a ridiculous combination of very different APIs (but what else can I do??!)</p>
+
+<h2 id="toc_5">My take-aways</h2>
+
+<p>So, I mostly represented myself in my professional context as a mobile games developer (but perhaps I should have put XLE first in this context?). My studio has both the technical and art capabilities to use Vulkan very effectively on mobile, and the willingness to invest in best-in-class solutions. We&#39;re also facing some significant internal engine refactoring in the near future, which requires that we consider future trends.</p>
+
+<p>So I guess in part I wanted to find the answer to the question of how high should Vulkan be on our list of priorities? That list is deep with important stuff; so there&#39;s plenty of competition?</p>
+
+<p>I very much want Vulkan to succeed; but I&#39;m also aware that I&#39;m a little biased in that way. It feels like we haven to plan for Vulkan (because we don&#39;t want to refactor towards a direction that will be incompatible with Vulkan in the long run). At the moment, I think that Vulkan can bring improvements to our internal day-to-day development; but it&#39;s unclear if there will be any great benefit to the final product (ie, we have better options for performance improvement currently, and we still need an OpenGLES fallback for low end hardware, anyway).</p>
+
+<p>It feels like Vulkan still has a path to tread before it can establish itself fully. Vulkan must convince game engine programmers to change they way they work; to take on more responsibilities, to understand more of the pipeline, and to publish more code as open-source. In some ways, Vulkan feels like a reaction to Sony console hardware of the past. Right at the moment, my feeling is that Vulkan can only succeed if there are a sufficient number of low-level serious graphics coders spread throughout the industry (such those trained on the PS2 &amp; PS3) that can help address the risks and demonstrate the advantages of the explicit model. Otherwise, the temptation is to just fall back on the likes of Microsoft, Nvidia &amp; AMD, and let them shoulder the load for awhile longer.</p>
+
+    </div>
+    <ul class="tag_box inline">
+      <li><i class="icon-folder-open"></i></li>
+      <li>
+        <a href="/categories#XLE-ref">XLE <span>27</span></a>
+      </li>
+    </ul>
+    <ul class="tag_box inline">
+      <li><i class="icon-tags"></i></li>
+      <li>
+        <a href="/tags#Vulkan-ref">Vulkan <span>10</span></a>
+      </li>
+      <li>
+        <a href="/tags#rendering-ref">rendering <span>2</span></a>
+      </li>
+      <li>
+        <a href="/tags#API-ref">API <span>2</span></a>
+      </li>
+      <li>
+        <a href="/tags#cross platform-ref">cross platform <span>9</span></a>
+      </li>
+    </ul>
+    <hr>
+    <div class="pagination">
+      <ul>
+          <li class="prev"><a href="/posts/sphericalharmonics1" title="Spherical Harmonics and applications in real time graphics (part 2)">&larr; Previous</a></li>
+
+          <li><a href="/archive">Archive</a></li>
+
+          <li class="next disabled"><a>Next &rarr;</a>
+      </ul>
+    </div>
+    <hr>
+    <div id="disqus_thread"></div>
+<script>
+    var disqus_developer = 1;
+    var disqus_shortname = 'xledev'; // required: replace example with your forum shortname
+    /* * * DON'T EDIT BELOW THIS LINE * * */
+    (function() {
+        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+        dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<a href="http://disqus.com" class="dsq-brlink">blog comments powered by <span class="logo-disqus">Disqus</span></a>
+
+  </div>
+</div>
+
+
+      </div>
+
+      <hr>
+      <div class="footer">
+        <p>&copy; XL Games 2015
+          with help from <a href="http://ruhoh.com" target="_blank" title="The Definitive Technical Blogging Framework">ruhoh</a>
+          and <a href="http://twitter.github.com/bootstrap/" target="_blank">Twitter Bootstrap</a>
+        </p>
+      </div>
+
+    </div> <!-- /container -->
+
+    <!-- Google Prettify -->
+<script src="http://cdnjs.cloudflare.com/ajax/libs/prettify/188.0.0/prettify.js"></script>
+<script>
+  var pres = document.getElementsByTagName("pre");
+  for (var i=0; i < pres.length; ++i) {
+    pres[i].className = "prettyprint linenums";
+  }
+  prettyPrint();
+</script>
+<!-- end Google Prettify -->
+    <script type="text/javascript">
+
+  var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', 'UA-71034032-1']);
+  _gaq.push(['_trackPageview']);
+  
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+
+</script>
+
+
+    
+  </body>
+</html>

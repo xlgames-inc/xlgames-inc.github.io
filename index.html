@@ -64,6 +64,7 @@
   <h2>2017</h2>
     <h3>January</h3>
     <ul>
+      <li><span>January 31, 2017</span> &raquo; <a href="/posts/vulkanworkshop2017">Vulkan Workshop / DevU 2017</a></li>
       <li><span>January 08, 2017</span> &raquo; <a href="/posts/sphericalharmonics1">Spherical Harmonics and applications in real time graphics (part 2)</a></li>
     </ul>
   <h2>2016</h2>
@@ -127,6 +128,37 @@
 
 <hr />
 
+<div class="post">
+  <h3 class="title"><a href="/posts/vulkanworkshop2017">Vulkan Workshop / DevU 2017</a><br /> <span class="date">January 31, 2017</span></h3>
+
+  <div class="summary ellipsis">
+<p>More on spherical harmonics is coming, but this is a slight intermission about Vulkan. Yesterday, I got a chance to attend a Vulkan workshop (called Vulkan DevU) in Vancouver, Canada. It was a short conference with talks by some of the Vulkan working group, with a mixture of both advanced and beginner sessions. You can get the slides <a href="https://www.khronos.org/news/events/khronos-devu-vancouver-2017">here</a>. </p>
+
+<p>Unfortunately, isn't been awhile since I've touched the Vulkan implementation in XLE, and it wasn't fresh in my mind -- but I got a chance to meet some of the working group members and ask a bunch of random questions. Lately it's been difficult to find enough time to properly focus on low level graphics in XLE; I've had to prioritize other things.</p>
+
+<p>My impressions of Vulkan's strong points were re-affirmed by this conference. Vulkan has a fundamentally open nature and is naturally industry driven -- and working group showed a desire to become even more open; both by inviting contributions and suggesting they would change their NDA structure so they can speak about upcoming drafts sooner in the process.</p>
+
+<p>Vulkan creates a practical balance between compatibility and performance; and the team addressed that directly. They also spoke about their desire to keep Vulkan thin and avoid heuristics -- another great property of the library.</p>
+
+<p>So, they gave me every reason to think that Vulkan was in good hands. However, during the conversations we also started to touch upon some of the potential risks of the Vulkan concept. They were upfront about the desire to create a successor to OpenGL, which implies a very broad usage of the API (awesome!) but, in my opinion, there are some possible risks:</p>
+
+<h3 id="toc_0">DirectX 12</h3>
+
+<p>After what seemed like an uncertain start, DX12 looks like it could be very strong. The fact that it shares many fundamental properties with Vulkan makes the two natural competitors.</p>
+
+<p>Part of DirectX's strength is that is has for many years worked hand and hand with GPU hardware development. Generally important (game oriented) hardware features need to be exposed by the DX API before they are "real" -- so Nvidia, AMD &amp; Intel must fight it out to guide the API to best suit whatever hardware feature they want to emphasize. Over the years, both Nvidia and AMD have attempted to lessen their dependence on DX (with GL extensions or Mantle, etc) but it hasn't worked so well. If you want to make a major change (eg, multicore GPUs, bindless, etc), game developers have a tendency to ignore it until it's in DX.</p>
+
+<p>The problem for Vulkan is that it risks having to just trot along after DX, or becoming too bound to whichever hardware vendor that feels left out in the cold by the DX council (or, alternatively, mobile oriented hardware vendors that don't have as much skin in DirectX)</p>
+
+<h3 id="toc_1">Shifting responsibilities onto engine teams</h3>
+
+<p>Vulkan shifts some of the responsibilities that were previously handled by GPU driver teams onto the game engine team. This is particularly obvious in areas such as memory management, scheduling and coherency... But it's a general principle, sometimes referred to as the "explicit" principle. For me, this is Vulkan's greatest attribute; but there are risks associated also.</p>
+</div>
+
+  <div class="more">
+    <a href="/posts/vulkanworkshop2017" class="btn btn-small">read more..</a>
+  </div>
+</div>
 <div class="post">
   <h3 class="title"><a href="/posts/sphericalharmonics1">Spherical Harmonics and applications in real time graphics (part 2)</a><br /> <span class="date">January 08, 2017</span></h3>
 
@@ -251,37 +283,6 @@ However, there are still some big things I want to improve on:</p>
 
   <div class="more">
     <a href="/posts/metallayerrefactoring" class="btn btn-small">read more..</a>
-  </div>
-</div>
-<div class="post">
-  <h3 class="title"><a href="/posts/vulkanmoreprogress">Vulkan latest progress -- core lighting working</a><br /> <span class="date">May 04, 2016</span></h3>
-
-  <div class="summary ellipsis">
-<p>The Vulkan build is steadily getting more and more functionality. Now the core rendering pipeline in SceneEngine is working -- which means we can have deferred lighting, shadows, IBL, tonemapping, etc. Simple scene should render correctly now. But there are some inefficiencies and issues (see below).</p>
-
-<p>Unfortunately the DirectX11 version isn't working at the moment. This is all in the "experimental" branch.</p>
-
-<h2 id="toc_0">Declarative render passes</h2>
-
-<p>Tone-mapping now works, and it was a good prototype for the "declarative" render pass model. This allows us to specify render passes and render targets required using a "description" structure. The system will do some caching and correlate request to resources, creating and binding as necessary.</p>
-
-<p>There is some overhead with this design because it involves doing some per-frame hash and lookups as we go along. It's not as efficient as (for example) just pre-creating all of the frame buffer / render pass objects in a configure step. However, this design is maybe a little more flexible and easier to tie into existing scene engine code. In effect, we're building a new layer that is just one step more abstract from the underlying Vulkan objects.</p>
-
-<p>I've pushed some of the "busy-work" (like declaring subpass dependencies) down into the RenderCore::Metal layer. This makes the interface easier to use... But the downside is that my abstraction is not expressive enough for some unusual cases. For example, I came across a cases where we want to bind the "depth &amp; stencil" aspects of a depth texture in one subpass; and in the second subpass only the "stencil" aspect is bound. This apparently needs a dependency... But it's just really inconvenient with this interface.</p>
-
-<p>I've also build a concept called "named resources" into the Metal::DeviceContext. This allows us to get TextureViews for  attachments from the device context. It feels out of place because it's an operation that doesn't involve the hardware, but there doesn't seem to be any better way to handle this case.</p>
-
-<p>Fundamentally we want to define attachments FrameBufferDesc objects, so that we can later refer to them again by binding id. It would be better if some of this functionality was in the RenderCore::Techniques library... But it would be just too much hassle to split it better Techniques and Metal.</p>
-
-<p>Anyway, it's working now in Vulkan. However, I still haven't got to the caching and reuse part. And it also needs to be implemented for DirectX11, also!</p>
-
-<h2 id="toc_1">Compute shader work!</h2>
-
-<p>I added in support for the compute pipeline. It actually was pretty easy. I decided to switch some of the tonemapping code from pixel shaders to compute shaders -- because this seems to be more natural in Vulkan. Working with viewports and render targets is much more complex in Vulkan than DirectX11.</p>
-</div>
-
-  <div class="more">
-    <a href="/posts/vulkanmoreprogress" class="btn btn-small">read more..</a>
   </div>
 </div>
 
