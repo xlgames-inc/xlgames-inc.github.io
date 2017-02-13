@@ -51,6 +51,44 @@
         <div class="row-fluid">
   <div class="span12">
       <div class="posts">
+        <h3 class="title"><a href="/posts/functionlinkedshaders">Dynamic Function Linking Graph for Shaders</a><br/> <span class="date">December 16, 2015</span></h3>
+
+        <div class="summary ellipsis">
+<p>For many modern engines, the shear quantity of different configuration options for shaders can start to be a major burden. Many compile-time options can end up increasing the number of compiled shaders exponentially. It can get to the point where the shaders data image can make up a large segment of download time, and compile time can be a major hassle during development.</p>
+
+<p>For example, a pixel shader for forward lit scene elements will often need to be specialized to suit the number and types of lights nearby. If we have a few different types of lights, the number of combinations can become very quickly unmanageable.</p>
+
+<p>But we really need a lot of compile time options! They are very useful.</p>
+
+<h2 id="toc_0">Dynamic linking methods in D3D</h2>
+
+<p>What we really need is a way to do dynamic linking of shaders -- so that we can construct the particular shader we need at runtime.</p>
+
+<p>D3D provides a few different methods for dynamic shader linking.
+The one simple method involves "classes" and "interfaces."</p>
+
+<h2 id="toc_1">Classes and interfaces</h2>
+
+<p>In the shader code, we can define an interface like this:</p>
+
+<pre><code>interface ILightResolver
+{
+    float3 Resolve(
+        GBufferValues sample,
+        LightSampleExtra sampleExtra,
+        LightDesc light,
+        float3 worldPosition,
+        float3 directionToEye,
+        LightScreenDest screenDest);
+};
+</code></pre>
+</div>
+
+        <div class="more">
+          <a href="/posts/functionlinkedshaders" class="btn btn-small">read more..</a>
+        </div>
+      </div>
+      <div class="posts">
         <h3 class="title"><a href="/posts/rectlightdiffuse">Rectangle Light diffuse vs 3DS Max</a><br/> <span class="date">December 11, 2015</span></h3>
 
         <div class="summary ellipsis">
@@ -182,37 +220,6 @@ Partially it means sampling values from the real world. But really it's just a c
           <a href="/posts/arealightsandpbr" class="btn btn-small">read more..</a>
         </div>
       </div>
-      <div class="posts">
-        <h3 class="title"><a href="/posts/first">First post</a><br/> <span class="date">December 01, 2015</span></h3>
-
-        <div class="summary ellipsis">
-<p>This blog will contain some day-to-day information about XLE.</p>
-
-<p>Let's start with some screenshots, rendered with XLE:</p>
-
-<p><img src="/assets/media/CaptainSplitBrightLogo.png"><br>
-The Captain character from <a href="http://archeage.xlgames.com/">Archeage</a> (<a href="http://www.trionworlds.com/archeage/en/">US site</a>).</p>
-
-<p><img src="/assets/media/Archepunk4.png"><br>
-One of the (many) costumes from Archeage.</p>
-
-<p><img src="/assets/media/SkeleCommander.png"><br>
-A skeleton enemy from Archeage.</p>
-
-<p><img src="/assets/media/Copperhead1.png"><br>
-A military spacecraft.</p>
-
-<p><img src="/assets/media/gweonid4.png"><br>
-The "Gweonid" character from Archeage.</p>
-
-<p><img src="/assets/media/MetalGolem0.png"><br>
-A metal golem character from Archeage.</p>
-</div>
-
-        <div class="more">
-          <a href="/posts/first" class="btn btn-small">read more..</a>
-        </div>
-      </div>
     
     <div class="pagination">
       <ul>
@@ -222,6 +229,7 @@ A metal golem character from Archeage.</p>
           <li><a href="/posts/index/4">4</a></li>
           <li><a href="/posts/index/5">5</a></li>
           <li class="active"><a href="/posts/index/6">6</a></li>
+          <li><a href="/posts/index/7">7</a></li>
       </ul>
     </div>
   </div>

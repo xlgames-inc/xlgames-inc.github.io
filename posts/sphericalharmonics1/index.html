@@ -150,15 +150,15 @@ It&#39;s also a polynomial approximation of a non-polynomial function, so it can
 
 <p>That might sound difficult enough, but there&#39;s even more to it than that. Our cosine lobe zonal harmonic coefficients are defined only for a normal along +Z. We need a way to rotate the zonal harmonic coefficients relative to the spherical harmonic coefficients (which would be the same as rotating the normal from +Z to some arbitrary direction). We would rotate spherical harmonic coefficients (which we can do arbitrarily and without loss) but actually that formula is fairly expensive. We want something more efficient.</p>
 
-<p>It turns out that there is a way to do all of this at once -- find the convolution and also rotate the zonal harmonic. The equation is oddly simple, and (fortunately for us!) the result is just another set of  spherical harmonic coefficients.</p>
+<p>It turns out that there is a way to do all of this at once -- find the convolution and also rotate the zonal harmonic. The equation is oddly simple, and (fortunately for us!) the result is just another set of coefficients, which when added together will give us the final reconstruction.</p>
 
 <p>See <a href="http://www.ppsloan.org/publications/ldprt_final05.pdf">Local, Deformable Precomputed Radiance Transfer</a> by Sloan, Luna &amp; Snyder:
 <br/><img src="/assets/media/SphericalHarmonics/convolve.png">
 <br/></p>
 
-<p>Where <em>h</em> are zonal harmonic coefficients, <em>c</em> are spherical harmonic coefficients, <em>y</em> are the basic SH constants (from the previous page), <em>&lt;x,y,z&gt;</em> is the direction that +Z will be rotated onto, and <em>[c * h]</em> are the convolved coefficients.</p>
+<p>Where <em>h</em> are zonal harmonic coefficients, <em>c</em> are spherical harmonic coefficients, <em>y</em> are the basic SH constants (from the previous page), <em>&lt;x,y,z&gt;</em> is the direction that +Z will be rotated onto, and <em>[c * h]</em> are the convolved output coefficients.</p>
 
-<p>The result (finally) are spherical harmonic coefficients that represent the diffuse response, for a given environment, for a given direction. If we were use the reconstruction formulae with these coefficients, we would end up with a function wherein the input is a normal direction, and the output is a value that takes into account all incident light, from all directions. And -- to an extraordinarily high accuracy -- we can do that for any environment using just 9 color coefficients.</p>
+<p>The result (finally) are coefficients that represent the diffuse response, for a given environment, for a given direction. If we summed these coefficients, we would end up with a value that takes into account all incident light, from all directions. And -- to an extraordinarily high accuracy. This works for any environment, and all of this comes from just 9 color coefficients.</p>
 
 <p>This is the equation that makes all of this crazy stuff possible. We&#39;ve effectively reduced a very complex integral down to a really basic equation. If we didn&#39;t have such as simple formula for this convolution and rotation then math might have become unwieldy enough to be unmanageable.</p>
 
@@ -182,13 +182,13 @@ It&#39;s also a polynomial approximation of a non-polynomial function, so it can
     <ul class="tag_box inline">
       <li><i class="icon-folder-open"></i></li>
       <li>
-        <a href="/categories#Misc-ref">Misc <span>2</span></a>
+        <a href="/categories#Misc-ref">Misc <span>3</span></a>
       </li>
     </ul>
     <ul class="tag_box inline">
       <li><i class="icon-tags"></i></li>
       <li>
-        <a href="/tags#SphericalHarmonics-ref">SphericalHarmonics <span>2</span></a>
+        <a href="/tags#SphericalHarmonics-ref">SphericalHarmonics <span>3</span></a>
       </li>
     </ul>
     <hr>

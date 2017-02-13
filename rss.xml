@@ -4,7 +4,7 @@
     <title>XLE development blog</title>
     <description>XLE development blog</description>
     <link>http://xlgames-inc.github.io</link>
-    <pubDate>February 01, 2017</pubDate>
+    <pubDate>February 12, 2017</pubDate>
     <item>
       <title>About</title>
       <link>http://xlgames-inc.github.io/about</link>
@@ -22,6 +22,10 @@
       <link>http://xlgames-inc.github.io/archive</link>
       <description>
   &lt;h2&gt;2017&lt;/h2&gt;
+    &lt;h3&gt;February&lt;/h3&gt;
+    &lt;ul&gt;
+      &lt;li&gt;&lt;span&gt;February 12, 2017&lt;/span&gt; &amp;raquo; &lt;a href="/posts/sphericalharmonics2"&gt;Spherical Harmonics and applications in real time graphics (part 3)&lt;/a&gt;&lt;/li&gt;
+    &lt;/ul&gt;
     &lt;h3&gt;January&lt;/h3&gt;
     &lt;ul&gt;
       &lt;li&gt;&lt;span&gt;January 31, 2017&lt;/span&gt; &amp;raquo; &lt;a href="/posts/vulkanworkshop2017"&gt;Vulkan Workshop / DevU 2017&lt;/a&gt;&lt;/li&gt;
@@ -95,7 +99,7 @@
     &lt;a href="/categories#blog-ref"&gt;blog &lt;span&gt;1&lt;/span&gt;&lt;/a&gt;
   &lt;/li&gt;
   &lt;li&gt;
-    &lt;a href="/categories#Misc-ref"&gt;Misc &lt;span&gt;2&lt;/span&gt;&lt;/a&gt;
+    &lt;a href="/categories#Misc-ref"&gt;Misc &lt;span&gt;3&lt;/span&gt;&lt;/a&gt;
   &lt;/li&gt;
 &lt;/ul&gt;
 
@@ -133,10 +137,11 @@
   &lt;ul&gt;
       &lt;li&gt;&lt;a href="/posts/first"&gt;First post&lt;/a&gt;&lt;/li&gt;
   &lt;/ul&gt;
-  &lt;h3&gt;Misc (2)&lt;/h3&gt;
+  &lt;h3&gt;Misc (3)&lt;/h3&gt;
   &lt;ul&gt;
       &lt;li&gt;&lt;a href="/posts/sphericalharmonics0"&gt;Spherical Harmonics and applications in real time graphics&lt;/a&gt;&lt;/li&gt;
       &lt;li&gt;&lt;a href="/posts/sphericalharmonics1"&gt;Spherical Harmonics and applications in real time graphics (part 2)&lt;/a&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;a href="/posts/sphericalharmonics2"&gt;Spherical Harmonics and applications in real time graphics (part 3)&lt;/a&gt;&lt;/li&gt;
   &lt;/ul&gt;
 </description>
     </item>
@@ -151,6 +156,10 @@
 &lt;p&gt;Dev team contact: &lt;a href="mailto:xle@xlgames.com"&gt;xle@xlgames.com&lt;/a&gt; (in English or Korean)&lt;/p&gt;
 
   &lt;h2&gt;2017&lt;/h2&gt;
+    &lt;h3&gt;February&lt;/h3&gt;
+    &lt;ul&gt;
+      &lt;li&gt;&lt;span&gt;February 12, 2017&lt;/span&gt; &amp;raquo; &lt;a href="/posts/sphericalharmonics2"&gt;Spherical Harmonics and applications in real time graphics (part 3)&lt;/a&gt;&lt;/li&gt;
+    &lt;/ul&gt;
     &lt;h3&gt;January&lt;/h3&gt;
     &lt;ul&gt;
       &lt;li&gt;&lt;span&gt;January 31, 2017&lt;/span&gt; &amp;raquo; &lt;a href="/posts/vulkanworkshop2017"&gt;Vulkan Workshop / DevU 2017&lt;/a&gt;&lt;/li&gt;
@@ -217,6 +226,38 @@
 
 &lt;hr /&gt;
 
+&lt;div class="post"&gt;
+  &lt;h3 class="title"&gt;&lt;a href="/posts/sphericalharmonics2"&gt;Spherical Harmonics and applications in real time graphics (part 3)&lt;/a&gt;&lt;br /&gt; &lt;span class="date"&gt;February 12, 2017&lt;/span&gt;&lt;/h3&gt;
+
+  &lt;div class="summary ellipsis"&gt;
+&lt;p&gt;This is a continuation of the tutorial on spherical harmonic applications for games. On the last page, we figured out the core math for integrating a basic diffuse BRDF with a spherical environment of incident light.&lt;/p&gt;
+
+&lt;h2 id="toc_0"&gt;Efficient implementation&lt;/h2&gt;
+
+&lt;p&gt;So far, we've been dealing with spherical harmonics fairly abstractly. But now we can get down to a concrete use and some concrete code. Given our input texture (which effectively describes a sphere of incident light on a point) we want to calculate, for a given normal direction, what is the appropriate diffuse response.&lt;/p&gt;
+
+&lt;p&gt;To explain that more visually, here's the images from the first page. The first one is the input texture, and the second one is the matching diffuse response (with the same mapping).
+&lt;br&gt;&lt;img src="/assets/media/SphericalHarmonics/mans_0.jpg"&gt;
+&lt;br&gt;&lt;img src="/assets/media/SphericalHarmonics/reference.jpg"&gt;
+&lt;br&gt;(images from sIBL Archive: &lt;a href="http://www.hdrlabs.com/sibl/archive.html"&gt;http://www.hdrlabs.com/sibl/archive.html&lt;/a&gt;)&lt;/p&gt;
+
+&lt;p&gt;Recall that we've expressed the BRDF as zonal harmonic coefficients and the incident light environment as spherical harmonic coefficients. We've established that we need to use a "convolve" operation to calculate how the BRDF reflects incident light to excident light (this effectively calculates the integral of the BRDF across the incident sphere). We also worked out that we need to rotate the BRDF in order to align it with the direction of the normal.&lt;/p&gt;
+
+&lt;p&gt;To refresh, here's the equation for convolution and rotation:
+&lt;br&gt;&lt;img src="/assets/media/SphericalHarmonics/convolve.png"&gt;&lt;/p&gt;
+
+&lt;p&gt;The output of the convolve operation is a set of coefficients, and our final result will be the sum of those coefficients.&lt;/p&gt;
+
+&lt;h3 id="toc_1"&gt;Simplifying&lt;/h3&gt;
+
+&lt;p&gt;Let's define &lt;em&gt;g&lt;/em&gt; by rearranging the convolve equation:
+&lt;br&gt;&lt;img src="/assets/media/SphericalHarmonics/convolve2.png"&gt;&lt;/p&gt;
+&lt;/div&gt;
+
+  &lt;div class="more"&gt;
+    &lt;a href="/posts/sphericalharmonics2" class="btn btn-small"&gt;read more..&lt;/a&gt;
+  &lt;/div&gt;
+&lt;/div&gt;
 &lt;div class="post"&gt;
   &lt;h3 class="title"&gt;&lt;a href="/posts/vulkanworkshop2017"&gt;Vulkan Workshop / DevU 2017&lt;/a&gt;&lt;br /&gt; &lt;span class="date"&gt;January 31, 2017&lt;/span&gt;&lt;/h3&gt;
 
@@ -342,38 +383,6 @@ However, there are still some big things I want to improve on:&lt;/p&gt;
     &lt;a href="/posts/juneupdate" class="btn btn-small"&gt;read more..&lt;/a&gt;
   &lt;/div&gt;
 &lt;/div&gt;
-&lt;div class="post"&gt;
-  &lt;h3 class="title"&gt;&lt;a href="/posts/metallayerrefactoring"&gt;Vulkan prototype - metal layer refactoring&lt;/a&gt;&lt;br /&gt; &lt;span class="date"&gt;May 09, 2016&lt;/span&gt;&lt;/h3&gt;
-
-  &lt;div class="summary ellipsis"&gt;
-&lt;p&gt;XLE has a thin layer over the underlying graphics API called "Metal". This was originally built for DirectX11 and OpenGLES. But over time it became more DirectX-focused. Part of the goal of building in Vulkan support was to provide a basis for refactoring and improving the metal layer.&lt;/p&gt;
-
-&lt;p&gt;The goals for this layer are simple:
-- compile time polymorphism between underlying graphics APIs
- - not link time or run time. We know the target during compilation of client code
-- "leaky" abstraction layer
- - meaning that most client code is independent of the underlying graphics API
- - but the underlying objects are still accessible, so client code can write API-specific code when needed
-- very thin, minimal overhead
- - for example, many DeviceContext methods get inlined into client code, meaning that performance is similar to using the underlying API directly&lt;/p&gt;
-
-&lt;p&gt;To make this kind of layer work, we need to find abstractions that work well for all target APIs. Usually this means finding abstractions that are great for one API, and pretty good for other APIs. That can be tricky, particularly as APIs are changing and evolving over time.&lt;/p&gt;
-
-&lt;h2 id="toc_0"&gt;Descriptor Set concept&lt;/h2&gt;
-
-&lt;p&gt;Ideally we want the concept of "descriptor sets" to exist in the metal API somewhere. There are two reasons for this:&lt;/p&gt;
-
-&lt;ol&gt;
-&lt;li&gt;Clean up the DeviceContext interface so there are fewer BindXX(...) methods&lt;/li&gt;
-&lt;li&gt;pre-cook permanent descriptor sets using BoundUniforms (or otherwise), so that they can be reused frame to frame&lt;/li&gt;
-&lt;/ol&gt;
-
-&lt;/div&gt;
-
-  &lt;div class="more"&gt;
-    &lt;a href="/posts/metallayerrefactoring" class="btn btn-small"&gt;read more..&lt;/a&gt;
-  &lt;/div&gt;
-&lt;/div&gt;
 
 &lt;div class="pagination"&gt;
   &lt;ul&gt;
@@ -383,6 +392,7 @@ However, there are still some big things I want to improve on:&lt;/p&gt;
       &lt;li&gt;&lt;a href="/posts/index/4"&gt;4&lt;/a&gt;&lt;/li&gt;
       &lt;li&gt;&lt;a href="/posts/index/5"&gt;5&lt;/a&gt;&lt;/li&gt;
       &lt;li&gt;&lt;a href="/posts/index/6"&gt;6&lt;/a&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;a href="/posts/index/7"&gt;7&lt;/a&gt;&lt;/li&gt;
   &lt;/ul&gt;
 &lt;/div&gt;
 </description>
@@ -491,7 +501,7 @@ However, there are still some big things I want to improve on:&lt;/p&gt;
     &lt;a href="/tags#Releases-ref"&gt;Releases &lt;span&gt;1&lt;/span&gt;&lt;/a&gt;
   &lt;/li&gt;
   &lt;li&gt;
-    &lt;a href="/tags#SphericalHarmonics-ref"&gt;SphericalHarmonics &lt;span&gt;2&lt;/span&gt;&lt;/a&gt;
+    &lt;a href="/tags#SphericalHarmonics-ref"&gt;SphericalHarmonics &lt;span&gt;3&lt;/span&gt;&lt;/a&gt;
   &lt;/li&gt;
   &lt;li&gt;
     &lt;a href="/tags#rendering-ref"&gt;rendering &lt;span&gt;2&lt;/span&gt;&lt;/a&gt;
@@ -601,6 +611,7 @@ However, there are still some big things I want to improve on:&lt;/p&gt;
   &lt;h3 id="SphericalHarmonics-ref"&gt;SphericalHarmonics&lt;/h3&gt;
     &lt;li&gt;&lt;a href="/posts/sphericalharmonics0"&gt;Spherical Harmonics and applications in real time graphics&lt;/a&gt;&lt;/li&gt;
     &lt;li&gt;&lt;a href="/posts/sphericalharmonics1"&gt;Spherical Harmonics and applications in real time graphics (part 2)&lt;/a&gt;&lt;/li&gt;
+    &lt;li&gt;&lt;a href="/posts/sphericalharmonics2"&gt;Spherical Harmonics and applications in real time graphics (part 3)&lt;/a&gt;&lt;/li&gt;
   &lt;h3 id="rendering-ref"&gt;rendering&lt;/h3&gt;
     &lt;li&gt;&lt;a href="/posts/vulkan"&gt;Starting to experiment with Vulkan&lt;/a&gt;&lt;/li&gt;
     &lt;li&gt;&lt;a href="/posts/vulkanworkshop2017"&gt;Vulkan Workshop / DevU 2017&lt;/a&gt;&lt;/li&gt;

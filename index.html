@@ -62,6 +62,10 @@
 <p>Dev team contact: <a href="mailto:xle@xlgames.com">xle@xlgames.com</a> (in English or Korean)</p>
 
   <h2>2017</h2>
+    <h3>February</h3>
+    <ul>
+      <li><span>February 12, 2017</span> &raquo; <a href="/posts/sphericalharmonics2">Spherical Harmonics and applications in real time graphics (part 3)</a></li>
+    </ul>
     <h3>January</h3>
     <ul>
       <li><span>January 31, 2017</span> &raquo; <a href="/posts/vulkanworkshop2017">Vulkan Workshop / DevU 2017</a></li>
@@ -128,6 +132,38 @@
 
 <hr />
 
+<div class="post">
+  <h3 class="title"><a href="/posts/sphericalharmonics2">Spherical Harmonics and applications in real time graphics (part 3)</a><br /> <span class="date">February 12, 2017</span></h3>
+
+  <div class="summary ellipsis">
+<p>This is a continuation of the tutorial on spherical harmonic applications for games. On the last page, we figured out the core math for integrating a basic diffuse BRDF with a spherical environment of incident light.</p>
+
+<h2 id="toc_0">Efficient implementation</h2>
+
+<p>So far, we've been dealing with spherical harmonics fairly abstractly. But now we can get down to a concrete use and some concrete code. Given our input texture (which effectively describes a sphere of incident light on a point) we want to calculate, for a given normal direction, what is the appropriate diffuse response.</p>
+
+<p>To explain that more visually, here's the images from the first page. The first one is the input texture, and the second one is the matching diffuse response (with the same mapping).
+<br><img src="/assets/media/SphericalHarmonics/mans_0.jpg">
+<br><img src="/assets/media/SphericalHarmonics/reference.jpg">
+<br>(images from sIBL Archive: <a href="http://www.hdrlabs.com/sibl/archive.html">http://www.hdrlabs.com/sibl/archive.html</a>)</p>
+
+<p>Recall that we've expressed the BRDF as zonal harmonic coefficients and the incident light environment as spherical harmonic coefficients. We've established that we need to use a "convolve" operation to calculate how the BRDF reflects incident light to excident light (this effectively calculates the integral of the BRDF across the incident sphere). We also worked out that we need to rotate the BRDF in order to align it with the direction of the normal.</p>
+
+<p>To refresh, here's the equation for convolution and rotation:
+<br><img src="/assets/media/SphericalHarmonics/convolve.png"></p>
+
+<p>The output of the convolve operation is a set of coefficients, and our final result will be the sum of those coefficients.</p>
+
+<h3 id="toc_1">Simplifying</h3>
+
+<p>Let's define <em>g</em> by rearranging the convolve equation:
+<br><img src="/assets/media/SphericalHarmonics/convolve2.png"></p>
+</div>
+
+  <div class="more">
+    <a href="/posts/sphericalharmonics2" class="btn btn-small">read more..</a>
+  </div>
+</div>
 <div class="post">
   <h3 class="title"><a href="/posts/vulkanworkshop2017">Vulkan Workshop / DevU 2017</a><br /> <span class="date">January 31, 2017</span></h3>
 
@@ -253,38 +289,6 @@ However, there are still some big things I want to improve on:</p>
     <a href="/posts/juneupdate" class="btn btn-small">read more..</a>
   </div>
 </div>
-<div class="post">
-  <h3 class="title"><a href="/posts/metallayerrefactoring">Vulkan prototype - metal layer refactoring</a><br /> <span class="date">May 09, 2016</span></h3>
-
-  <div class="summary ellipsis">
-<p>XLE has a thin layer over the underlying graphics API called "Metal". This was originally built for DirectX11 and OpenGLES. But over time it became more DirectX-focused. Part of the goal of building in Vulkan support was to provide a basis for refactoring and improving the metal layer.</p>
-
-<p>The goals for this layer are simple:
-- compile time polymorphism between underlying graphics APIs
- - not link time or run time. We know the target during compilation of client code
-- "leaky" abstraction layer
- - meaning that most client code is independent of the underlying graphics API
- - but the underlying objects are still accessible, so client code can write API-specific code when needed
-- very thin, minimal overhead
- - for example, many DeviceContext methods get inlined into client code, meaning that performance is similar to using the underlying API directly</p>
-
-<p>To make this kind of layer work, we need to find abstractions that work well for all target APIs. Usually this means finding abstractions that are great for one API, and pretty good for other APIs. That can be tricky, particularly as APIs are changing and evolving over time.</p>
-
-<h2 id="toc_0">Descriptor Set concept</h2>
-
-<p>Ideally we want the concept of "descriptor sets" to exist in the metal API somewhere. There are two reasons for this:</p>
-
-<ol>
-<li>Clean up the DeviceContext interface so there are fewer BindXX(...) methods</li>
-<li>pre-cook permanent descriptor sets using BoundUniforms (or otherwise), so that they can be reused frame to frame</li>
-</ol>
-
-</div>
-
-  <div class="more">
-    <a href="/posts/metallayerrefactoring" class="btn btn-small">read more..</a>
-  </div>
-</div>
 
 <div class="pagination">
   <ul>
@@ -294,6 +298,7 @@ However, there are still some big things I want to improve on:</p>
       <li><a href="/posts/index/4">4</a></li>
       <li><a href="/posts/index/5">5</a></li>
       <li><a href="/posts/index/6">6</a></li>
+      <li><a href="/posts/index/7">7</a></li>
   </ul>
 </div>
 

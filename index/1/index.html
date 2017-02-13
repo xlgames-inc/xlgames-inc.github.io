@@ -72,6 +72,12 @@
 
         <div class="summary ellipsis">
   <h2>2017</h2>
+    <h3>February</h3>
+    <ul>
+      <li>
+<span>February 12, 2017</span> » <a href="/posts/sphericalharmonics2">Spherical Harmonics and applications in real time graphics (part 3)</a>
+</li>
+    </ul>
     <h3>January</h3>
     <ul>
       <li>
@@ -94,16 +100,7 @@
 <span>June 19, 2016</span> » <a href="/posts/juneupdate">Latest Update</a>
 </li>
     </ul>
-    <h3>May</h3>
-    <ul>
-      <li>
-<span>May 09, 2016</span> » <a href="/posts/metallayerrefactoring">Vulkan prototype - metal layer refactoring</a>
-</li>
-      <li>
-<span>May 04, 2016</span> » <a href="/posts/vulkanmoreprogress">Vulkan latest progress -- core lighting working</a>
-</li>
-    </ul>
-</div>
+    </div>
 
         <div class="more">
           <a href="/archive" class="btn btn-small">read more..</a>
@@ -121,7 +118,7 @@
     <a href="/categories#blog-ref">blog <span>1</span></a>
   </li>
   <li>
-    <a href="/categories#Misc-ref">Misc <span>2</span></a>
+    <a href="/categories#Misc-ref">Misc <span>3</span></a>
   </li>
 </ul>
 
@@ -165,27 +162,28 @@
         <h3 class="title"><a href="/">Home</a><br/> <span class="date"></span></h3>
 
         <div class="summary ellipsis">
-<p>More on spherical harmonics is coming, but this is a slight intermission about Vulkan. Yesterday, I got a chance to attend a Vulkan workshop (called Vulkan DevU) in Vancouver, Canada. It was a short conference with talks by some of the Vulkan working group, with a mixture of both advanced and beginner sessions. You can get the slides <a href="https://www.khronos.org/news/events/khronos-devu-vancouver-2017">here</a>. </p>
+<p>This is a continuation of the tutorial on spherical harmonic applications for games. On the last page, we figured out the core math for integrating a basic diffuse BRDF with a spherical environment of incident light.</p>
 
-<p>Unfortunately, isn't been awhile since I've touched the Vulkan implementation in XLE, and it wasn't fresh in my mind -- but I got a chance to meet some of the working group members and ask a bunch of random questions. Lately it's been difficult to find enough time to properly focus on low level graphics in XLE; I've had to prioritize other things.</p>
+<h2 id="toc_0">Efficient implementation</h2>
 
-<p>My impressions of Vulkan's strong points were re-affirmed by this conference. Vulkan has a fundamentally open nature and is naturally industry driven -- and working group showed a desire to become even more open; both by inviting contributions and suggesting they would change their NDA structure so they can speak about upcoming drafts sooner in the process.</p>
+<p>So far, we've been dealing with spherical harmonics fairly abstractly. But now we can get down to a concrete use and some concrete code. Given our input texture (which effectively describes a sphere of incident light on a point) we want to calculate, for a given normal direction, what is the appropriate diffuse response.</p>
 
-<p>Vulkan creates a practical balance between compatibility and performance; and the team addressed that directly. They also spoke about their desire to keep Vulkan thin and avoid heuristics -- another great property of the library.</p>
+<p>To explain that more visually, here's the images from the first page. The first one is the input texture, and the second one is the matching diffuse response (with the same mapping).
+<br><img src="/assets/media/SphericalHarmonics/mans_0.jpg">
+<br><img src="/assets/media/SphericalHarmonics/reference.jpg">
+<br>(images from sIBL Archive: <a href="http://www.hdrlabs.com/sibl/archive.html">http://www.hdrlabs.com/sibl/archive.html</a>)</p>
 
-<p>So, they gave me every reason to think that Vulkan was in good hands. However, during the conversations we also started to touch upon some of the potential risks of the Vulkan concept. They were upfront about the desire to create a successor to OpenGL, which implies a very broad usage of the API (awesome!) but, in my opinion, there are some possible risks:</p>
+<p>Recall that we've expressed the BRDF as zonal harmonic coefficients and the incident light environment as spherical harmonic coefficients. We've established that we need to use a "convolve" operation to calculate how the BRDF reflects incident light to excident light (this effectively calculates the integral of the BRDF across the incident sphere). We also worked out that we need to rotate the BRDF in order to align it with the direction of the normal.</p>
 
-<h3 id="toc_0">DirectX 12</h3>
+<p>To refresh, here's the equation for convolution and rotation:
+<br><img src="/assets/media/SphericalHarmonics/convolve.png"></p>
 
-<p>After what seemed like an uncertain start, DX12 looks like it could be very strong. The fact that it shares many fundamental properties with Vulkan makes the two natural competitors.</p>
+<p>The output of the convolve operation is a set of coefficients, and our final result will be the sum of those coefficients.</p>
 
-<p>Part of DirectX's strength is that is has for many years worked hand and hand with GPU hardware development. Generally important (game oriented) hardware features need to be exposed by the DX API before they are "real" -- so Nvidia, AMD &amp; Intel must fight it out to guide the API to best suit whatever hardware feature they want to emphasize. Over the years, both Nvidia and AMD have attempted to lessen their dependence on DX (with GL extensions or Mantle, etc) but it hasn't worked so well. If you want to make a major change (eg, multicore GPUs, bindless, etc), game developers have a tendency to ignore it until it's in DX.</p>
+<h3 id="toc_1">Simplifying</h3>
 
-<p>The problem for Vulkan is that it risks having to just trot along after DX, or becoming too bound to whichever hardware vendor that feels left out in the cold by the DX council (or, alternatively, mobile oriented hardware vendors that don't have as much skin in DirectX)</p>
-
-<h3 id="toc_1">Shifting responsibilities onto engine teams</h3>
-
-<p>Vulkan shifts some of the responsibilities that were previously handled by GPU driver teams onto the game engine team. This is particularly obvious in areas such as memory management, scheduling and coherency... But it's a general principle, sometimes referred to as the "explicit" principle. For me, this is Vulkan's greatest attribute; but there are risks associated also.</p>
+<p>Let's define <em>g</em> by rearranging the convolve equation:
+<br><img src="/assets/media/SphericalHarmonics/convolve2.png"></p>
 </div>
 
         <div class="more">

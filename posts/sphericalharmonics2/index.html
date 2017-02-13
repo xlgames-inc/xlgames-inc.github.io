@@ -1,0 +1,393 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Spherical Harmonics and applications in real time graphics (part 3)</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="author" content="XL Games">
+
+    <!-- Le HTML5 shim, for IE6-8 support of HTML elements -->
+    <!--[if lt IE 9]>
+      <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+
+    <!-- Le styles -->
+<link href='/assets/stylesheets/bootstrap.min-93b47f97c3444c4711853ed5140d82a1.css' type='text/css' rel='stylesheet' media='all'>
+<link href='/assets/stylesheets/style-1dcb1d39791f3457afa56d279fcf0945.css' type='text/css' rel='stylesheet' media='all'>
+<link href='/assets/stylesheets/google_prettify/sons-of-obsidian-5e05343fd0c18e0a05231023b643245c.css' type='text/css' rel='stylesheet' media='all'>
+    <!-- Le fav and touch icons -->
+  <!-- Update these with your own images
+    <link rel="shortcut icon" href="images/favicon.ico">
+    <link rel="apple-touch-icon" href="images/apple-touch-icon.png">
+    <link rel="apple-touch-icon" sizes="72x72" href="images/apple-touch-icon-72x72.png">
+    <link rel="apple-touch-icon" sizes="114x114" href="images/apple-touch-icon-114x114.png">
+  -->
+  </head>
+
+  <body>
+
+    <div class="navbar">
+      <div class="navbar-inner">
+        <div class="container-narrow">
+          <a class="brand" href="/">XLE development blog</a>
+          <ul class="nav">
+              
+                <li><a href="/tags">Tags</a></li>
+              
+              
+                <li><a href="/archive">Archive</a></li>
+              
+              
+                <li><a href="/about">About</a></li>
+              
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="container-narrow">
+
+      <div class="content">
+        
+<div class="page-header">
+  <h1>Spherical Harmonics and applications in real time graphics (part 3) </h1>
+</div>
+
+<div class="row-fluid post-full">
+  <div class="span12">
+    <div class="date">
+      <span>February 12, 2017</strong>
+    </div>
+    <div class="content">
+      <p>This is a continuation of the tutorial on spherical harmonic applications for games. On the last page, we figured out the core math for integrating a basic diffuse BRDF with a spherical environment of incident light.</p>
+
+<h2 id="toc_0">Efficient implementation</h2>
+
+<p>So far, we&#39;ve been dealing with spherical harmonics fairly abstractly. But now we can get down to a concrete use and some concrete code. Given our input texture (which effectively describes a sphere of incident light on a point) we want to calculate, for a given normal direction, what is the appropriate diffuse response.</p>
+
+<p>To explain that more visually, here&#39;s the images from the first page. The first one is the input texture, and the second one is the matching diffuse response (with the same mapping).
+<br/><img src="/assets/media/SphericalHarmonics/mans_0.jpg">
+<br/><img src="/assets/media/SphericalHarmonics/reference.jpg">
+<br/>(images from sIBL Archive: <a href="http://www.hdrlabs.com/sibl/archive.html">http://www.hdrlabs.com/sibl/archive.html</a>)</p>
+
+<p>Recall that we&#39;ve expressed the BRDF as zonal harmonic coefficients and the incident light environment as spherical harmonic coefficients. We&#39;ve established that we need to use a &quot;convolve&quot; operation to calculate how the BRDF reflects incident light to excident light (this effectively calculates the integral of the BRDF across the incident sphere). We also worked out that we need to rotate the BRDF in order to align it with the direction of the normal.</p>
+
+<p>To refresh, here&#39;s the equation for convolution and rotation:
+<br/><img src="/assets/media/SphericalHarmonics/convolve.png"></p>
+
+<p>The output of the convolve operation is a set of coefficients, and our final result will be the sum of those coefficients.</p>
+
+<h3 id="toc_1">Simplifying</h3>
+
+<p>Let&#39;s define <em>g</em> by rearranging the convolve equation:
+<br/><img src="/assets/media/SphericalHarmonics/convolve2.png"></p>
+
+<p>Recall that our coefficients for the cosine lobe zonal harmonic are:
+<br/><img src="/assets/media/SphericalHarmonics/cosine_lobe_harmonics.png"></p>
+
+<p>Now, taking the coefficients for the cosine lobe zonal harmonic, we can calculate <em>g</em> for each of the bands.</p>
+
+<h4 id="toc_2">Band 0 (constant):</h4>
+
+<p><br/><img src="/assets/media/SphericalHarmonics/simplified_convolve_0.png"></p>
+
+<h4 id="toc_3">Band 1:</h4>
+
+<p><br/><img src="/assets/media/SphericalHarmonics/simplified_convolve_1.png"></p>
+
+<h4 id="toc_4">Band 2:</h4>
+
+<p><br/><img src="/assets/media/SphericalHarmonics/simplified_convolve_2.png"></p>
+
+<p>As luck would have it,  <em>y()</em> gets almost completely factored out!</p>
+
+<h3 id="toc_5">Shader implementation tricks</h3>
+
+<p>Notice that the <em>g</em> values mostly take the form <em>g = constant * q(x,y,z)</em>, where <em>q(x,y,z)</em> is the non-constant part of the appropriate spherical harmonic (eg, <em>x</em>, <em>yz</em>, etc). The first and seventh equations are a bit special -- the first equation is just a constant value and the seventh equation has 2 terms: a constant part and a <em>z^2</em> term. We can refactor the equations to combine the constant term with the first equation.</p>
+
+<p>To make things a little easier on ourselves, we will pre-multiply the spherical harmonic coefficients by the constant values from the associated <em>g</em> value (taking into account the special case for the seventh one).</p>
+
+<p>That leads us to this modified version of the original reconstruction equation:
+<br/><img src="/assets/media/SphericalHarmonics/modified_reconstruction.png"></p>
+
+<p>Here, <em>&quot;C&quot;</em> is the &quot;pre-multiplied&quot; coefficient.</p>
+
+<p>We can also decide how to vectorize these calculation. We can think of this operation as the dot product of two 9 dimensional vectors; one vector for the pre-multiplied values, one vector containing the evaluations of <em>q(x,y,z)</em>. We also have to do this 3 times (once for each color primary -- red, green and blue).</p>
+
+<p>Some older GPUs had vectorized instructions (or SIMD instructions), which meant that it was more efficient to perform instructions on a full 4D vector, rather than single floats. So there are a few implementations around that use two 4D vectors to do 8 components of the dot product for each color channel (and then add the final constant part).</p>
+
+<p>Modern hardware can keep it&#39;s ARUs busy even when just performing single float instructions and as a result, that form of vectorization is less important. Instead, it&#39;s often easier for us to just rotate the vectorization around and instead use 8 multiply-add operations with 3 dimensional vectors that just represent the rgb color values. This implementation also doesn&#39;t require a dot-product instruction (which, incidentally, was important when implementing this way back on the PS2, where dot products were may difficult due to that hardware&#39;s instruction scheduling behaviour).</p>
+
+<h3 id="toc_6">Final shader</h3>
+
+<p>So our final shader implementation turns out to be very basic. XLE uses the second, more straight-forward kind of implementation. We can pre-multiply the <em>&quot;C&quot;</em> constant values on the CPU side (typically either on a per-object basis or a per-scene basis).</p>
+
+<pre><code class="GLSL">float3 ResolveSH_Opt(float3 premulCoefficients[9], float3 dir)
+{
+    float3 result = premulCoefficients[0];
+
+    result += premulCoefficients[1] * dir.y;
+    result += premulCoefficients[2] * dir.z;
+    result += premulCoefficients[3] * dir.x;
+
+    float3 dirSq = dir * dir;
+    result += premulCoefficients[4] * (dir.x * dir.y);
+    result += premulCoefficients[5] * (dir.z * dir.y);
+    result += premulCoefficients[6] * dirSq.z;
+    result += premulCoefficients[7] * (dir.x * dir.z);
+    result += premulCoefficients[8] * (dirSq.x - dirSq.y);
+    return result;
+}
+</code></pre>
+
+<p>Recall that the <em>x</em>, <em>y</em>, <em>z</em> inputs to <em>q(x,y,z)</em> are the normal (and it must actually be unit length) -- this is the parameter <em>dir</em> in the above shader. We can choose to evaluate the spherical harmonic on the vertex shader or on the fragment shader. When using normal maps that will typically mean evaluating in the fragment shader.</p>
+
+<p>For lower power hardware, if we have reasonably dense geometry we can evaluate in the vertex shader. This style of lighting is naturally fairly soft and smooth, so linear interpolation across the triangle will often produce reasonable results. But there&#39;s one more important detail we haven&#39;t discussed: the normal must be in the same coordinate space as the evaluated spherical harmonic coefficients! So does this mean we must transform the normal into world space and do all calculations in that space? That&#39;s an option, but as we&#39;ll see, there&#39;s another way as well.</p>
+
+<h2 id="toc_7">Rotation</h2>
+
+<p>One of the key properties of systems like this that use the spherical harmonics is that they are rotationally invariant. If means that if we can rotate our diffuse reflection approximation (and we can), then we will not loose any precision. Imagine an environment with a bright white light in the +Z direction. If we rotate the environment so that light is in another direction (let&#39;s say, +X), then we want the shape and brightness of the light to remain exactly the same. &quot;Rotationally invariant&quot; means that this will be the case regardless of how we rotate the environment. Even though the spherical harmonics appear to use <em>x</em>, <em>y</em> &amp; <em>z</em> differentially, there is no actual bias for any direction (this may be clearer to see in the polar coordinate versions of the harmonics).</p>
+
+<p>To rotate a spherical harmonic lighting environment, we must take each band one-at-time. Band 0 is just a constant, so it requires no rotation. In band 1 (which is 3 components), the equation is actually just a permutation of the basic 3x3 rotation matrix operation (which should make intuitive sense, given the directional parts in the band 1 are just <em>x</em>, <em>y</em>, <em>z</em>). For the band 2 and beyond, we need something more involved.</p>
+
+<h3 id="toc_8">Rotating the band 2</h3>
+
+<p>There is a general formula for rotating spherical harmonics coefficients of an arbitrary band. We&#39;ll use this to handle band 2.</p>
+
+<p>In <a href="http://silviojemma.com/public/papers/lighting/spherical-harmonic-lighting.pdf">&quot;Spherical Harmonic Lighting: The Gritty Details&quot;</a>, Appendix 1, Robin Green describes the basic method we&#39;ll be using, which is derived from work by Josepth Ivanic and Klaus Ruedenberg. We have to make some changes to the math, however -- are a couple of import modifications we need to make. First, Robin Green isn&#39;t using the <strong>Condon-Shortley phase</strong> (described in the first part), but we are. Second, there&#39;s a small errata in the <em>V</em> matrix.</p>
+
+<p>We&#39;ll start by defining six 5x5 matrices: <em>u</em>, <em>v</em>, <em>w</em> and <em>U</em>, <em>V</em>, <em>W</em>. The elements of the final rotation matrix, <em>M</em> will be constructed from these matrices in this way:</p>
+
+<p><br/><img src="/assets/media/SphericalHarmonics/rotation_construction.png"></p>
+
+<p>The elements of <em>u</em>, <em>v</em> and <em>w</em> are dependent only on <em>l</em> (the band index) <em>m</em> and <em>n</em>. In other words, <em>u</em>, <em>v</em> and <em>w</em> are all constant for band 2. The elements of <em>U</em>, <em>V</em> and <em>W</em> are dependent on the rotation matrix for the <em>previous</em> band (ie, the permutated rotation matrix we used for band 1).</p>
+
+<p>Robin Green shows the definition of these matrices, but given the notes above and since it is a lot of abstract maths, I won&#39;t duplicate it here. Instead I&#39;ll give some code.</p>
+
+<p>(BTW, as a side note, if you look closely at the definitions for these matrices, you&#39;ll see cases that can result in a divide by zero. In these cases, the element on the complementary matrix is zero.)</p>
+
+<pre><code class="C++">const int l=2;
+Mat5x5 P[3];
+memset(&amp;P, 0, sizeof(P));       // (i==-l &amp;&amp; l==l rows not filled in by the below loop)
+for (int i=-1; i&lt;=1; ++i) {
+    for (int a=-1; a&lt;=1; ++a) {
+        for (int b=-l; b&lt;=l; ++b) {
+            float&amp; dst = P[i+1][a+l][b+l];
+            if (b==l) {
+                dst =   band1Rotation[i+1][2] * band1Rotation[a+1][ l-1+1]
+                    -   band1Rotation[i+1][0] * band1Rotation[a+1][-l+1+1];
+            } else if (b==-l) {
+                dst =   band1Rotation[i+1][2] * band1Rotation[a+1][-l+1+1]
+                    +   band1Rotation[i+1][0] * band1Rotation[a+1][ l-1+1];
+            } else {
+                dst =   band1Rotation[i+1][1] * band1Rotation[a+1][b+1];
+            }
+        }
+    }
+}
+
+Mat5x5 uMat, vMat, wMat;
+Mat5x5 UMat, VMat, WMat;
+for (int m=-l; m&lt;=l; ++m) {
+    for (int n=-l; n&lt;=l; ++n) {
+        auto kroneckerDeltam0 = (m==0) ? 1 : 0;
+        auto absm = abs(m);
+        float d = (n==-l || n==l) ? (2*l*(2*l-1)) : (l+n)*(l-n);
+        uMat[m+l][n+l] =        sqrtf(float((l+m)*(l-m))/d);
+        vMat[m+l][n+l] =  .5f * sqrtf(float((1+kroneckerDeltam0)*(l+absm-1)*(l+absm))/d) * float(1-2*kroneckerDeltam0);
+        wMat[m+l][n+l] = -.5f * sqrtf(float((l-absm-1)*(l-absm))/d) * float(1-kroneckerDeltam0);
+
+        // note --  wMat[m+l][n+l] will be zero if (m == l-1) || (m == l) || (m == 0)
+        //          In these cases, the associated &#39;W&#39; value is undefined -- so we avoid calculating it in those cases
+        //          For band 2, this is always the case! Since &#39;w&#39; is always zero, we also never
+        //          actually need to calculate &#39;W&#39;
+
+        auto kroneckerDeltam1    = (m== 1) ? 1 : 0;
+        auto kroneckerDeltamneg1 = (m==-1) ? 1 : 0;
+        float&amp; U = UMat[m+l][n+l];
+        float&amp; V = VMat[m+l][n+l];
+        float&amp; W = WMat[m+l][n+l];
+        U = P[ 0+1][   m+l][n+l];
+        assert((n+l) &gt;= 0 &amp;&amp; (n+l) &lt; 5);
+        if (m==0) {
+            V = P[ 1+1][   1+l][n+l] + P[-1+1][  -1+l][n+l];
+            W = P[ 1+1][ m+1+l][n+l] + P[-1+1][-m-1+l][n+l];        // redundant, but no danger of an out-of-bound matrix access in this case
+        } else if (m&gt;0) {
+            V = P[ 1+1][ m-1+l][n+l] * sqrtf(float(1+kroneckerDeltam1))
+              - P[-1+1][-m+1+l][n+l] * float(1-kroneckerDeltam1);
+            if (wMat[m+l][n+l] != 0.f) {
+                assert(isValidA(m+1, l) &amp;&amp; isValidA(-m-1, l));
+                W = P[ 1+1][ m+1+l][n+l] + P[-1+1][-m-1+l][n+l];
+            } else {
+                W = 0.f;        // (always the case)
+            }
+        } else if (m&lt;0) {
+            V = P[ 1+1][ m+1+l][n+l] * float(1-kroneckerDeltamneg1)
+              + P[-1+1][-m-1+l][n+l] * sqrtf(float(1+kroneckerDeltamneg1));         // (Google)
+            if (wMat[m+l][n+l] != 0.f) {
+                W = P[ 1+1][ m-1+l][n+l] - P[-1+1][-m+1+l][n+l];
+            } else {
+                W = 0.f;        // (always the case)
+            }
+        }
+    }
+}
+</code></pre>
+
+<p>This code has been thoroughly tested, and is reliable. But since this algorithm seems to have been copied out incorrectly in a number of places, I&#39;ll also point out a few other identical implementations:</p>
+
+<ul>
+<li><a href="https://www.mathworks.com/matlabcentral/fileexchange/15377-real-valued-spherical-harmonics/content/spherical_harmonics/SHRotate.m">in MATLAB code</a></li>
+<li><a href="https://github.com/polarch/Spherical-Harmonic-Transform/blob/master/getSHrotMtx.m">also MATLAB</a></li>
+<li><a href="https://github.com/google/spherical-harmonics/blob/master/sh/spherical_harmonics.cc">C++</a> (but beware errors in other parts of this source file)</li>
+</ul>
+
+<h3 id="toc_9">Evaluation in local space</h3>
+
+<p>Rotating a spherical harmonic coefficient vector allows us to do the shader evaluation in any coordinate space we choose. In some cases, it may be convenient to do the evaluation in the local coordinate space for an object. This is now possible, we just rotate the spherical harmonic coefficients by the inverse of the rotation part of the local-to-world transform (ie, thereby transforming the spherical harmonic coefficients into the object&#39;s local space).</p>
+
+<p>This is an interesting advantage of spherical harmonics over cubemaps. Because we&#39;re defining our environment mathematically and continuously, they can be a little more malleable.</p>
+
+<h2 id="toc_10">Practical rotation</h2>
+
+<p>The above method is a great reference method for rotating band 2. But it&#39;s not very practical in real-world cases. We want something that is at least efficient enough to be done once per object. In an ideal world (as we may see later), we want to be able to do it at a much more granular level. But to do this, we need something far more efficient!</p>
+
+<p>There are a number of different approaches to optimizing rotations. Some methods introduce some errors, others are accurate. But we break them down into 3 broad categories:</p>
+
+<ol>
+<li>factoring arbitrary rotations into rotations around cardinal axes</li>
+<li>replacing the expensive parts of the algorithm, with cheap approximations</li>
+<li>algebraically refactoring the full rotation algorithm into a form that is specific to band 2 and well suited to our hardware</li>
+</ol>
+
+<p>I&#39;m going to talk about a few of the alternatives, before finally explaining the method I&#39;ve been using.</p>
+
+<h3 id="toc_11">Efficient rotation through cardinal rotations</h3>
+
+<p>The rotation matrix method above can calculate a transformation matrix for any arbitrary rotation. But it turns out that for some rotations (particularly rotations around the cardinal axes), many elements of the matrix are zero. Furthermore, in the case of rotations around the Z axis, even the non-zero elements are very easy to calculate.</p>
+
+<p>In fact, rotation around the Z axis just follow this template:
+<br/><img src="/assets/media/SphericalHarmonics/z_rotation_band3.png"></p>
+
+<p>This can actually help us generate a full rotation matrix for an arbitrary rotation. Recall that it&#39;s possible to decompose any 3D rotation into Euler angle form. In this form, the rotation is described by 3 angles, and each angle is a rotation around a cardinal axis. For example, a rotation in &quot;XYZ&quot; Euler angles form would be 3 angles, one representing a rotation around the X axis, another for a rotation around the Y axis and another for a rotation around the Z axis.</p>
+
+<p>There are many different forms of Euler angles, but the form we&#39;re going to use is &quot;ZYZ&quot; form. In this form, there are 2 rotations around the Z axis; but due to the rotation around the Y axis in the middle, the second Z axis is enough to provide the third degree of freedom we need.</p>
+
+<p>Clearly this is convenient because we can just use the simple template above to build the rotation matrices for the two rotations about the Z direction. After we also build the rotation matrix for the rotation around Y, we will just multiply those 3 rotation matrices together.</p>
+
+<p>But how to generate a rotation around the Y axis? Unfortunately, rotations around the Y axis don&#39;t come out as cleanly as rotations around the Z axis. But we can use another trick. We can rotate the entire coordinate space to align the Y axis with the Z axis. Then we just rotate around the Z axis again, and rotate coordinate space back.</p>
+
+<p>Aligning Y with Z requires a 90 degree rotation around the X axis (though it may depend on the handiness of your coordinate system). This method actually ends up requiring us to multiply together 5 rotation matrices. 3 of those are rotations around Z, and the remaining 2 are constant matrices.</p>
+
+<p>This method is called &quot;ZXZXZ&quot; (referencing the 3 Z rotations and the two &quot;aligning&quot; X axis rotations). It was first proposed by Kautz, Sloan and Synder in <a href="https://pdfs.semanticscholar.org/a467/0bd7d799d452085de1ac9f9840aecb006116.pdf">Fast, Arbitrary BRDF Shading for Low-Frequency Lighting
+Using Spherical Harmonics</a> (hidden away in the appendix).</p>
+
+<h3 id="toc_12">Substituting approximations</h3>
+
+<p>The ZXZXZ method give us accurate results, but the 2 extra matrix multiplies added by the &quot;XZX&quot; step are still frustrating. It would be much nicer if we could just generate an arbitrary rotation around X or Y directly.</p>
+
+<p>Sometimes it can be profitable to simplify a complex equation using a standard approximation technique, such as a Taylor series. This has been proposed as solution to our problem by Jaroslav Krivanek, Jaakko Konttinen, Sumanta Pattanaik and Kadi Bouatouch in <a href="http://cgg.mff.cuni.cz/%7Ejaroslav/papers/2006-sccg/2006-sccg-krivanek-shrot.pdf">&quot;Fast Approximation to Spherical Harmonic Rotation&quot;</a>.</p>
+
+<p>Their goal is to rotate coefficient vectors for higher order bands (eg, 5+ bands) that represent specular response. This makes it view-dependent, which requires rotating once per fragment shader (as opposed to once per object, as in our diffuse methods).</p>
+
+<p>They found that their method was accurate for rotations less than 20 degrees for their Phong lobe (but keep in mind this only applies to the Y rotation part, the two Z rotations are still accurate). Obviously that level of accuracy is only useful for very specific solutions.</p>
+
+<p>The equations they are attempting to approximate don&#39;t seem to be well suited to Taylor series. But I wonder if this approach could be improved by adjusting the parameterization.</p>
+
+<h3 id="toc_13">Factoring into zonal harmonics</h3>
+
+<p>Derek Nowrouzezahrai, Patricio Simari and Eugene Fiume describe a method in <a href="http://www.cim.mcgill.ca/%7Ederek/files/SHRot_mine.pdf">&quot;Sparse Zonal Harmonic Factorization for Efficient SH Rotation&quot;</a> that involves decomposing an SH coefficient vector into a number of zonal harmonics coefficients with fixed rotations. They found that the coefficients for band <em>l</em> of an arbitrary SH could be represented by a sum of at most <em>2l + 1</em> oriented zonal harmonic coefficients. This leads to a method for rotation that can be more efficient than ZXZXZ, while still being perfectly accurate.</p>
+
+<p>In this method they have some freedom as to pick the orientations for the zonal harmonic coefficients. They describe a technique that attempts to minimize the number of zonal harmonic coefficients required, thereby also reducing the rotation cost. It&#39;s not exactly trivial, but it&#39;s a very interesting approach.</p>
+
+<p>You can still find a <a href="http://www.patapom.com/topics/WebGL/cathedral/intro.html">demo</a> of this technique being used for realtime global illumination in WebGL!</p>
+
+<h2 id="toc_14">Still to come</h2>
+
+<p>So, on this page we covered a lot of stuff -- we wrote the first little bit of shader code, looked at the algorithm for rotating a spherical harmonics coefficient vector, and started explore some methods for optimizing rotations. But there&#39;s still a lot to cover! The methods here for rotating efficiently are interesting, but as we&#39;ll see, there are better options for our applications.</p>
+
+<p>Also to come -- how to apply spherical harmonics to more than just the diffuse reflections we&#39;ve been talking about so far.</p>
+
+    </div>
+    <ul class="tag_box inline">
+      <li><i class="icon-folder-open"></i></li>
+      <li>
+        <a href="/categories#Misc-ref">Misc <span>3</span></a>
+      </li>
+    </ul>
+    <ul class="tag_box inline">
+      <li><i class="icon-tags"></i></li>
+      <li>
+        <a href="/tags#SphericalHarmonics-ref">SphericalHarmonics <span>3</span></a>
+      </li>
+    </ul>
+    <hr>
+    <div class="pagination">
+      <ul>
+          <li class="prev"><a href="/posts/vulkanworkshop2017" title="Vulkan Workshop / DevU 2017">&larr; Previous</a></li>
+
+          <li><a href="/archive">Archive</a></li>
+
+          <li class="next disabled"><a>Next &rarr;</a>
+      </ul>
+    </div>
+    <hr>
+    <div id="disqus_thread"></div>
+<script>
+    var disqus_developer = 1;
+    var disqus_shortname = 'xledev'; // required: replace example with your forum shortname
+    /* * * DON'T EDIT BELOW THIS LINE * * */
+    (function() {
+        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+        dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<a href="http://disqus.com" class="dsq-brlink">blog comments powered by <span class="logo-disqus">Disqus</span></a>
+
+  </div>
+</div>
+
+
+      </div>
+
+      <hr>
+      <div class="footer">
+        <p>&copy; XL Games 2015
+          with help from <a href="http://ruhoh.com" target="_blank" title="The Definitive Technical Blogging Framework">ruhoh</a>
+          and <a href="http://twitter.github.com/bootstrap/" target="_blank">Twitter Bootstrap</a>
+        </p>
+      </div>
+
+    </div> <!-- /container -->
+
+    <!-- Google Prettify -->
+<script src="http://cdnjs.cloudflare.com/ajax/libs/prettify/188.0.0/prettify.js"></script>
+<script>
+  var pres = document.getElementsByTagName("pre");
+  for (var i=0; i < pres.length; ++i) {
+    pres[i].className = "prettyprint linenums";
+  }
+  prettyPrint();
+</script>
+<!-- end Google Prettify -->
+    <script type="text/javascript">
+
+  var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', 'UA-71034032-1']);
+  _gaq.push(['_trackPageview']);
+  
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+
+</script>
+
+
+    
+  </body>
+</html>

@@ -4,7 +4,261 @@
     <title>XLE development blog</title>
     <description>XLE development blog</description>
     <link>http://xlgames-inc.github.io</link>
-    <pubDate>February 01, 2017</pubDate>
+    <pubDate>February 12, 2017</pubDate>
+    <item>
+      <title>Spherical Harmonics and applications in real time graphics (part 3)</title>
+      <link>http://xlgames-inc.github.io/posts/sphericalharmonics2</link>
+      <pubDate>February 12, 2017</pubDate>
+      <description>&lt;p&gt;This is a continuation of the tutorial on spherical harmonic applications for games. On the last page, we figured out the core math for integrating a basic diffuse BRDF with a spherical environment of incident light.&lt;/p&gt;
+
+&lt;h2 id="toc_0"&gt;Efficient implementation&lt;/h2&gt;
+
+&lt;p&gt;So far, we&amp;#39;ve been dealing with spherical harmonics fairly abstractly. But now we can get down to a concrete use and some concrete code. Given our input texture (which effectively describes a sphere of incident light on a point) we want to calculate, for a given normal direction, what is the appropriate diffuse response.&lt;/p&gt;
+
+&lt;p&gt;To explain that more visually, here&amp;#39;s the images from the first page. The first one is the input texture, and the second one is the matching diffuse response (with the same mapping).
+&lt;br/&gt;&lt;img src="/assets/media/SphericalHarmonics/mans_0.jpg"&gt;
+&lt;br/&gt;&lt;img src="/assets/media/SphericalHarmonics/reference.jpg"&gt;
+&lt;br/&gt;(images from sIBL Archive: &lt;a href="http://www.hdrlabs.com/sibl/archive.html"&gt;http://www.hdrlabs.com/sibl/archive.html&lt;/a&gt;)&lt;/p&gt;
+
+&lt;p&gt;Recall that we&amp;#39;ve expressed the BRDF as zonal harmonic coefficients and the incident light environment as spherical harmonic coefficients. We&amp;#39;ve established that we need to use a &amp;quot;convolve&amp;quot; operation to calculate how the BRDF reflects incident light to excident light (this effectively calculates the integral of the BRDF across the incident sphere). We also worked out that we need to rotate the BRDF in order to align it with the direction of the normal.&lt;/p&gt;
+
+&lt;p&gt;To refresh, here&amp;#39;s the equation for convolution and rotation:
+&lt;br/&gt;&lt;img src="/assets/media/SphericalHarmonics/convolve.png"&gt;&lt;/p&gt;
+
+&lt;p&gt;The output of the convolve operation is a set of coefficients, and our final result will be the sum of those coefficients.&lt;/p&gt;
+
+&lt;h3 id="toc_1"&gt;Simplifying&lt;/h3&gt;
+
+&lt;p&gt;Let&amp;#39;s define &lt;em&gt;g&lt;/em&gt; by rearranging the convolve equation:
+&lt;br/&gt;&lt;img src="/assets/media/SphericalHarmonics/convolve2.png"&gt;&lt;/p&gt;
+
+&lt;p&gt;Recall that our coefficients for the cosine lobe zonal harmonic are:
+&lt;br/&gt;&lt;img src="/assets/media/SphericalHarmonics/cosine_lobe_harmonics.png"&gt;&lt;/p&gt;
+
+&lt;p&gt;Now, taking the coefficients for the cosine lobe zonal harmonic, we can calculate &lt;em&gt;g&lt;/em&gt; for each of the bands.&lt;/p&gt;
+
+&lt;h4 id="toc_2"&gt;Band 0 (constant):&lt;/h4&gt;
+
+&lt;p&gt;&lt;br/&gt;&lt;img src="/assets/media/SphericalHarmonics/simplified_convolve_0.png"&gt;&lt;/p&gt;
+
+&lt;h4 id="toc_3"&gt;Band 1:&lt;/h4&gt;
+
+&lt;p&gt;&lt;br/&gt;&lt;img src="/assets/media/SphericalHarmonics/simplified_convolve_1.png"&gt;&lt;/p&gt;
+
+&lt;h4 id="toc_4"&gt;Band 2:&lt;/h4&gt;
+
+&lt;p&gt;&lt;br/&gt;&lt;img src="/assets/media/SphericalHarmonics/simplified_convolve_2.png"&gt;&lt;/p&gt;
+
+&lt;p&gt;As luck would have it,  &lt;em&gt;y()&lt;/em&gt; gets almost completely factored out!&lt;/p&gt;
+
+&lt;h3 id="toc_5"&gt;Shader implementation tricks&lt;/h3&gt;
+
+&lt;p&gt;Notice that the &lt;em&gt;g&lt;/em&gt; values mostly take the form &lt;em&gt;g = constant * q(x,y,z)&lt;/em&gt;, where &lt;em&gt;q(x,y,z)&lt;/em&gt; is the non-constant part of the appropriate spherical harmonic (eg, &lt;em&gt;x&lt;/em&gt;, &lt;em&gt;yz&lt;/em&gt;, etc). The first and seventh equations are a bit special -- the first equation is just a constant value and the seventh equation has 2 terms: a constant part and a &lt;em&gt;z^2&lt;/em&gt; term. We can refactor the equations to combine the constant term with the first equation.&lt;/p&gt;
+
+&lt;p&gt;To make things a little easier on ourselves, we will pre-multiply the spherical harmonic coefficients by the constant values from the associated &lt;em&gt;g&lt;/em&gt; value (taking into account the special case for the seventh one).&lt;/p&gt;
+
+&lt;p&gt;That leads us to this modified version of the original reconstruction equation:
+&lt;br/&gt;&lt;img src="/assets/media/SphericalHarmonics/modified_reconstruction.png"&gt;&lt;/p&gt;
+
+&lt;p&gt;Here, &lt;em&gt;&amp;quot;C&amp;quot;&lt;/em&gt; is the &amp;quot;pre-multiplied&amp;quot; coefficient.&lt;/p&gt;
+
+&lt;p&gt;We can also decide how to vectorize these calculation. We can think of this operation as the dot product of two 9 dimensional vectors; one vector for the pre-multiplied values, one vector containing the evaluations of &lt;em&gt;q(x,y,z)&lt;/em&gt;. We also have to do this 3 times (once for each color primary -- red, green and blue).&lt;/p&gt;
+
+&lt;p&gt;Some older GPUs had vectorized instructions (or SIMD instructions), which meant that it was more efficient to perform instructions on a full 4D vector, rather than single floats. So there are a few implementations around that use two 4D vectors to do 8 components of the dot product for each color channel (and then add the final constant part).&lt;/p&gt;
+
+&lt;p&gt;Modern hardware can keep it&amp;#39;s ARUs busy even when just performing single float instructions and as a result, that form of vectorization is less important. Instead, it&amp;#39;s often easier for us to just rotate the vectorization around and instead use 8 multiply-add operations with 3 dimensional vectors that just represent the rgb color values. This implementation also doesn&amp;#39;t require a dot-product instruction (which, incidentally, was important when implementing this way back on the PS2, where dot products were may difficult due to that hardware&amp;#39;s instruction scheduling behaviour).&lt;/p&gt;
+
+&lt;h3 id="toc_6"&gt;Final shader&lt;/h3&gt;
+
+&lt;p&gt;So our final shader implementation turns out to be very basic. XLE uses the second, more straight-forward kind of implementation. We can pre-multiply the &lt;em&gt;&amp;quot;C&amp;quot;&lt;/em&gt; constant values on the CPU side (typically either on a per-object basis or a per-scene basis).&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class="GLSL"&gt;float3 ResolveSH_Opt(float3 premulCoefficients[9], float3 dir)
+{
+    float3 result = premulCoefficients[0];
+
+    result += premulCoefficients[1] * dir.y;
+    result += premulCoefficients[2] * dir.z;
+    result += premulCoefficients[3] * dir.x;
+
+    float3 dirSq = dir * dir;
+    result += premulCoefficients[4] * (dir.x * dir.y);
+    result += premulCoefficients[5] * (dir.z * dir.y);
+    result += premulCoefficients[6] * dirSq.z;
+    result += premulCoefficients[7] * (dir.x * dir.z);
+    result += premulCoefficients[8] * (dirSq.x - dirSq.y);
+    return result;
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Recall that the &lt;em&gt;x&lt;/em&gt;, &lt;em&gt;y&lt;/em&gt;, &lt;em&gt;z&lt;/em&gt; inputs to &lt;em&gt;q(x,y,z)&lt;/em&gt; are the normal (and it must actually be unit length) -- this is the parameter &lt;em&gt;dir&lt;/em&gt; in the above shader. We can choose to evaluate the spherical harmonic on the vertex shader or on the fragment shader. When using normal maps that will typically mean evaluating in the fragment shader.&lt;/p&gt;
+
+&lt;p&gt;For lower power hardware, if we have reasonably dense geometry we can evaluate in the vertex shader. This style of lighting is naturally fairly soft and smooth, so linear interpolation across the triangle will often produce reasonable results. But there&amp;#39;s one more important detail we haven&amp;#39;t discussed: the normal must be in the same coordinate space as the evaluated spherical harmonic coefficients! So does this mean we must transform the normal into world space and do all calculations in that space? That&amp;#39;s an option, but as we&amp;#39;ll see, there&amp;#39;s another way as well.&lt;/p&gt;
+
+&lt;h2 id="toc_7"&gt;Rotation&lt;/h2&gt;
+
+&lt;p&gt;One of the key properties of systems like this that use the spherical harmonics is that they are rotationally invariant. If means that if we can rotate our diffuse reflection approximation (and we can), then we will not loose any precision. Imagine an environment with a bright white light in the +Z direction. If we rotate the environment so that light is in another direction (let&amp;#39;s say, +X), then we want the shape and brightness of the light to remain exactly the same. &amp;quot;Rotationally invariant&amp;quot; means that this will be the case regardless of how we rotate the environment. Even though the spherical harmonics appear to use &lt;em&gt;x&lt;/em&gt;, &lt;em&gt;y&lt;/em&gt; &amp;amp; &lt;em&gt;z&lt;/em&gt; differentially, there is no actual bias for any direction (this may be clearer to see in the polar coordinate versions of the harmonics).&lt;/p&gt;
+
+&lt;p&gt;To rotate a spherical harmonic lighting environment, we must take each band one-at-time. Band 0 is just a constant, so it requires no rotation. In band 1 (which is 3 components), the equation is actually just a permutation of the basic 3x3 rotation matrix operation (which should make intuitive sense, given the directional parts in the band 1 are just &lt;em&gt;x&lt;/em&gt;, &lt;em&gt;y&lt;/em&gt;, &lt;em&gt;z&lt;/em&gt;). For the band 2 and beyond, we need something more involved.&lt;/p&gt;
+
+&lt;h3 id="toc_8"&gt;Rotating the band 2&lt;/h3&gt;
+
+&lt;p&gt;There is a general formula for rotating spherical harmonics coefficients of an arbitrary band. We&amp;#39;ll use this to handle band 2.&lt;/p&gt;
+
+&lt;p&gt;In &lt;a href="http://silviojemma.com/public/papers/lighting/spherical-harmonic-lighting.pdf"&gt;&amp;quot;Spherical Harmonic Lighting: The Gritty Details&amp;quot;&lt;/a&gt;, Appendix 1, Robin Green describes the basic method we&amp;#39;ll be using, which is derived from work by Josepth Ivanic and Klaus Ruedenberg. We have to make some changes to the math, however -- are a couple of import modifications we need to make. First, Robin Green isn&amp;#39;t using the &lt;strong&gt;Condon-Shortley phase&lt;/strong&gt; (described in the first part), but we are. Second, there&amp;#39;s a small errata in the &lt;em&gt;V&lt;/em&gt; matrix.&lt;/p&gt;
+
+&lt;p&gt;We&amp;#39;ll start by defining six 5x5 matrices: &lt;em&gt;u&lt;/em&gt;, &lt;em&gt;v&lt;/em&gt;, &lt;em&gt;w&lt;/em&gt; and &lt;em&gt;U&lt;/em&gt;, &lt;em&gt;V&lt;/em&gt;, &lt;em&gt;W&lt;/em&gt;. The elements of the final rotation matrix, &lt;em&gt;M&lt;/em&gt; will be constructed from these matrices in this way:&lt;/p&gt;
+
+&lt;p&gt;&lt;br/&gt;&lt;img src="/assets/media/SphericalHarmonics/rotation_construction.png"&gt;&lt;/p&gt;
+
+&lt;p&gt;The elements of &lt;em&gt;u&lt;/em&gt;, &lt;em&gt;v&lt;/em&gt; and &lt;em&gt;w&lt;/em&gt; are dependent only on &lt;em&gt;l&lt;/em&gt; (the band index) &lt;em&gt;m&lt;/em&gt; and &lt;em&gt;n&lt;/em&gt;. In other words, &lt;em&gt;u&lt;/em&gt;, &lt;em&gt;v&lt;/em&gt; and &lt;em&gt;w&lt;/em&gt; are all constant for band 2. The elements of &lt;em&gt;U&lt;/em&gt;, &lt;em&gt;V&lt;/em&gt; and &lt;em&gt;W&lt;/em&gt; are dependent on the rotation matrix for the &lt;em&gt;previous&lt;/em&gt; band (ie, the permutated rotation matrix we used for band 1).&lt;/p&gt;
+
+&lt;p&gt;Robin Green shows the definition of these matrices, but given the notes above and since it is a lot of abstract maths, I won&amp;#39;t duplicate it here. Instead I&amp;#39;ll give some code.&lt;/p&gt;
+
+&lt;p&gt;(BTW, as a side note, if you look closely at the definitions for these matrices, you&amp;#39;ll see cases that can result in a divide by zero. In these cases, the element on the complementary matrix is zero.)&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class="C++"&gt;const int l=2;
+Mat5x5 P[3];
+memset(&amp;amp;P, 0, sizeof(P));       // (i==-l &amp;amp;&amp;amp; l==l rows not filled in by the below loop)
+for (int i=-1; i&amp;lt;=1; ++i) {
+    for (int a=-1; a&amp;lt;=1; ++a) {
+        for (int b=-l; b&amp;lt;=l; ++b) {
+            float&amp;amp; dst = P[i+1][a+l][b+l];
+            if (b==l) {
+                dst =   band1Rotation[i+1][2] * band1Rotation[a+1][ l-1+1]
+                    -   band1Rotation[i+1][0] * band1Rotation[a+1][-l+1+1];
+            } else if (b==-l) {
+                dst =   band1Rotation[i+1][2] * band1Rotation[a+1][-l+1+1]
+                    +   band1Rotation[i+1][0] * band1Rotation[a+1][ l-1+1];
+            } else {
+                dst =   band1Rotation[i+1][1] * band1Rotation[a+1][b+1];
+            }
+        }
+    }
+}
+
+Mat5x5 uMat, vMat, wMat;
+Mat5x5 UMat, VMat, WMat;
+for (int m=-l; m&amp;lt;=l; ++m) {
+    for (int n=-l; n&amp;lt;=l; ++n) {
+        auto kroneckerDeltam0 = (m==0) ? 1 : 0;
+        auto absm = abs(m);
+        float d = (n==-l || n==l) ? (2*l*(2*l-1)) : (l+n)*(l-n);
+        uMat[m+l][n+l] =        sqrtf(float((l+m)*(l-m))/d);
+        vMat[m+l][n+l] =  .5f * sqrtf(float((1+kroneckerDeltam0)*(l+absm-1)*(l+absm))/d) * float(1-2*kroneckerDeltam0);
+        wMat[m+l][n+l] = -.5f * sqrtf(float((l-absm-1)*(l-absm))/d) * float(1-kroneckerDeltam0);
+
+        // note --  wMat[m+l][n+l] will be zero if (m == l-1) || (m == l) || (m == 0)
+        //          In these cases, the associated &amp;#39;W&amp;#39; value is undefined -- so we avoid calculating it in those cases
+        //          For band 2, this is always the case! Since &amp;#39;w&amp;#39; is always zero, we also never
+        //          actually need to calculate &amp;#39;W&amp;#39;
+
+        auto kroneckerDeltam1    = (m== 1) ? 1 : 0;
+        auto kroneckerDeltamneg1 = (m==-1) ? 1 : 0;
+        float&amp;amp; U = UMat[m+l][n+l];
+        float&amp;amp; V = VMat[m+l][n+l];
+        float&amp;amp; W = WMat[m+l][n+l];
+        U = P[ 0+1][   m+l][n+l];
+        assert((n+l) &amp;gt;= 0 &amp;amp;&amp;amp; (n+l) &amp;lt; 5);
+        if (m==0) {
+            V = P[ 1+1][   1+l][n+l] + P[-1+1][  -1+l][n+l];
+            W = P[ 1+1][ m+1+l][n+l] + P[-1+1][-m-1+l][n+l];        // redundant, but no danger of an out-of-bound matrix access in this case
+        } else if (m&amp;gt;0) {
+            V = P[ 1+1][ m-1+l][n+l] * sqrtf(float(1+kroneckerDeltam1))
+              - P[-1+1][-m+1+l][n+l] * float(1-kroneckerDeltam1);
+            if (wMat[m+l][n+l] != 0.f) {
+                assert(isValidA(m+1, l) &amp;amp;&amp;amp; isValidA(-m-1, l));
+                W = P[ 1+1][ m+1+l][n+l] + P[-1+1][-m-1+l][n+l];
+            } else {
+                W = 0.f;        // (always the case)
+            }
+        } else if (m&amp;lt;0) {
+            V = P[ 1+1][ m+1+l][n+l] * float(1-kroneckerDeltamneg1)
+              + P[-1+1][-m-1+l][n+l] * sqrtf(float(1+kroneckerDeltamneg1));         // (Google)
+            if (wMat[m+l][n+l] != 0.f) {
+                W = P[ 1+1][ m-1+l][n+l] - P[-1+1][-m+1+l][n+l];
+            } else {
+                W = 0.f;        // (always the case)
+            }
+        }
+    }
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;This code has been thoroughly tested, and is reliable. But since this algorithm seems to have been copied out incorrectly in a number of places, I&amp;#39;ll also point out a few other identical implementations:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;a href="https://www.mathworks.com/matlabcentral/fileexchange/15377-real-valued-spherical-harmonics/content/spherical_harmonics/SHRotate.m"&gt;in MATLAB code&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://github.com/polarch/Spherical-Harmonic-Transform/blob/master/getSHrotMtx.m"&gt;also MATLAB&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://github.com/google/spherical-harmonics/blob/master/sh/spherical_harmonics.cc"&gt;C++&lt;/a&gt; (but beware errors in other parts of this source file)&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id="toc_9"&gt;Evaluation in local space&lt;/h3&gt;
+
+&lt;p&gt;Rotating a spherical harmonic coefficient vector allows us to do the shader evaluation in any coordinate space we choose. In some cases, it may be convenient to do the evaluation in the local coordinate space for an object. This is now possible, we just rotate the spherical harmonic coefficients by the inverse of the rotation part of the local-to-world transform (ie, thereby transforming the spherical harmonic coefficients into the object&amp;#39;s local space).&lt;/p&gt;
+
+&lt;p&gt;This is an interesting advantage of spherical harmonics over cubemaps. Because we&amp;#39;re defining our environment mathematically and continuously, they can be a little more malleable.&lt;/p&gt;
+
+&lt;h2 id="toc_10"&gt;Practical rotation&lt;/h2&gt;
+
+&lt;p&gt;The above method is a great reference method for rotating band 2. But it&amp;#39;s not very practical in real-world cases. We want something that is at least efficient enough to be done once per object. In an ideal world (as we may see later), we want to be able to do it at a much more granular level. But to do this, we need something far more efficient!&lt;/p&gt;
+
+&lt;p&gt;There are a number of different approaches to optimizing rotations. Some methods introduce some errors, others are accurate. But we break them down into 3 broad categories:&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;factoring arbitrary rotations into rotations around cardinal axes&lt;/li&gt;
+&lt;li&gt;replacing the expensive parts of the algorithm, with cheap approximations&lt;/li&gt;
+&lt;li&gt;algebraically refactoring the full rotation algorithm into a form that is specific to band 2 and well suited to our hardware&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;I&amp;#39;m going to talk about a few of the alternatives, before finally explaining the method I&amp;#39;ve been using.&lt;/p&gt;
+
+&lt;h3 id="toc_11"&gt;Efficient rotation through cardinal rotations&lt;/h3&gt;
+
+&lt;p&gt;The rotation matrix method above can calculate a transformation matrix for any arbitrary rotation. But it turns out that for some rotations (particularly rotations around the cardinal axes), many elements of the matrix are zero. Furthermore, in the case of rotations around the Z axis, even the non-zero elements are very easy to calculate.&lt;/p&gt;
+
+&lt;p&gt;In fact, rotation around the Z axis just follow this template:
+&lt;br/&gt;&lt;img src="/assets/media/SphericalHarmonics/z_rotation_band3.png"&gt;&lt;/p&gt;
+
+&lt;p&gt;This can actually help us generate a full rotation matrix for an arbitrary rotation. Recall that it&amp;#39;s possible to decompose any 3D rotation into Euler angle form. In this form, the rotation is described by 3 angles, and each angle is a rotation around a cardinal axis. For example, a rotation in &amp;quot;XYZ&amp;quot; Euler angles form would be 3 angles, one representing a rotation around the X axis, another for a rotation around the Y axis and another for a rotation around the Z axis.&lt;/p&gt;
+
+&lt;p&gt;There are many different forms of Euler angles, but the form we&amp;#39;re going to use is &amp;quot;ZYZ&amp;quot; form. In this form, there are 2 rotations around the Z axis; but due to the rotation around the Y axis in the middle, the second Z axis is enough to provide the third degree of freedom we need.&lt;/p&gt;
+
+&lt;p&gt;Clearly this is convenient because we can just use the simple template above to build the rotation matrices for the two rotations about the Z direction. After we also build the rotation matrix for the rotation around Y, we will just multiply those 3 rotation matrices together.&lt;/p&gt;
+
+&lt;p&gt;But how to generate a rotation around the Y axis? Unfortunately, rotations around the Y axis don&amp;#39;t come out as cleanly as rotations around the Z axis. But we can use another trick. We can rotate the entire coordinate space to align the Y axis with the Z axis. Then we just rotate around the Z axis again, and rotate coordinate space back.&lt;/p&gt;
+
+&lt;p&gt;Aligning Y with Z requires a 90 degree rotation around the X axis (though it may depend on the handiness of your coordinate system). This method actually ends up requiring us to multiply together 5 rotation matrices. 3 of those are rotations around Z, and the remaining 2 are constant matrices.&lt;/p&gt;
+
+&lt;p&gt;This method is called &amp;quot;ZXZXZ&amp;quot; (referencing the 3 Z rotations and the two &amp;quot;aligning&amp;quot; X axis rotations). It was first proposed by Kautz, Sloan and Synder in &lt;a href="https://pdfs.semanticscholar.org/a467/0bd7d799d452085de1ac9f9840aecb006116.pdf"&gt;Fast, Arbitrary BRDF Shading for Low-Frequency Lighting
+Using Spherical Harmonics&lt;/a&gt; (hidden away in the appendix).&lt;/p&gt;
+
+&lt;h3 id="toc_12"&gt;Substituting approximations&lt;/h3&gt;
+
+&lt;p&gt;The ZXZXZ method give us accurate results, but the 2 extra matrix multiplies added by the &amp;quot;XZX&amp;quot; step are still frustrating. It would be much nicer if we could just generate an arbitrary rotation around X or Y directly.&lt;/p&gt;
+
+&lt;p&gt;Sometimes it can be profitable to simplify a complex equation using a standard approximation technique, such as a Taylor series. This has been proposed as solution to our problem by Jaroslav Krivanek, Jaakko Konttinen, Sumanta Pattanaik and Kadi Bouatouch in &lt;a href="http://cgg.mff.cuni.cz/%7Ejaroslav/papers/2006-sccg/2006-sccg-krivanek-shrot.pdf"&gt;&amp;quot;Fast Approximation to Spherical Harmonic Rotation&amp;quot;&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;Their goal is to rotate coefficient vectors for higher order bands (eg, 5+ bands) that represent specular response. This makes it view-dependent, which requires rotating once per fragment shader (as opposed to once per object, as in our diffuse methods).&lt;/p&gt;
+
+&lt;p&gt;They found that their method was accurate for rotations less than 20 degrees for their Phong lobe (but keep in mind this only applies to the Y rotation part, the two Z rotations are still accurate). Obviously that level of accuracy is only useful for very specific solutions.&lt;/p&gt;
+
+&lt;p&gt;The equations they are attempting to approximate don&amp;#39;t seem to be well suited to Taylor series. But I wonder if this approach could be improved by adjusting the parameterization.&lt;/p&gt;
+
+&lt;h3 id="toc_13"&gt;Factoring into zonal harmonics&lt;/h3&gt;
+
+&lt;p&gt;Derek Nowrouzezahrai, Patricio Simari and Eugene Fiume describe a method in &lt;a href="http://www.cim.mcgill.ca/%7Ederek/files/SHRot_mine.pdf"&gt;&amp;quot;Sparse Zonal Harmonic Factorization for Efficient SH Rotation&amp;quot;&lt;/a&gt; that involves decomposing an SH coefficient vector into a number of zonal harmonics coefficients with fixed rotations. They found that the coefficients for band &lt;em&gt;l&lt;/em&gt; of an arbitrary SH could be represented by a sum of at most &lt;em&gt;2l + 1&lt;/em&gt; oriented zonal harmonic coefficients. This leads to a method for rotation that can be more efficient than ZXZXZ, while still being perfectly accurate.&lt;/p&gt;
+
+&lt;p&gt;In this method they have some freedom as to pick the orientations for the zonal harmonic coefficients. They describe a technique that attempts to minimize the number of zonal harmonic coefficients required, thereby also reducing the rotation cost. It&amp;#39;s not exactly trivial, but it&amp;#39;s a very interesting approach.&lt;/p&gt;
+
+&lt;p&gt;You can still find a &lt;a href="http://www.patapom.com/topics/WebGL/cathedral/intro.html"&gt;demo&lt;/a&gt; of this technique being used for realtime global illumination in WebGL!&lt;/p&gt;
+
+&lt;h2 id="toc_14"&gt;Still to come&lt;/h2&gt;
+
+&lt;p&gt;So, on this page we covered a lot of stuff -- we wrote the first little bit of shader code, looked at the algorithm for rotating a spherical harmonics coefficient vector, and started explore some methods for optimizing rotations. But there&amp;#39;s still a lot to cover! The methods here for rotating efficiently are interesting, but as we&amp;#39;ll see, there are better options for our applications.&lt;/p&gt;
+
+&lt;p&gt;Also to come -- how to apply spherical harmonics to more than just the diffuse reflections we&amp;#39;ve been talking about so far.&lt;/p&gt;
+</description>
+    </item>
     <item>
       <title>Vulkan Workshop / DevU 2017</title>
       <link>http://xlgames-inc.github.io/posts/vulkanworkshop2017</link>
@@ -179,15 +433,15 @@ It&amp;#39;s also a polynomial approximation of a non-polynomial function, so it
 
 &lt;p&gt;That might sound difficult enough, but there&amp;#39;s even more to it than that. Our cosine lobe zonal harmonic coefficients are defined only for a normal along +Z. We need a way to rotate the zonal harmonic coefficients relative to the spherical harmonic coefficients (which would be the same as rotating the normal from +Z to some arbitrary direction). We would rotate spherical harmonic coefficients (which we can do arbitrarily and without loss) but actually that formula is fairly expensive. We want something more efficient.&lt;/p&gt;
 
-&lt;p&gt;It turns out that there is a way to do all of this at once -- find the convolution and also rotate the zonal harmonic. The equation is oddly simple, and (fortunately for us!) the result is just another set of  spherical harmonic coefficients.&lt;/p&gt;
+&lt;p&gt;It turns out that there is a way to do all of this at once -- find the convolution and also rotate the zonal harmonic. The equation is oddly simple, and (fortunately for us!) the result is just another set of coefficients, which when added together will give us the final reconstruction.&lt;/p&gt;
 
 &lt;p&gt;See &lt;a href="http://www.ppsloan.org/publications/ldprt_final05.pdf"&gt;Local, Deformable Precomputed Radiance Transfer&lt;/a&gt; by Sloan, Luna &amp;amp; Snyder:
 &lt;br/&gt;&lt;img src="/assets/media/SphericalHarmonics/convolve.png"&gt;
 &lt;br/&gt;&lt;/p&gt;
 
-&lt;p&gt;Where &lt;em&gt;h&lt;/em&gt; are zonal harmonic coefficients, &lt;em&gt;c&lt;/em&gt; are spherical harmonic coefficients, &lt;em&gt;y&lt;/em&gt; are the basic SH constants (from the previous page), &lt;em&gt;&amp;lt;x,y,z&amp;gt;&lt;/em&gt; is the direction that +Z will be rotated onto, and &lt;em&gt;[c * h]&lt;/em&gt; are the convolved coefficients.&lt;/p&gt;
+&lt;p&gt;Where &lt;em&gt;h&lt;/em&gt; are zonal harmonic coefficients, &lt;em&gt;c&lt;/em&gt; are spherical harmonic coefficients, &lt;em&gt;y&lt;/em&gt; are the basic SH constants (from the previous page), &lt;em&gt;&amp;lt;x,y,z&amp;gt;&lt;/em&gt; is the direction that +Z will be rotated onto, and &lt;em&gt;[c * h]&lt;/em&gt; are the convolved output coefficients.&lt;/p&gt;
 
-&lt;p&gt;The result (finally) are spherical harmonic coefficients that represent the diffuse response, for a given environment, for a given direction. If we were use the reconstruction formulae with these coefficients, we would end up with a function wherein the input is a normal direction, and the output is a value that takes into account all incident light, from all directions. And -- to an extraordinarily high accuracy -- we can do that for any environment using just 9 color coefficients.&lt;/p&gt;
+&lt;p&gt;The result (finally) are coefficients that represent the diffuse response, for a given environment, for a given direction. If we summed these coefficients, we would end up with a value that takes into account all incident light, from all directions. And -- to an extraordinarily high accuracy. This works for any environment, and all of this comes from just 9 color coefficients.&lt;/p&gt;
 
 &lt;p&gt;This is the equation that makes all of this crazy stuff possible. We&amp;#39;ve effectively reduced a very complex integral down to a really basic equation. If we didn&amp;#39;t have such as simple formula for this convolution and rotation then math might have become unwieldy enough to be unmanageable.&lt;/p&gt;
 
@@ -1679,37 +1933,6 @@ Remember that &lt;strong&gt;&amp;quot;D&amp;quot;&lt;/strong&gt; represents how 
 &lt;p&gt;The problem is related to how we&amp;#39;re sampling the microfacet normals. As you can imagine, when normals are near perpendicular to view direction, sometimes the microfacet normal will end up pointing away from the view direction. When this happens, we can reject the sample (or calculate some value close to black). When the number of samples rejected is too high, we will end up with a result that is not accurate.&lt;/p&gt;
 
 &lt;p&gt;This tends to only affect a few pixels, but it&amp;#39;s enough to pop out. We need some better solution around these edge parts.&lt;/p&gt;
-</description>
-    </item>
-    <item>
-      <title>Transmitted specular progress</title>
-      <link>http://xlgames-inc.github.io/posts/transmittedspecular2</link>
-      <pubDate>January 29, 2016</pubDate>
-      <description>&lt;p&gt;Just a quick update... I&amp;#39;ve been making some great progress with transmitted specular for IBL!&lt;/p&gt;
-
-&lt;p&gt;&lt;br/&gt;&lt;img src="/assets/media/TransSpec/TransSphereMat.png"&gt;&lt;/p&gt;
-
-&lt;p&gt;These screenshots will look a little strange (I mean that black borders &amp;amp; grainyness), because it&amp;#39;s a debugging rendering mode.&lt;/p&gt;
-
-&lt;p&gt;&lt;br/&gt;&lt;img src="/assets/media/TransSpec/TransSphereMat2.png"&gt;&lt;/p&gt;
-
-&lt;p&gt;I&amp;#39;ve got the split-term stuff going; and it looks like it should be practical. I&amp;#39;d prefer to avoid having yet another cubemap, so maybe there&amp;#39;s some way to just reuse the reflection filtered cubemap. Its seems reasonable to say that the filtering should be similar. We just need some way to calculate the amount of blurriness that is correct for transmissions.&lt;/p&gt;
-
-&lt;p&gt;&lt;br/&gt;&lt;img src="/assets/media/TransSpec/TransSphereMat3.png"&gt;&lt;/p&gt;
-
-&lt;p&gt;Speaking of that, I&amp;#39;ve been thinking the type of filtering that is applied to the specular map. More on that later.&lt;/p&gt;
-
-&lt;p&gt;Next week I&amp;#39;ll post some proper screenshots &amp;amp; a whole lot of details!&lt;/p&gt;
-
-&lt;p&gt;I made some interesting observations while doing this, I&amp;#39;ve got a bunch of new changes and improvements for IBL. Check out the &amp;quot;experimental&amp;quot; branch for now.&lt;/p&gt;
-
-&lt;p&gt;BTW, the node diagram for the GGX BSDF equation looks a little nicer now --&lt;/p&gt;
-
-&lt;p&gt;&lt;br/&gt;&lt;img src="/assets/media/TransSpec/BSDFNodes2.png"&gt;&lt;/p&gt;
-
-&lt;p&gt;(See the older version here:&lt;a href="transmissionnodegraph"&gt;Transmission Node Diagram&lt;/a&gt;)&lt;/p&gt;
-
-&lt;p&gt;As you can see in the diagram, the equations are causing a lot of light to get focused in around the edges. This seems to be exaggerated when roughness is very high. That might require a little more investigation next week.&lt;/p&gt;
 </description>
     </item>
   </channel>
